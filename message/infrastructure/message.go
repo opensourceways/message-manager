@@ -277,14 +277,21 @@ func GenQuery(query *gorm.DB, params CmdToGetInnerMessage) *gorm.DB {
 
 func GenQueryQuick(query *gorm.DB, data MessageSubscribeDAO) *gorm.DB {
 	var modeFilterMap map[string]interface{}
-	_ = json.Unmarshal(data.ModeFilter, &modeFilterMap)
-
+	err := json.Unmarshal(data.ModeFilter, &modeFilterMap)
+	if err != nil {
+		logrus.Errorf("unmarshal modefilter failed, err:%v", err)
+		return query
+	}
 	query = query.Where("inner_message.source = ?", data.Source)
 	query = query.Where("cloud_event_message.type = ?", data.EventType)
 
 	for k, v := range modeFilterMap {
 		splitK := strings.Split(k, ".")
-		vString := v.(string)
+		vString, ok := v.(string)
+		if !ok {
+			logrus.Errorf("it's not ok for type string")
+			break
+		}
 		queryString := generateJSONBExtractPath(splitK)
 
 		if strings.Contains(k, "Sender.Name") {

@@ -6,6 +6,7 @@ package cassandra
 
 import (
 	"github.com/gocql/gocql"
+	"golang.org/x/xerrors"
 )
 
 var (
@@ -23,7 +24,7 @@ func Init(cfg *Config) error {
 	}
 	sessionInstance, err := cluster.CreateSession()
 	if err != nil {
-		panic(err)
+		return xerrors.Errorf("create session failed, err:%v", err)
 	}
 
 	session = sessionInstance

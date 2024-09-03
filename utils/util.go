@@ -13,13 +13,15 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"golang.org/x/xerrors"
 )
 
 const (
-	eurSource     = "https://eur.openeuler.openatom.cn"
-	giteeSource   = "https://gitee.com"
-	meetingSource = "https://www.openEuler.org/meeting"
-	cveSource     = "cve"
+	EurSource     = "https://eur.openeuler.openatom.cn"
+	GiteeSource   = "https://gitee.com"
+	MeetingSource = "https://www.openEuler.org/meeting"
+	CveSource     = "cve"
 
 	eulerUserSigUrl   = "https://dsapi.osinfra.cn/query/user/ownertype?community=openeuler&user=%s"
 	giteeUserReposUrl = "https://gitee.com/api/v5/users/%s/repos?type=all&sort=full_name&page=%d&per_page=%d"
@@ -38,19 +40,19 @@ func ParseUnixTimestamp(timestampStr string) *time.Time {
 }
 
 func IsEurMessage(source string) bool {
-	return source == eurSource
+	return source == EurSource
 }
 
 func IsGiteeMessage(source string) bool {
-	return source == giteeSource
+	return source == GiteeSource
 }
 
 func IsMeetingMessage(source string) bool {
-	return source == meetingSource
+	return source == MeetingSource
 }
 
 func IsCveMessage(source string) bool {
-	return source == cveSource
+	return source == CveSource
 }
 
 func sortStringList(strList []string) []string {
@@ -173,14 +175,20 @@ func GetUserAdminRepos(userName string) ([]string, error) {
 		repos = append(repos, members...)
 
 		if totalCount == 0 {
-			totalCount, _ = strconv.Atoi(resp.Header.Get("total_count"))
+			totalCount, err = strconv.Atoi(resp.Header.Get("total_count"))
+			if err != nil {
+				return nil, xerrors.Errorf("trans to int failed, err:%v", err)
+			}
 		}
 
 		if len(members) < perPage {
 			break
 		}
 		page++
-		resp.Body.Close()
+		err = resp.Body.Close()
+		if err != nil {
+			return nil, xerrors.Errorf("close body failed, err :%v", err)
+		}
 	}
 
 	var adminRepos []string

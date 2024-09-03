@@ -68,8 +68,14 @@ func validateData(email string, phoneNumber string) error {
 func (s *messageRecipientAppService) GetRecipientConfig(ctx *gin.Context) (
 	[]MessageRecipientDTO, int64, error) {
 
-	countPerPage, _ := strconv.Atoi(ctx.Query("count_per_page"))
-	pageNum, _ := strconv.Atoi(ctx.Query("page"))
+	countPerPage, err := strconv.Atoi(ctx.Query("count_per_page"))
+	if err != nil {
+		return []MessageRecipientDTO{}, 0, xerrors.Errorf("trans to int failed, err:%v", err)
+	}
+	pageNum, err := strconv.Atoi(ctx.Query("page"))
+	if err != nil {
+		return []MessageRecipientDTO{}, 0, xerrors.Errorf("trans to int failed, err:%v", err)
+	}
 	userName, err := user.GetEulerUserName(ctx)
 	if err != nil {
 		return []MessageRecipientDTO{}, 0, xerrors.Errorf("get username failed, err:%v", err.Error())

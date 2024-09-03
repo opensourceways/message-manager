@@ -10,9 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/opensourceways/message-manager/utils"
 	"golang.org/x/xerrors"
 	"gorm.io/datatypes"
+
+	"github.com/opensourceways/message-manager/utils"
 )
 
 func TransToDbFormat(source string, eventType string, request CmdToGetSubscribe) (datatypes.JSON,
