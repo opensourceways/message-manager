@@ -60,7 +60,7 @@ type MessageRecipientDAO struct {
 }
 
 type MessageSubscribeDAO struct {
-	Id          string         `json:"id,omitempty"`
+	Id          uint           `gorm:"primaryKey;autoIncrement" json:"id,omitempty"`
 	Source      string         `gorm:"column:source"        json:"source"`
 	EventType   string         `gorm:"column:event_type"    json:"event_type"`
 	SpecVersion string         `gorm:"column:spec_version"  json:"spec_version"`
