@@ -169,7 +169,7 @@ func getDefaultFilter(userName string, giteeUserName string) ([]MessageSubscribe
 	return defaultFilter, nil
 }
 
-func addPushConfig(subsId int, recipientId int64, userName string) error {
+func addPushConfig(subsId int, recipientId int64) error {
 	needMessage, needPhone, needMail, needInnerMessage := new(bool), new(bool), new(bool), new(bool)
 	*needMessage = false
 	*needPhone = false
@@ -180,7 +180,6 @@ func addPushConfig(subsId int, recipientId int64, userName string) error {
 	if result := postgresql.DB().Table("message_center.push_config").
 		Where(gorm.Expr("is_deleted = ?", false)).
 		Where("subscribe_id = ? AND recipient_id = ?", subsId, recipientId).
-		Where("user_name = ?", userName).
 		Scan(&existData); result.RowsAffected != 0 {
 		return nil
 	}
@@ -235,7 +234,7 @@ func subscribeDefault(recipientId uint, userName string, giteeUserName string) {
 			break
 		}
 
-		err = addPushConfig(int(newSubsConfig.Id), int64(recipientId), userName)
+		err = addPushConfig(int(newSubsConfig.Id), int64(recipientId))
 		if err != nil {
 			logrus.Errorf("add push config failed, err:%v", err)
 			return
