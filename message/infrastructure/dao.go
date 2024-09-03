@@ -69,20 +69,12 @@ type MessageSubscribeDAO struct {
 	CreatedAt   time.Time      `gorm:"column:created_at"    json:"created_at"  swaggerignore:"true"`
 	UpdatedAt   time.Time      `gorm:"column:updated_at"    json:"updated_at"  swaggerignore:"true"`
 	UserName    string         `gorm:"column:user_name"     json:"user_name"`
+	IsDefault   *bool          `gorm:"column:is_default"    json:"is_default"`
 }
 
 type CountDAO struct {
 	Source string `json:"source"`
 	Count  int    `json:"count"`
-}
-
-type PushInfo struct {
-	RecipientId      int64  `gorm:"column:recipient_id"       json:"recipient_id"`
-	RecipientName    string `gorm:"column:recipient_name"     json:"recipient_name"`
-	NeedMessage      bool   `gorm:"column:need_message"       json:"need_message"`
-	NeedPhone        bool   `gorm:"column:need_phone"         json:"need_phone"`
-	NeedMail         bool   `gorm:"column:need_mail"          json:"need_mail"`
-	NeedInnerMessage bool   `gorm:"column:need_inner_message" json:"need_inner_message"`
 }
 
 type CmdToGetInnerMessageQuick struct {

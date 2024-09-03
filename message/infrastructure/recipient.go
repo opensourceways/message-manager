@@ -225,6 +225,7 @@ func subscribeDefault(recipientId uint, userName string, giteeUserName string) {
 			continue
 		}
 
+		isDefault := true
 		newSubsConfig := MessageSubscribeDAO{
 			Source:      subs.Source,
 			EventType:   subs.EventType,
@@ -234,6 +235,7 @@ func subscribeDefault(recipientId uint, userName string, giteeUserName string) {
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
 			UserName:    userName,
+			IsDefault:   &isDefault,
 		}
 		if result := postgresql.DB().Table("message_center.subscribe_config").
 			Create(&newSubsConfig); result.Error != nil {
