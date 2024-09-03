@@ -161,9 +161,16 @@ func getDefaultFilter(userName string, giteeUserName string) ([]MessageSubscribe
 		{Source: utils.GiteeSource, EventType: "note", SpecVersion: "1.0", ModeName: "我提的issue的评论",
 			ModeFilter: datatypes.JSON(fmt.Sprintf(
 				`{"NoteEvent.Issue.User.Login": "eq=%s"}`, giteeUserName))},
-		{Source: utils.MeetingSource, EventType: "build", SpecVersion: "1.0", ModeName: "待我参加的会议",
+	}
+
+	if len(mySig) != 0 {
+		defaultFilter = append(defaultFilter, MessageSubscribeDAO{
+			Source:      utils.MeetingSource,
+			EventType:   "build",
+			SpecVersion: "1.0",
+			ModeName:    "待我参加的会议",
 			ModeFilter: datatypes.JSON(
-				fmt.Sprintf(`{"Msg.GroupName": "oneof=%s"}`, strings.Join(mySig, " ")))},
+				fmt.Sprintf(`{"Msg.GroupName": "oneof=%s"}`, strings.Join(mySig, " ")))})
 	}
 
 	return defaultFilter, nil
