@@ -15,7 +15,7 @@ import (
 )
 
 type MessagePushAppService interface {
-	GetPushConfig(ctx *gin.Context, subsIds []string) ([]domain.MessagePushDTO, error)
+	GetPushConfig(ctx *gin.Context, subsIds []string) ([]MessagePushDTO, error)
 	AddPushConfig(cmd *CmdToAddPushConfig) error
 	UpdatePushConfig(cmd *CmdToUpdatePushConfig) error
 	RemovePushConfig(cmd *CmdToDeletePushConfig) error
