@@ -275,7 +275,7 @@ func GenQuery(query *gorm.DB, params CmdToGetInnerMessage) *gorm.DB {
 	return query
 }
 
-func GenQueryQuick(query *gorm.DB, data MessageSubscribeDTO) *gorm.DB {
+func GenQueryQuick(query *gorm.DB, data MessageSubscribeDAO) *gorm.DB {
 	var modeFilterMap map[string]interface{}
 	_ = json.Unmarshal(data.ModeFilter, &modeFilterMap)
 
@@ -335,14 +335,14 @@ func generateJSONBExtractPath(fields []string) string {
 }
 
 func (s *messageAdapter) GetInnerMessageQuick(cmd CmdToGetInnerMessageQuick,
-	userName string) ([]MessageListDTO, int64, error) {
-	var data MessageSubscribeDTO
+	userName string) ([]MessageListDAO, int64, error) {
+	var data MessageSubscribeDAO
 	if result := postgresql.DB().Table("message_center.subscribe_config").
 		Where(gorm.Expr("is_deleted = ?", false)).
 		Where("user_name = ? OR user_name IS NULL", userName).
 		Where("source = ? AND mode_name = ?", cmd.Source, cmd.ModeName).
 		Scan(&data); result.Error != nil {
-		return []MessageListDTO{}, 0, xerrors.Errorf("查询失败, err:%v", result.Error)
+		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v", result.Error)
 	}
 
 	query := postgresql.DB().Table("message_center.inner_message").
@@ -361,18 +361,18 @@ func (s *messageAdapter) GetInnerMessageQuick(cmd CmdToGetInnerMessageQuick,
 	var Count int64
 	query.Count(&Count)
 
-	var response []MessageListDTO
+	var response []MessageListDAO
 	if result := query.Debug().Limit(cmd.CountPerPage).Offset(offsetNum).
 		Order("cloud_event_message.time DESC").
 		Scan(&response); result.Error != nil {
-		return []MessageListDTO{}, 0, xerrors.Errorf("get inner message failed, err:%v",
+		return []MessageListDAO{}, 0, xerrors.Errorf("get inner message failed, err:%v",
 			result.Error)
 	}
 	return response, Count, nil
 }
 
 func (s *messageAdapter) GetInnerMessage(cmd CmdToGetInnerMessage,
-	userName string) ([]MessageListDTO, int64, error) {
+	userName string) ([]MessageListDAO, int64, error) {
 	query := postgresql.DB().Table("message_center.inner_message").
 		Joins("JOIN message_center.cloud_event_message ON "+
 			"inner_message.event_id = cloud_event_message.event_id AND"+
@@ -387,13 +387,13 @@ func (s *messageAdapter) GetInnerMessage(cmd CmdToGetInnerMessage,
 	var Count int64
 	query.Count(&Count)
 
-	var response []MessageListDTO
+	var response []MessageListDAO
 	offsetNum := (cmd.PageNum - 1) * cmd.CountPerPage
 	if result := query.Limit(cmd.CountPerPage).Offset(offsetNum).
 		Order("cloud_event_message.time DESC").
 		Scan(&response); result.Error != nil {
 		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
-		return []MessageListDTO{}, 0, xerrors.Errorf("查询失败, err:%v",
+		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
 	}
 

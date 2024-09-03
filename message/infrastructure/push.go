@@ -20,7 +20,7 @@ func MessagePushAdapter() *messagePushAdapter {
 type messagePushAdapter struct{}
 
 func (s *messagePushAdapter) GetPushConfig(subsIds []string, countPerPage, pageNum int,
-	userName string) ([]MessagePushDTO, error) {
+	userName string) ([]MessagePushDAO, error) {
 
 	query := postgresql.DB().Table("message_center.push_config").
 		Where(gorm.Expr("push_config.is_deleted = ?", false))
@@ -37,10 +37,10 @@ func (s *messagePushAdapter) GetPushConfig(subsIds []string, countPerPage, pageN
 		Where(gorm.Expr("recipient_config.is_deleted = ?", false)).
 		Where("recipient_config.user_id = ?", userName)
 
-	var response []MessagePushDTO
+	var response []MessagePushDAO
 	if result := query.Limit(countPerPage).Offset(offsetNum).
 		Find(&response, "subscribe_id IN ?", subsIds); result.Error != nil {
-		return []MessagePushDTO{}, xerrors.Errorf("查询失败")
+		return []MessagePushDAO{}, xerrors.Errorf("查询失败")
 	}
 
 	return response, nil
@@ -48,7 +48,7 @@ func (s *messagePushAdapter) GetPushConfig(subsIds []string, countPerPage, pageN
 
 func (s *messagePushAdapter) AddPushConfig(cmd CmdToAddPushConfig) error {
 
-	var existData MessagePushDTO
+	var existData MessagePushDAO
 	if result := postgresql.DB().Table("message_center.push_config").
 		Where(gorm.Expr("is_deleted = ?", false)).
 		Where("subscribe_id = ? AND recipient_id = ?", cmd.SubscribeId, cmd.RecipientId).
@@ -57,7 +57,7 @@ func (s *messagePushAdapter) AddPushConfig(cmd CmdToAddPushConfig) error {
 	}
 
 	if result := postgresql.DB().Table("message_center.push_config").
-		Create(MessagePushDTO{
+		Create(MessagePushDAO{
 			SubscribeId:      cmd.SubscribeId,
 			RecipientId:      cmd.RecipientId,
 			NeedMessage:      &cmd.NeedMessage,
@@ -77,7 +77,7 @@ func (s *messagePushAdapter) UpdatePushConfig(cmd CmdToUpdatePushConfig) error {
 	if result := postgresql.DB().Table("message_center.push_config").Debug().
 		Where("is_deleted = ?", false).
 		Where("subscribe_id IN ? AND recipient_id = ?", cmd.SubscribeId, cmd.RecipientId).
-		Updates(&MessagePushDTO{
+		Updates(&MessagePushDAO{
 			NeedMessage:      &cmd.NeedMessage,
 			NeedPhone:        &cmd.NeedPhone,
 			NeedMail:         &cmd.NeedMail,

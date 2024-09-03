@@ -21,22 +21,22 @@ func MessageSubscribeAdapter() *messageSubscribeAdapter {
 
 type messageSubscribeAdapter struct{}
 
-func (ctl *messageSubscribeAdapter) GetAllSubsConfig(userName string) ([]MessageSubscribeDTO, error) {
+func (ctl *messageSubscribeAdapter) GetAllSubsConfig(userName string) ([]MessageSubscribeDAO, error) {
 
-	var response []MessageSubscribeDTO
+	var response []MessageSubscribeDAO
 	query := postgresql.DB().Table("message_center.subscribe_config").
 		Where("user_name = ? OR user_name IS NULL", userName).
 		Where(gorm.Expr("subscribe_config.is_deleted = ?", false))
 
 	if result := query.Order("subscribe_config.id").Find(&response); result.Error != nil {
-		return []MessageSubscribeDTO{}, xerrors.Errorf("查询失败")
+		return []MessageSubscribeDAO{}, xerrors.Errorf("查询失败")
 	}
 
 	return response, nil
 }
 
-func (ctl *messageSubscribeAdapter) GetSubsConfig(userName string) ([]MessageSubscribeDTO, int64, error) {
-	var response []MessageSubscribeDTO
+func (ctl *messageSubscribeAdapter) GetSubsConfig(userName string) ([]MessageSubscribeDAO, int64, error) {
+	var response []MessageSubscribeDAO
 
 	query := postgresql.DB().Table("message_center.subscribe_config").
 		Where(gorm.Expr("subscribe_config.is_deleted = ?", false)).
@@ -45,7 +45,7 @@ func (ctl *messageSubscribeAdapter) GetSubsConfig(userName string) ([]MessageSub
 	var Count int64
 	query.Count(&Count)
 	if result := query.Order("subscribe_config.id").Find(&response); result.Error != nil {
-		return []MessageSubscribeDTO{}, 0, xerrors.Errorf("查询失败")
+		return []MessageSubscribeDAO{}, 0, xerrors.Errorf("查询失败")
 	}
 
 	return response, Count, nil
@@ -55,7 +55,7 @@ func (ctl *messageSubscribeAdapter) SaveFilter(cmd CmdToGetSubscribe, userName s
 	var modeFilter datatypes.JSON
 	modeFilter, _ = TransToDbFormat(cmd.Source, cmd.EventType, cmd)
 	result := postgresql.DB().Table("message_center.subscribe_config").
-		Create(MessageSubscribeDTO{
+		Create(MessageSubscribeDAO{
 			Source:      cmd.Source,
 			EventType:   cmd.EventType,
 			SpecVersion: cmd.SpecVersion,
@@ -73,7 +73,7 @@ func (ctl *messageSubscribeAdapter) SaveFilter(cmd CmdToGetSubscribe, userName s
 }
 
 func (ctl *messageSubscribeAdapter) AddSubsConfig(cmd CmdToAddSubscribe, userName string) ([]uint, error) {
-	var existData MessageSubscribeDTO
+	var existData MessageSubscribeDAO
 
 	if result := postgresql.DB().Table("message_center.subscribe_config").
 		Where(gorm.Expr("is_deleted = ?", false)).
@@ -87,7 +87,7 @@ func (ctl *messageSubscribeAdapter) AddSubsConfig(cmd CmdToAddSubscribe, userNam
 	lType := strings.Split(cmd.EventType, ",")
 	for _, et := range lType {
 		result := postgresql.DB().Table("message_center.subscribe_config").
-			Create(MessageSubscribeDTO{
+			Create(MessageSubscribeDAO{
 				Source:      cmd.Source,
 				EventType:   et,
 				SpecVersion: cmd.SpecVersion,

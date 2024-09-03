@@ -38,8 +38,8 @@ func getTable() *gorm.DB {
 }
 
 func (ctl *messageRecipientAdapter) GetRecipientConfig(countPerPage, pageNum int, userName string) (
-	[]MessageRecipientDTO, int64, error) {
-	var response []MessageRecipientDTO
+	[]MessageRecipientDAO, int64, error) {
+	var response []MessageRecipientDAO
 	var Count int64
 	getTable().Where("user_id = ?", userName).Count(&Count)
 
@@ -48,20 +48,20 @@ func (ctl *messageRecipientAdapter) GetRecipientConfig(countPerPage, pageNum int
 	if result := getTable().Where("user_id = ?", userName).Limit(countPerPage).Offset(offsetNum).
 		Order("recipient_config.created_at DESC").
 		Find(&response); result.Error != nil {
-		return []MessageRecipientDTO{}, 0, xerrors.Errorf("get recipient config failed, err:%v", result.Error.Error())
+		return []MessageRecipientDAO{}, 0, xerrors.Errorf("get recipient config failed, err:%v", result.Error.Error())
 	}
 	return response, Count, nil
 }
 
 func (ctl *messageRecipientAdapter) AddRecipientConfig(cmd CmdToAddRecipient,
 	userName string) error {
-	var existData MessageRecipientDTO
+	var existData MessageRecipientDAO
 	if result := getTable().Where("recipient_name = ? AND user_id = ?", cmd.Name, userName).
 		Scan(&existData); result.RowsAffected != 0 {
 		return xerrors.Errorf("接收人姓名不能相同")
 	}
 
-	if result := getTable().Create(MessageRecipientDTO{
+	if result := getTable().Create(MessageRecipientDAO{
 		Name:      cmd.Name,
 		Mail:      cmd.Mail,
 		Message:   cmd.Message,
