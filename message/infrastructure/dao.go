@@ -71,6 +71,11 @@ type MessageSubscribeDAO struct {
 	UserName    string         `gorm:"column:user_name"     json:"user_name"`
 }
 
+type CountDAO struct {
+	Source string `json:"source"`
+	Count  int    `json:"count"`
+}
+
 type PushInfo struct {
 	RecipientId      int64  `gorm:"column:recipient_id"       json:"recipient_id"`
 	RecipientName    string `gorm:"column:recipient_name"     json:"recipient_name"`

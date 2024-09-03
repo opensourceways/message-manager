@@ -407,8 +407,8 @@ func (s *messageAdapter) GetInnerMessage(cmd CmdToGetInnerMessage,
 	return response, Count, nil
 }
 
-func (s *messageAdapter) CountAllUnReadMessage(userName string) (int64, error) {
-	var Count int64
+func (s *messageAdapter) CountAllUnReadMessage(userName string) ([]CountDAO, error) {
+	var CountData []CountDAO
 	sqlCount := `SELECT COUNT(*) FROM message_center.inner_message 
     JOIN message_center.cloud_event_message ON inner_message.event_id = cloud_event_message.event_id 
          AND inner_message.source = cloud_event_message.source 
@@ -416,10 +416,11 @@ func (s *messageAdapter) CountAllUnReadMessage(userName string) (int64, error) {
 		cast(inner_message.recipient_id AS BIGINT) = recipient_config.id 
 	WHERE is_read = ? AND recipient_config.user_id = ? 
 	AND inner_message.is_deleted = ? 
-	AND recipient_config.is_deleted = ?`
+	AND recipient_config.is_deleted = ?
+	GROUP BY inner_message.source`
 	postgresql.DB().Raw(sqlCount, false, userName, false, false).
-		Scan(&Count)
-	return Count, nil
+		Scan(&CountData)
+	return CountData, nil
 }
 
 func (s *messageAdapter) SetMessageIsRead(source, eventId string) error {

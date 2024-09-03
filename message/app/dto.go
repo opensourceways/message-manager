@@ -12,6 +12,7 @@ type MessageListDTO = domain.MessageListDO
 type MessagePushDTO = domain.MessagePushDO
 type MessageRecipientDTO = domain.MessageRecipientDO
 type MessageSubscribeDTO = domain.MessageSubscribeDO
+type CountDTO = domain.CountDO
 
 type CmdToGetInnerMessageQuick = domain.CmdToGetInnerMessageQuick
 type CmdToGetInnerMessage = domain.CmdToGetInnerMessage

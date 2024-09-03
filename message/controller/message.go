@@ -107,7 +107,7 @@ func (ctl *messageListController) GetInnerMessage(ctx *gin.Context) {
 // @Description		get unread inner message count
 // @Tags			message_center
 // @Accept			json
-// @Success			202	int count
+// @Success			202	[]int count
 // @Router			/message_center/inner/count [get]
 func (ctl *messageListController) CountAllUnReadMessage(ctx *gin.Context) {
 	userName, err := user.GetEulerUserName(ctx)
