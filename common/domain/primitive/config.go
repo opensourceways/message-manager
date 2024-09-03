@@ -1,5 +1,5 @@
 /*
-Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved
+Copyright (c) Huawei Technologies Co., Ltd. 2024. All rights reserved
 */
 
 // Package primitive define the domain of object
@@ -17,7 +17,6 @@ func Init(cfg *Config) {
 	config = *cfg
 }
 
-// Config
 type Config struct {
 	MSD            MSDConfig     `json:"msd"`
 	File           FileConfig    `json:"file"`

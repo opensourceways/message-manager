@@ -1,3 +1,7 @@
+/*
+Copyright (c) Huawei Technologies Co., Ltd. 2024. All rights reserved
+*/
+
 package controller
 
 import "github.com/opensourceways/message-manager/message/app"

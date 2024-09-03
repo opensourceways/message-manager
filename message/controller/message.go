@@ -1,3 +1,7 @@
+/*
+Copyright (c) Huawei Technologies Co., Ltd. 2024. All rights reserved
+*/
+
 package controller
 
 import (
@@ -125,7 +129,7 @@ func (ctl *messageListController) SetMessageIsRead(ctx *gin.Context) {
 			commonctl.SendBadRequestParam(ctx, xerrors.Errorf("failed to convert req to cmd, %w", err))
 			return
 		}
-		if err := ctl.appService.SetMessageIsRead(ctx, &cmd); err != nil {
+		if err := ctl.appService.SetMessageIsRead(&cmd); err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf(
 				"设置已读失败，err:%v", err)})
 			return
@@ -158,7 +162,7 @@ func (ctl *messageListController) RemoveMessage(ctx *gin.Context) {
 			commonctl.SendBadRequestParam(ctx, xerrors.Errorf("failed to convert req to cmd, %w", err))
 			return
 		}
-		if err := ctl.appService.RemoveMessage(ctx, &cmd); err != nil {
+		if err := ctl.appService.RemoveMessage(&cmd); err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("消息删除失败，"+
 				"err:%v", err)})
 			return

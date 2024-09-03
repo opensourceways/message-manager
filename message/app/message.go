@@ -1,3 +1,7 @@
+/*
+Copyright (c) Huawei Technologies Co., Ltd. 2024. All rights reserved
+*/
+
 package app
 
 import (
@@ -13,8 +17,8 @@ type MessageListAppService interface {
 		int64, error)
 	GetInnerMessage(ctx *gin.Context, cmd *CmdToGetInnerMessage) ([]MessageListDTO, int64, error)
 	CountAllUnReadMessage(ctx *gin.Context) (int64, error)
-	SetMessageIsRead(ctx *gin.Context, cmd *CmdToSetIsRead) error
-	RemoveMessage(ctx *gin.Context, cmd *CmdToSetIsRead) error
+	SetMessageIsRead(cmd *CmdToSetIsRead) error
+	RemoveMessage(cmd *CmdToSetIsRead) error
 }
 
 func NewMessageListAppService(
@@ -69,14 +73,14 @@ func (s *messageListAppService) CountAllUnReadMessage(c *gin.Context) (int64, er
 	return count, nil
 }
 
-func (s *messageListAppService) SetMessageIsRead(ctx *gin.Context, cmd *CmdToSetIsRead) error {
+func (s *messageListAppService) SetMessageIsRead(cmd *CmdToSetIsRead) error {
 	if err := s.messageListAdapter.SetMessageIsRead(cmd.Source, cmd.EventId); err != nil {
 		return xerrors.Errorf("set message is_read failed, err:%v", err.Error())
 	}
 	return nil
 }
 
-func (s *messageListAppService) RemoveMessage(ctx *gin.Context, cmd *CmdToSetIsRead) error {
+func (s *messageListAppService) RemoveMessage(cmd *CmdToSetIsRead) error {
 	if err := s.messageListAdapter.RemoveMessage(cmd.Source, cmd.EventId); err != nil {
 		return xerrors.Errorf("set message is_read failed, err:%v", err.Error())
 	}
