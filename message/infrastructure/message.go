@@ -409,7 +409,7 @@ func (s *messageAdapter) GetInnerMessage(cmd CmdToGetInnerMessage,
 
 func (s *messageAdapter) CountAllUnReadMessage(userName string) ([]CountDAO, error) {
 	var CountData []CountDAO
-	sqlCount := `SELECT COUNT(*) FROM message_center.inner_message 
+	sqlCount := `SELECT inner_message.source, COUNT(*) FROM message_center.inner_message 
     JOIN message_center.cloud_event_message ON inner_message.event_id = cloud_event_message.event_id 
          AND inner_message.source = cloud_event_message.source 
 	JOIN message_center.recipient_config ON 
