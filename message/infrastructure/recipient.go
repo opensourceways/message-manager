@@ -6,7 +6,6 @@ package infrastructure
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -235,12 +234,8 @@ func subscribeDefault(recipientId uint, userName string, giteeUserName string) {
 			logrus.Errorf("create subs failed, err:%v", result.Error)
 			break
 		}
-		subsId, err := strconv.Atoi(newSubsConfig.Id)
-		if err != nil {
-			fmt.Println("转换错误:", err)
-			return
-		}
-		err = addPushConfig(subsId, int64(recipientId), userName)
+
+		err = addPushConfig(int(newSubsConfig.Id), int64(recipientId), userName)
 		if err != nil {
 			logrus.Errorf("add push config failed, err:%v", err)
 			return
