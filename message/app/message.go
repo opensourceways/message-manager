@@ -5,18 +5,16 @@ Copyright (c) Huawei Technologies Co., Ltd. 2024. All rights reserved
 package app
 
 import (
-	"github.com/gin-gonic/gin"
 	"golang.org/x/xerrors"
 
-	"github.com/opensourceways/message-manager/common/user"
 	"github.com/opensourceways/message-manager/message/domain"
 )
 
 type MessageListAppService interface {
-	GetInnerMessageQuick(ctx *gin.Context, cmd *CmdToGetInnerMessageQuick) ([]MessageListDTO,
+	GetInnerMessageQuick(userName string, cmd *CmdToGetInnerMessageQuick) ([]MessageListDTO,
 		int64, error)
-	GetInnerMessage(ctx *gin.Context, cmd *CmdToGetInnerMessage) ([]MessageListDTO, int64, error)
-	CountAllUnReadMessage(ctx *gin.Context) (int64, error)
+	GetInnerMessage(userName string, cmd *CmdToGetInnerMessage) ([]MessageListDTO, int64, error)
+	CountAllUnReadMessage(userName string) (int64, error)
 	SetMessageIsRead(cmd *CmdToSetIsRead) error
 	RemoveMessage(cmd *CmdToSetIsRead) error
 }
@@ -33,13 +31,8 @@ type messageListAppService struct {
 	messageListAdapter domain.MessageListAdapter
 }
 
-func (s *messageListAppService) GetInnerMessageQuick(ctx *gin.Context,
+func (s *messageListAppService) GetInnerMessageQuick(userName string,
 	cmd *CmdToGetInnerMessageQuick) ([]MessageListDTO, int64, error) {
-	userName, err := user.GetEulerUserName(ctx)
-	if err != nil {
-		return []MessageListDTO{}, 0, xerrors.Errorf("get username failed, err:%v", err.Error())
-	}
-
 	response, count, err := s.messageListAdapter.GetInnerMessageQuick(*cmd, userName)
 	if err != nil {
 		return []MessageListDTO{}, 0, err
@@ -47,13 +40,8 @@ func (s *messageListAppService) GetInnerMessageQuick(ctx *gin.Context,
 	return response, count, nil
 }
 
-func (s *messageListAppService) GetInnerMessage(ctx *gin.Context,
+func (s *messageListAppService) GetInnerMessage(userName string,
 	cmd *CmdToGetInnerMessage) ([]MessageListDTO, int64, error) {
-	userName, err := user.GetEulerUserName(ctx)
-	if err != nil {
-		return []MessageListDTO{}, 0, xerrors.Errorf("get username failed, err:%v", err.Error())
-	}
-
 	response, count, err := s.messageListAdapter.GetInnerMessage(*cmd, userName)
 	if err != nil {
 		return []MessageListDTO{}, 0, err
@@ -61,11 +49,7 @@ func (s *messageListAppService) GetInnerMessage(ctx *gin.Context,
 	return response, count, nil
 }
 
-func (s *messageListAppService) CountAllUnReadMessage(c *gin.Context) (int64, error) {
-	userName, err := user.GetEulerUserName(c)
-	if err != nil {
-		return 0, xerrors.Errorf("get username failed, err:%v", err.Error())
-	}
+func (s *messageListAppService) CountAllUnReadMessage(userName string) (int64, error) {
 	count, err := s.messageListAdapter.CountAllUnReadMessage(userName)
 	if err != nil {
 		return 0, err

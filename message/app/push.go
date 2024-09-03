@@ -10,12 +10,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/xerrors"
 
-	"github.com/opensourceways/message-manager/common/user"
 	"github.com/opensourceways/message-manager/message/domain"
 )
 
 type MessagePushAppService interface {
-	GetPushConfig(ctx *gin.Context, subsIds []string) ([]MessagePushDTO, error)
+	GetPushConfig(ctx *gin.Context, userName string, subsIds []string) ([]MessagePushDTO, error)
 	AddPushConfig(cmd *CmdToAddPushConfig) error
 	UpdatePushConfig(cmd *CmdToUpdatePushConfig) error
 	RemovePushConfig(cmd *CmdToDeletePushConfig) error
@@ -33,7 +32,7 @@ type messagePushAppService struct {
 	messagePushAdapter domain.MessagePushAdapter
 }
 
-func (s *messagePushAppService) GetPushConfig(ctx *gin.Context,
+func (s *messagePushAppService) GetPushConfig(ctx *gin.Context, userName string,
 	subsIds []string) ([]MessagePushDTO, error) {
 
 	countPerPage, err := strconv.Atoi(ctx.Query("count_per_page"))
@@ -45,10 +44,6 @@ func (s *messagePushAppService) GetPushConfig(ctx *gin.Context,
 		return []MessagePushDTO{}, xerrors.Errorf("trans to int failed, err:%v", err)
 	}
 
-	userName, err := user.GetEulerUserName(ctx)
-	if err != nil {
-		return []MessagePushDTO{}, xerrors.Errorf("get username failed, err:%v", err.Error())
-	}
 	data, err := s.messagePushAdapter.GetPushConfig(subsIds, countPerPage, pageNum, userName)
 	if err != nil {
 		return []MessagePushDTO{}, err

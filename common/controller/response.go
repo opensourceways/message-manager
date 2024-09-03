@@ -46,6 +46,19 @@ func SendBadRequestBody(ctx *gin.Context, err error) {
 	}
 }
 
+// SendUnauthorized return 401
+func SendUnauthorized(ctx *gin.Context, err error) {
+	if _, ok := err.(errorCode); ok {
+		SendError(ctx, err)
+	} else {
+		_ = ctx.Error(err)
+		ctx.JSON(
+			http.StatusUnauthorized,
+			newResponseCodeMsg(errorUnauthorized, err.Error()),
+		)
+	}
+}
+
 // SendBadRequestParam return the 400 about param invalid
 func SendBadRequestParam(ctx *gin.Context, err error) {
 	if _, ok := err.(errorCode); ok {

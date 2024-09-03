@@ -15,6 +15,7 @@ const (
 	errorSystemError     = "system_error"
 	errorBadRequestBody  = "bad_request_body"
 	errorBadRequestParam = "bad_request_param"
+	errorUnauthorized    = "unauthorized"
 )
 
 type errorCode interface {

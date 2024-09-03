@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/opensourceways/message-manager/common/user"
 	"golang.org/x/xerrors"
 
 	commonctl "github.com/opensourceways/message-manager/common/controller"
@@ -56,7 +57,12 @@ func (ctl *messageListController) GetInnerMessageQuick(ctx *gin.Context) {
 
 		return
 	}
-	if data, count, err := ctl.appService.GetInnerMessageQuick(ctx, &cmd); err != nil {
+	userName, err := user.GetEulerUserName(ctx)
+	if err != nil {
+		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
+		return
+	}
+	if data, count, err := ctl.appService.GetInnerMessageQuick(userName, &cmd); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
@@ -84,7 +90,12 @@ func (ctl *messageListController) GetInnerMessage(ctx *gin.Context) {
 		commonctl.SendBadRequestParam(ctx, xerrors.Errorf("failed to convert req to cmd, %w", err))
 		return
 	}
-	if data, count, err := ctl.appService.GetInnerMessage(ctx, &cmd); err != nil {
+	userName, err := user.GetEulerUserName(ctx)
+	if err != nil {
+		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
+		return
+	}
+	if data, count, err := ctl.appService.GetInnerMessage(userName, &cmd); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
@@ -99,7 +110,12 @@ func (ctl *messageListController) GetInnerMessage(ctx *gin.Context) {
 // @Success			202	int count
 // @Router			/message_center/inner/count [get]
 func (ctl *messageListController) CountAllUnReadMessage(ctx *gin.Context) {
-	if data, err := ctl.appService.CountAllUnReadMessage(ctx); err != nil {
+	userName, err := user.GetEulerUserName(ctx)
+	if err != nil {
+		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
+		return
+	}
+	if data, err := ctl.appService.CountAllUnReadMessage(userName); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("获取失败，"+
 			"err:%v", err)})
 	} else {

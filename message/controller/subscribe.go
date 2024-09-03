@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/opensourceways/message-manager/common/user"
 	"golang.org/x/xerrors"
 
 	commonctl "github.com/opensourceways/message-manager/common/controller"
@@ -42,7 +43,12 @@ type messageSubscribeController struct {
 // @Failure			500	string system_error  查询失败
 // @Router			/message_center/config/subs/all [get]
 func (ctl *messageSubscribeController) GetAllSubsConfig(ctx *gin.Context) {
-	data, err := ctl.appService.GetAllSubsConfig(ctx)
+	userName, err := user.GetEulerUserName(ctx)
+	if err != nil {
+		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
+		return
+	}
+	data, err := ctl.appService.GetAllSubsConfig(userName)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
@@ -60,7 +66,12 @@ func (ctl *messageSubscribeController) GetAllSubsConfig(ctx *gin.Context) {
 // @Failure			500	string system_error  查询失败
 // @Router			/message_center/config/subs [get]
 func (ctl *messageSubscribeController) GetSubsConfig(ctx *gin.Context) {
-	if data, count, err := ctl.appService.GetSubsConfig(ctx); err != nil {
+	userName, err := user.GetEulerUserName(ctx)
+	if err != nil {
+		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
+		return
+	}
+	if data, count, err := ctl.appService.GetSubsConfig(userName); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
@@ -89,7 +100,12 @@ func (ctl *messageSubscribeController) SaveFilter(ctx *gin.Context) {
 		commonctl.SendBadRequestParam(ctx, xerrors.Errorf("failed to convert req to cmd, %w", err))
 		return
 	}
-	if err := ctl.appService.SaveFilter(ctx, &cmd); err != nil {
+	userName, err := user.GetEulerUserName(ctx)
+	if err != nil {
+		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
+		return
+	}
+	if err := ctl.appService.SaveFilter(userName, &cmd); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("保存失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"message": "保存成功"})
@@ -118,8 +134,12 @@ func (ctl *messageSubscribeController) AddSubsConfig(ctx *gin.Context) {
 		commonctl.SendBadRequestParam(ctx, xerrors.Errorf("failed to convert req to cmd, %w", err))
 		return
 	}
-
-	data, err := ctl.appService.AddSubsConfig(ctx, &cmd)
+	userName, err := user.GetEulerUserName(ctx)
+	if err != nil {
+		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
+		return
+	}
+	data, err := ctl.appService.AddSubsConfig(userName, &cmd)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("新增配置失败，err:%v", err)})
 	} else {
@@ -148,7 +168,12 @@ func (ctl *messageSubscribeController) RemoveSubsConfig(ctx *gin.Context) {
 		commonctl.SendBadRequestParam(ctx, xerrors.Errorf("failed to convert req to cmd, %w", err))
 		return
 	}
-	err = ctl.appService.RemoveSubsConfig(ctx, &cmd)
+	userName, err := user.GetEulerUserName(ctx)
+	if err != nil {
+		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
+		return
+	}
+	err = ctl.appService.RemoveSubsConfig(userName, &cmd)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("删除配置失败，err:%v", err)})
 	} else {

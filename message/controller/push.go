@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/opensourceways/message-manager/common/user"
 	"golang.org/x/xerrors"
 
 	commonctl "github.com/opensourceways/message-manager/common/controller"
@@ -45,8 +46,12 @@ type messagePushController struct {
 func (ctl *messagePushController) GetPushConfig(ctx *gin.Context) {
 	subsIdsStr := ctx.DefaultQuery("subscribe_id", "")
 	subsIds := strings.Split(subsIdsStr, ",")
-
-	if data, err := ctl.appService.GetPushConfig(ctx, subsIds); err != nil {
+	userName, err := user.GetEulerUserName(ctx)
+	if err != nil {
+		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
+		return
+	}
+	if data, err := ctl.appService.GetPushConfig(ctx, userName, subsIds); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data})

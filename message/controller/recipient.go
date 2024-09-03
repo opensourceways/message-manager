@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/opensourceways/message-manager/common/user"
 	"golang.org/x/xerrors"
 
 	commonctl "github.com/opensourceways/message-manager/common/controller"
@@ -43,7 +44,12 @@ type messageRecipientController struct {
 // @Failure			500	string system_error  查询失败
 // @Router			/message_center/config/recipient [get]
 func (ctl *messageRecipientController) GetRecipientConfig(ctx *gin.Context) {
-	if data, count, err := ctl.appService.GetRecipientConfig(ctx); err != nil {
+	userName, err := user.GetEulerUserName(ctx)
+	if err != nil {
+		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
+		return
+	}
+	if data, count, err := ctl.appService.GetRecipientConfig(ctx, userName); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err})
 	} else {
 		ctx.JSON(http.StatusOK, gin.H{"query_info": data, "count": count})
@@ -72,7 +78,12 @@ func (ctl *messageRecipientController) AddRecipientConfig(ctx *gin.Context) {
 		commonctl.SendBadRequestParam(ctx, xerrors.Errorf("failed to convert req to cmd, %w", err))
 		return
 	}
-	if err := ctl.appService.AddRecipientConfig(ctx, &cmd); err != nil {
+	userName, err := user.GetEulerUserName(ctx)
+	if err != nil {
+		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
+		return
+	}
+	if err := ctl.appService.AddRecipientConfig(userName, &cmd); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("新增配置失败，err:%v",
 			err)})
 	} else {
@@ -102,7 +113,12 @@ func (ctl *messageRecipientController) UpdateRecipientConfig(ctx *gin.Context) {
 		commonctl.SendBadRequestParam(ctx, xerrors.Errorf("failed to convert req to cmd, %w", err))
 		return
 	}
-	if err := ctl.appService.UpdateRecipientConfig(ctx, &cmd); err != nil {
+	userName, err := user.GetEulerUserName(ctx)
+	if err != nil {
+		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
+		return
+	}
+	if err := ctl.appService.UpdateRecipientConfig(userName, &cmd); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("更新配置失败，err:%v",
 			err)})
 	} else {
@@ -132,7 +148,12 @@ func (ctl *messageRecipientController) RemoveRecipientConfig(ctx *gin.Context) {
 		commonctl.SendBadRequestParam(ctx, xerrors.Errorf("failed to convert req to cmd, %w", err))
 		return
 	}
-	if err := ctl.appService.UpdateRecipientConfig(ctx, &cmd); err != nil {
+	userName, err := user.GetEulerUserName(ctx)
+	if err != nil {
+		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
+		return
+	}
+	if err := ctl.appService.UpdateRecipientConfig(userName, &cmd); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("删除配置失败，err:%v",
 			err)})
 	} else {

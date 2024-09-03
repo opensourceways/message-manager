@@ -11,15 +11,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/xerrors"
 
-	"github.com/opensourceways/message-manager/common/user"
 	"github.com/opensourceways/message-manager/message/domain"
 )
 
 type MessageRecipientAppService interface {
-	GetRecipientConfig(ctx *gin.Context) ([]MessageRecipientDTO, int64, error)
-	AddRecipientConfig(ctx *gin.Context, cmd *CmdToAddRecipient) error
-	UpdateRecipientConfig(ctx *gin.Context, cmd *CmdToUpdateRecipient) error
-	RemoveConfig(ctx *gin.Context, cmd *CmdToDeleteRecipient) error
+	GetRecipientConfig(ctx *gin.Context, userName string) ([]MessageRecipientDTO, int64, error)
+	AddRecipientConfig(userName string, cmd *CmdToAddRecipient) error
+	UpdateRecipientConfig(userName string, cmd *CmdToUpdateRecipient) error
+	RemoveConfig(userName string, cmd *CmdToDeleteRecipient) error
 	SyncUserInfo(cmd *CmdToSyncUserInfo) (uint, error)
 }
 
@@ -65,7 +64,7 @@ func validateData(email string, phoneNumber string) error {
 	return nil
 }
 
-func (s *messageRecipientAppService) GetRecipientConfig(ctx *gin.Context) (
+func (s *messageRecipientAppService) GetRecipientConfig(ctx *gin.Context, userName string) (
 	[]MessageRecipientDTO, int64, error) {
 
 	countPerPage, err := strconv.Atoi(ctx.Query("count_per_page"))
@@ -76,10 +75,6 @@ func (s *messageRecipientAppService) GetRecipientConfig(ctx *gin.Context) (
 	if err != nil {
 		return []MessageRecipientDTO{}, 0, xerrors.Errorf("trans to int failed, err:%v", err)
 	}
-	userName, err := user.GetEulerUserName(ctx)
-	if err != nil {
-		return []MessageRecipientDTO{}, 0, xerrors.Errorf("get username failed, err:%v", err.Error())
-	}
 	data, count, err := s.messageRecipientAdapter.GetRecipientConfig(countPerPage, pageNum,
 		userName)
 	if err != nil {
@@ -88,14 +83,8 @@ func (s *messageRecipientAppService) GetRecipientConfig(ctx *gin.Context) (
 	return data, count, nil
 }
 
-func (s *messageRecipientAppService) AddRecipientConfig(ctx *gin.Context,
+func (s *messageRecipientAppService) AddRecipientConfig(userName string,
 	cmd *CmdToAddRecipient) error {
-
-	userName, err := user.GetEulerUserName(ctx)
-	if err != nil {
-		return xerrors.Errorf("get username failed, err:%v", err.Error())
-	}
-
 	if cmd.Name == "" {
 		return xerrors.Errorf("the recipient is null")
 	}
@@ -103,36 +92,29 @@ func (s *messageRecipientAppService) AddRecipientConfig(ctx *gin.Context,
 	if err := validateData(cmd.Mail, cmd.Phone); err != nil {
 		return xerrors.Errorf("data is invalid, err:%v", err.Error())
 	}
-	err = s.messageRecipientAdapter.AddRecipientConfig(*cmd, userName)
+	err := s.messageRecipientAdapter.AddRecipientConfig(*cmd, userName)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *messageRecipientAppService) UpdateRecipientConfig(ctx *gin.Context,
+func (s *messageRecipientAppService) UpdateRecipientConfig(userName string,
 	cmd *CmdToUpdateRecipient) error {
 	if err := validateData(cmd.Mail, cmd.Phone); err != nil {
 		return xerrors.Errorf("data is invalid, err:%v", err.Error())
 	}
 
-	userName, err := user.GetEulerUserName(ctx)
-	if err != nil {
-		return xerrors.Errorf("get username failed, err:%v", err.Error())
-	}
-	err = s.messageRecipientAdapter.UpdateRecipientConfig(*cmd, userName)
+	err := s.messageRecipientAdapter.UpdateRecipientConfig(*cmd, userName)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *messageRecipientAppService) RemoveConfig(ctx *gin.Context, cmd *CmdToDeleteRecipient) error {
-	userName, err := user.GetEulerUserName(ctx)
-	if err != nil {
-		return xerrors.Errorf("get username failed, err:%v", err.Error())
-	}
-	err = s.messageRecipientAdapter.RemoveRecipientConfig(*cmd, userName)
+func (s *messageRecipientAppService) RemoveConfig(userName string,
+	cmd *CmdToDeleteRecipient) error {
+	err := s.messageRecipientAdapter.RemoveRecipientConfig(*cmd, userName)
 	if err != nil {
 		return err
 	}
