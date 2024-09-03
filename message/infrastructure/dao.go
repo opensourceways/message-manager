@@ -10,7 +10,7 @@ import (
 	"gorm.io/datatypes"
 )
 
-type MessageListDTO struct {
+type MessageListDAO struct {
 	Title           string    `gorm:"column:title" json:"title"`
 	Summary         string    `gorm:"column:summary" json:"summary"`
 	Source          string    `gorm:"column:source" json:"source"`
@@ -28,7 +28,7 @@ type MessageListDTO struct {
 	SourceGroup     string    `gorm:"column:source_group" json:"source_group"`
 }
 
-type MessagePushDTO struct {
+type MessagePushDAO struct {
 	SubscribeId      int       `gorm:"column:subscribe_id" json:"subscribe_id"`
 	RecipientId      int64     `gorm:"column:recipient_id" json:"recipient_id"`
 	NeedMessage      *bool     `gorm:"column:need_message" json:"need_message"`
@@ -45,7 +45,7 @@ type MessagePushDTO struct {
 	Remark           string    `gorm:"column:remark" json:"remark"`
 }
 
-type MessageRecipientDTO struct {
+type MessageRecipientDAO struct {
 	Id            string    `json:"id,omitempty"`
 	Name          string    `gorm:"column:recipient_name" json:"recipient_id"`
 	Mail          string    `gorm:"column:mail" json:"mail"`
@@ -59,7 +59,7 @@ type MessageRecipientDTO struct {
 	UpdatedAt     time.Time `gorm:"column:updated_at" json:"updated_at" swaggerignore:"true"`
 }
 
-type MessageSubscribeDTO struct {
+type MessageSubscribeDAO struct {
 	Id          string         `json:"id,omitempty"`
 	Source      string         `gorm:"column:source"        json:"source"`
 	EventType   string         `gorm:"column:event_type"    json:"event_type"`

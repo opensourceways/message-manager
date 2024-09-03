@@ -8,10 +8,10 @@ import (
 	"github.com/opensourceways/message-manager/message/domain"
 )
 
-type MessageListDTO = domain.MessageListDTO
-type MessagePushDTO = domain.MessagePushDTO
-type MessageRecipientDTO = domain.MessageRecipientDTO
-type MessageSubscribeDTO = domain.MessageSubscribeDTO
+type MessageListDTO = domain.MessageListDO
+type MessagePushDTO = domain.MessagePushDO
+type MessageRecipientDTO = domain.MessageRecipientDO
+type MessageSubscribeDTO = domain.MessageSubscribeDO
 
 type CmdToGetInnerMessageQuick = domain.CmdToGetInnerMessageQuick
 type CmdToGetInnerMessage = domain.CmdToGetInnerMessage

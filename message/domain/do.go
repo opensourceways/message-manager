@@ -8,10 +8,10 @@ import (
 	"github.com/opensourceways/message-manager/message/infrastructure"
 )
 
-type MessageListDTO = infrastructure.MessageListDTO
-type MessagePushDTO = infrastructure.MessagePushDTO
-type MessageRecipientDTO = infrastructure.MessageRecipientDTO
-type MessageSubscribeDTO = infrastructure.MessageSubscribeDTO
+type MessageListDO = infrastructure.MessageListDAO
+type MessagePushDO = infrastructure.MessagePushDAO
+type MessageRecipientDO = infrastructure.MessageRecipientDAO
+type MessageSubscribeDO = infrastructure.MessageSubscribeDAO
 
 type CmdToGetInnerMessageQuick = infrastructure.CmdToGetInnerMessageQuick
 type CmdToGetInnerMessage = infrastructure.CmdToGetInnerMessage
