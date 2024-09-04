@@ -38,11 +38,6 @@ type MessagePushDAO struct {
 	IsDeleted        bool      `gorm:"column:is_deleted" json:"is_deleted" swaggerignore:"true"`
 	CreatedAt        time.Time `gorm:"column:created_at" json:"created_at" swaggerignore:"true"`
 	UpdatedAt        time.Time `gorm:"column:updated_at" json:"updated_at" swaggerignore:"true"`
-	Name             string    `gorm:"column:recipient_name" json:"recipient_name"`
-	Mail             string    `gorm:"column:mail" json:"mail"`
-	Message          string    `gorm:"column:message" json:"message"`
-	Phone            string    `gorm:"column:phone" json:"phone"`
-	Remark           string    `gorm:"column:remark" json:"remark"`
 }
 
 type MessageRecipientDAO struct {
