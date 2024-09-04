@@ -192,7 +192,7 @@ func addPushConfig(subsId int, recipientId int64) error {
 		return nil
 	}
 
-	if result := postgresql.DB().Debug().Table("message_center.push_config").
+	if result := postgresql.DB().Table("message_center.push_config").
 		Create(MessagePushDAO{
 			SubscribeId:      subsId,
 			RecipientId:      recipientId,
