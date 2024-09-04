@@ -13,6 +13,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/opensourceways/server-common-lib/interrupts"
 	"github.com/sirupsen/logrus"
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 
 	"github.com/opensourceways/message-manager/config"
 	"github.com/opensourceways/message-manager/docs"
@@ -50,6 +52,9 @@ func StartWebServer(cfg *config.Config) {
 
 	defer interrupts.WaitForGracefulShutdown()
 	interrupts.ListenAndServe(srv, time.Second*30)
+
+	engine.UseRawPath = true
+	engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 }
 
 func logRequest() gin.HandlerFunc {
