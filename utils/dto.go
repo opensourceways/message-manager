@@ -57,6 +57,7 @@ type GiteePullRequestDbFormat struct {
 	Namespace     string `json:"PullRequestEvent.Repository.Namespace,omitempty"`
 	SigGroupName  string `json:"SigGroupName,omitempty"`
 	PrState       string `json:"PullRequestEvent.PullRequest.State,omitempty"`
+	PrAction      string `json:"PullRequestEvent.Action,omitempty"`
 	PrMergeStatus string `json:"PullRequestEvent.MergeStatus,omitempty"`
 	PrCreator     string `json:"PullRequestEvent.PullRequest.User.Login,omitempty"`
 	PrAssignee    string `json:"PullRequestEvent.PullRequest.Assignee.Login,omitempty"`

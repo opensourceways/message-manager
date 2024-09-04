@@ -151,13 +151,15 @@ func TransGiteeModeFilterToDbFormat(eventType string, modeFilter CmdToGetSubscri
 		sIsBot = "ne=openeuler-ci-bot,ne=ci-robot,ne=openeuler-sync-bot"
 	}
 
-	var sPrState, sPrMergeStatus string
+	var sPrState, sAction, sPrMergeStatus string
 	if modeFilter.PrState != "" {
 		prStates := utils.RemoveEmptyStrings(strings.Split(modeFilter.PrState, ","))
-		var lStatus, lMergeStatus []string
+		var lStatus, lAction, lMergeStatus []string
 		for _, ps := range prStates {
 			if ps == "can_be_merged" || ps == "cannot_be_merged" {
 				lMergeStatus = append(lMergeStatus, ps)
+			} else if ps == "set_draft" {
+				lAction = append(lAction, ps)
 			} else {
 				lStatus = append(lStatus, ps)
 			}
@@ -167,6 +169,12 @@ func TransGiteeModeFilterToDbFormat(eventType string, modeFilter CmdToGetSubscri
 			sPrState = "eq=" + lStatus[0]
 		} else if len(lStatus) > 1 {
 			sPrState = "oneof=" + strings.Join(lStatus, " ")
+		}
+
+		if len(lAction) == 1 {
+			sAction = "eq=" + lAction[0]
+		} else if len(lAction) > 1 {
+			sAction = "oneof=" + strings.Join(lAction, " ")
 		}
 
 		if len(lMergeStatus) == 1 {
@@ -274,6 +282,7 @@ func TransGiteeModeFilterToDbFormat(eventType string, modeFilter CmdToGetSubscri
 			Namespace:     sNamespace,
 			SigGroupName:  sSigGroupName,
 			PrState:       sPrState,
+			PrAction:      sAction,
 			PrMergeStatus: sPrMergeStatus,
 			PrCreator:     sPrCreator,
 			PrAssignee:    sPrAssignee,

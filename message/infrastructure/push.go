@@ -25,13 +25,7 @@ func (s *messagePushAdapter) GetPushConfig(subsIds []string, countPerPage, pageN
 	query := postgresql.DB().Table("message_center.push_config").
 		Where(gorm.Expr("push_config.is_deleted = ?", false))
 	offsetNum := (pageNum - 1) * countPerPage
-	query = query.Select(
-		"push_config.*, "+
-			"recipient_config.mail, "+
-			"recipient_config.message,"+
-			"recipient_config.phone, "+
-			"recipient_config.remark,"+
-			"recipient_config.recipient_name").
+	query = query.Select("push_config.*").
 		Joins("JOIN message_center.recipient_config ON recipient_config.id = push_config."+
 			"recipient_id").
 		Where(gorm.Expr("recipient_config.is_deleted = ?", false)).
