@@ -7,6 +7,8 @@ require (
 	github.com/gocql/gocql v1.6.0
 	github.com/opensourceways/server-common-lib v0.0.0-20240325033300-a9187b20647e
 	github.com/sirupsen/logrus v1.9.3
+	github.com/swaggo/files v1.0.1
+	github.com/swaggo/gin-swagger v1.6.0
 	github.com/swaggo/swag v1.16.3
 	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543
 	gorm.io/datatypes v1.2.0
@@ -51,7 +53,6 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
-	github.com/swaggo/gin-swagger v1.6.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	golang.org/x/arch v0.8.0 // indirect
