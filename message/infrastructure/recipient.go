@@ -188,10 +188,11 @@ func addPushConfig(subsId int, recipientId int64) error {
 		Where(gorm.Expr("is_deleted = ?", false)).
 		Where("subscribe_id = ? AND recipient_id = ?", subsId, recipientId).
 		Scan(&existData); result.RowsAffected != 0 {
+		logrus.Errorf("the exist data is %v", existData)
 		return nil
 	}
 
-	if result := postgresql.DB().Table("message_center.push_config").
+	if result := postgresql.DB().Debug().Table("message_center.push_config").
 		Create(MessagePushDAO{
 			SubscribeId:      subsId,
 			RecipientId:      recipientId,
