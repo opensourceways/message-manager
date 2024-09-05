@@ -6,6 +6,7 @@ package controller
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/opensourceways/message-manager/common/user"
@@ -49,7 +50,15 @@ func (ctl *messageRecipientController) GetRecipientConfig(ctx *gin.Context) {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
 	}
-	if data, count, err := ctl.appService.GetRecipientConfig(ctx, userName); err != nil {
+	countPerPage, err := strconv.Atoi(ctx.Query("count_per_page"))
+	if err != nil {
+		return
+	}
+	pageNum, err := strconv.Atoi(ctx.Query("page"))
+	if err != nil {
+		return
+	}
+	if data, count, err := ctl.appService.GetRecipientConfig(countPerPage, pageNum, userName); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err})
 	} else {
 		ctx.JSON(http.StatusOK, gin.H{"query_info": data, "count": count})

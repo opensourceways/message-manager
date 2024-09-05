@@ -6,19 +6,18 @@ package app
 
 import (
 	"regexp"
-	"strconv"
 
-	"github.com/gin-gonic/gin"
 	"golang.org/x/xerrors"
 
 	"github.com/opensourceways/message-manager/message/domain"
 )
 
 type MessageRecipientAppService interface {
-	GetRecipientConfig(ctx *gin.Context, userName string) ([]MessageRecipientDTO, int64, error)
+	GetRecipientConfig(countPerPage, pageNum int, userName string) ([]MessageRecipientDTO, int64,
+		error)
 	AddRecipientConfig(userName string, cmd *CmdToAddRecipient) error
 	UpdateRecipientConfig(userName string, cmd *CmdToUpdateRecipient) error
-	RemoveConfig(userName string, cmd *CmdToDeleteRecipient) error
+	RemoveRecipientConfig(userName string, cmd *CmdToDeleteRecipient) error
 	SyncUserInfo(cmd *CmdToSyncUserInfo) (uint, error)
 }
 
@@ -64,17 +63,9 @@ func validateData(email string, phoneNumber string) error {
 	return nil
 }
 
-func (s *messageRecipientAppService) GetRecipientConfig(ctx *gin.Context, userName string) (
+func (s *messageRecipientAppService) GetRecipientConfig(countPerPage, pageNum int, userName string) (
 	[]MessageRecipientDTO, int64, error) {
 
-	countPerPage, err := strconv.Atoi(ctx.Query("count_per_page"))
-	if err != nil {
-		return []MessageRecipientDTO{}, 0, xerrors.Errorf("trans to int failed, err:%v", err)
-	}
-	pageNum, err := strconv.Atoi(ctx.Query("page"))
-	if err != nil {
-		return []MessageRecipientDTO{}, 0, xerrors.Errorf("trans to int failed, err:%v", err)
-	}
 	data, count, err := s.messageRecipientAdapter.GetRecipientConfig(countPerPage, pageNum,
 		userName)
 	if err != nil {
@@ -112,7 +103,7 @@ func (s *messageRecipientAppService) UpdateRecipientConfig(userName string,
 	return nil
 }
 
-func (s *messageRecipientAppService) RemoveConfig(userName string,
+func (s *messageRecipientAppService) RemoveRecipientConfig(userName string,
 	cmd *CmdToDeleteRecipient) error {
 	err := s.messageRecipientAdapter.RemoveRecipientConfig(*cmd, userName)
 	if err != nil {
