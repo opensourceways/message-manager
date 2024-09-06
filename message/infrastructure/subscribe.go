@@ -54,6 +54,7 @@ func (ctl *messageSubscribeAdapter) GetSubsConfig(userName string) ([]MessageSub
 func (ctl *messageSubscribeAdapter) SaveFilter(cmd CmdToGetSubscribe, userName string) error {
 	var modeFilter datatypes.JSON
 	modeFilter, _ = TransToDbFormat(cmd.Source, cmd.EventType, cmd)
+	isDefault := false
 	result := postgresql.DB().Table("message_center.subscribe_config").
 		Create(MessageSubscribeDAO{
 			Source:      cmd.Source,
@@ -64,6 +65,7 @@ func (ctl *messageSubscribeAdapter) SaveFilter(cmd CmdToGetSubscribe, userName s
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
 			UserName:    userName,
+			IsDefault:   &isDefault,
 		})
 	if result.Error != nil {
 		return xerrors.Errorf("保存配置失败")
