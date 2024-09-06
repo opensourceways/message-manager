@@ -67,6 +67,18 @@ type MessageSubscribeDAO struct {
 	IsDefault   *bool          `gorm:"column:is_default"    json:"is_default"`
 }
 
+type MessageSubscribeDAOWithoutId struct {
+	Source      string         `gorm:"column:source"        json:"source"`
+	EventType   string         `gorm:"column:event_type"    json:"event_type"`
+	SpecVersion string         `gorm:"column:spec_version"  json:"spec_version"`
+	ModeName    string         `gorm:"column:mode_name"     json:"mode_name"`
+	ModeFilter  datatypes.JSON `gorm:"column:mode_filter"   json:"mode_filter" swaggerignore:"true"`
+	CreatedAt   time.Time      `gorm:"column:created_at"    json:"created_at"  swaggerignore:"true"`
+	UpdatedAt   time.Time      `gorm:"column:updated_at"    json:"updated_at"  swaggerignore:"true"`
+	UserName    string         `gorm:"column:user_name"     json:"user_name"`
+	IsDefault   *bool          `gorm:"column:is_default"    json:"is_default"`
+}
+
 type CountDAO struct {
 	Source string `json:"source"`
 	Count  int    `json:"count"`

@@ -57,7 +57,7 @@ func (ctl *messageSubscribeAdapter) SaveFilter(cmd CmdToGetSubscribe, userName s
 	isDefault := new(bool)
 	*isDefault = false
 	result := postgresql.DB().Table("message_center.subscribe_config").
-		Create(MessageSubscribeDAO{
+		Create(MessageSubscribeDAOWithoutId{
 			Source:      cmd.Source,
 			EventType:   cmd.EventType,
 			SpecVersion: cmd.SpecVersion,
