@@ -6,6 +6,7 @@ package controller
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -51,7 +52,18 @@ func (ctl *messagePushController) GetPushConfig(ctx *gin.Context) {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
 	}
-	if data, err := ctl.appService.GetPushConfig(ctx, userName, subsIds); err != nil {
+
+	countPerPage, err := strconv.Atoi(ctx.Query("count_per_page"))
+	if err != nil {
+		return
+	}
+	pageNum, err := strconv.Atoi(ctx.Query("page"))
+	if err != nil {
+		return
+	}
+
+	if data, err := ctl.appService.GetPushConfig(countPerPage, pageNum, userName,
+		subsIds); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data})
