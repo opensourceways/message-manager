@@ -1,0 +1,35 @@
+name: Unit Test
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [ '*' ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  build:
+
+    runs-on: [self-hosted, Linux]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: config github
+        env:
+          TOKEN: ${{ secrets.PKKING_PERSONAL_TOKEN }}
+          USER: ${{ secrets.USER_NAME }}
+        run: echo "machine github.com login $USER password $TOKEN" > ~/.netrc && chmod 400 ~/.netrc
+      - name: run unit test
+        run: cd tests && bash -x test_cover_get.sh
+      - name: check test coverage
+        uses: vladopajic/go-test-coverage@v2
+        with:
+          # Configure action using config file
+            config: ./.github/workflows/.testcoverage.yml
+      - name: Self Hosted Runner Post Job Cleanup Action
+        uses: TooMuch4U/actions-clean@master
+      - name: cleanup
+        run: rm -rf ~/.netrc
