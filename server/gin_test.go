@@ -19,7 +19,8 @@ func TestStartWebServer(t *testing.T) {
 	}
 
 	// 使用 httptest 创建一个新请求
-	req, _ := http.NewRequest("GET", "/", nil)
+	req, err := http.NewRequest("GET", "/", nil)
+	assert.NoError(t, err)
 	w := httptest.NewRecorder()
 
 	// 启动 Web 服务器
@@ -46,8 +47,8 @@ func TestLogRequest(t *testing.T) {
 
 	// 测试请求
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest(http.MethodGet, "/test", nil)
-
+	req, err := http.NewRequest(http.MethodGet, "/test", nil)
+	assert.NoError(t, err)
 	// 记录请求
 	r.ServeHTTP(w, req)
 
@@ -67,8 +68,8 @@ func TestLogRequestWithError(t *testing.T) {
 
 	// 测试请求
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest(http.MethodGet, "/error", nil)
-
+	req, err := http.NewRequest(http.MethodGet, "/error", nil)
+	assert.NoError(t, err)
 	// 记录请求
 	r.ServeHTTP(w, req)
 
