@@ -2,8 +2,13 @@
 package utils
 
 import (
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestParseUnixTimestamp(t *testing.T) {
@@ -114,4 +119,58 @@ func TestRemoveEmptyStrings(t *testing.T) {
 			break
 		}
 	}
+}
+
+type TestSigInfo struct {
+	Sig []string `json:"sig"`
+}
+
+type TestGiteeRepo struct {
+	FullName string `json:"full_name"`
+	Admin    bool   `json:"admin"`
+}
+
+// 测试 GetUserSigInfo
+func TestGetUserSigInfo(t *testing.T) {
+	// 创建一个 HTTP 测试服务器
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		// 模拟返回的 JSON 数据
+		response := TestSigInfo{Sig: []string{}}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(response)
+	}
+
+	server := httptest.NewServer(http.HandlerFunc(handler))
+	defer server.Close()
+
+	// 测试函数
+	sigs, err := GetUserSigInfo("testuser")
+	assert.NoError(t, err)
+	assert.Equal(t, []string{}, sigs)
+}
+
+// 测试 GetUserAdminRepos
+func TestGetUserAdminRepos(t *testing.T) {
+	// 创建一个 HTTP 测试服务器
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		// 模拟返回的 JSON 数据
+		repos := []TestGiteeRepo{
+			{FullName: "testuser/Git-Demo", Admin: true},
+			{FullName: "testuser/jhj", Admin: false},
+			{FullName: "testuser/testtest", Admin: true},
+			{FullName: "testuser/testtest2", Admin: true},
+		}
+		// 设置 total_count 响应头
+		w.Header().Set("total_count", "3")
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(repos)
+	}
+
+	server := httptest.NewServer(http.HandlerFunc(handler))
+	defer server.Close()
+
+	// 测试函数
+	adminRepos, err := GetUserAdminRepos("testuser")
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"testuser/Git-Demo", "testuser/jhj", "testuser/testtest", "testuser/testtest2"}, adminRepos)
 }

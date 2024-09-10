@@ -52,7 +52,7 @@ func (s *messageListAppService) GetInnerMessage(userName string,
 func (s *messageListAppService) CountAllUnReadMessage(userName string) ([]CountDTO, error) {
 	count, err := s.messageListAdapter.CountAllUnReadMessage(userName)
 	if err != nil {
-		return nil, err
+		return []CountDTO{}, err
 	}
 	return count, nil
 }

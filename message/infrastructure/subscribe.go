@@ -52,6 +52,9 @@ func (ctl *messageSubscribeAdapter) GetSubsConfig(userName string) ([]MessageSub
 }
 
 func (ctl *messageSubscribeAdapter) SaveFilter(cmd CmdToGetSubscribe, userName string) error {
+	if userName == "" {
+		return xerrors.Errorf("用户名为空")
+	}
 	var modeFilter datatypes.JSON
 	modeFilter, _ = TransToDbFormat(cmd.Source, cmd.EventType, cmd)
 	isDefault := new(bool)

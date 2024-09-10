@@ -119,26 +119,28 @@ func GetUserSigInfo(userName string) ([]string, error) {
 	url := fmt.Sprintf(eulerUserSigUrl, userName)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, err
+		return []string{}, err
 	}
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, err
+		return []string{}, err
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return []string{}, err
 	}
 
 	var repoSig SigInfo
 	err = json.Unmarshal(body, &repoSig)
 	if err != nil {
-		return nil, err
+		return []string{}, err
 	}
-
+	if repoSig.Sig == nil {
+		return []string{}, nil // 确保返回空切片而不是 nil
+	}
 	return repoSig.Sig, nil
 }
 
@@ -153,23 +155,23 @@ func GetUserAdminRepos(userName string) ([]string, error) {
 		url := fmt.Sprintf(giteeUserReposUrl, userName, page, perPage)
 		req, err := http.NewRequest("GET", url, nil)
 		if err != nil {
-			return nil, err
+			return []string{}, err
 		}
 
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
-			return nil, err
+			return []string{}, err
 		}
 
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return nil, err
+			return []string{}, err
 		}
 
 		var members []GiteeRepo
 		err = json.Unmarshal(body, &members)
 		if err != nil {
-			return nil, err
+			return []string{}, err
 		}
 
 		repos = append(repos, members...)
@@ -177,7 +179,7 @@ func GetUserAdminRepos(userName string) ([]string, error) {
 		if totalCount == 0 {
 			totalCount, err = strconv.Atoi(resp.Header.Get("total_count"))
 			if err != nil {
-				return nil, xerrors.Errorf("trans to int failed, err:%v", err)
+				return []string{}, xerrors.Errorf("trans to int failed, err:%v", err)
 			}
 		}
 
@@ -187,7 +189,7 @@ func GetUserAdminRepos(userName string) ([]string, error) {
 		page++
 		err = resp.Body.Close()
 		if err != nil {
-			return nil, xerrors.Errorf("close body failed, err :%v", err)
+			return []string{}, xerrors.Errorf("close body failed, err :%v", err)
 		}
 	}
 
@@ -196,6 +198,9 @@ func GetUserAdminRepos(userName string) ([]string, error) {
 		if repo.Admin {
 			adminRepos = append(adminRepos, repo.FullName)
 		}
+	}
+	if adminRepos == nil {
+		return []string{}, nil // 确保返回空切片而不是 nil
 	}
 	return adminRepos, nil
 }
