@@ -1,4 +1,4 @@
-package domain
+package infrastructure
 
 import (
 	"testing"
@@ -11,9 +11,9 @@ type MockMessageRecipientAdapter struct {
 	mock.Mock
 }
 
-func (m *MockMessageRecipientAdapter) GetRecipientConfig(countPerPage, pageNum int, userName string) ([]MessageRecipientDO, int64, error) {
+func (m *MockMessageRecipientAdapter) GetRecipientConfig(countPerPage, pageNum int, userName string) ([]MessageRecipientDAO, int64, error) {
 	args := m.Called(countPerPage, pageNum, userName)
-	return args.Get(0).([]MessageRecipientDO), args.Get(1).(int64), args.Error(2)
+	return args.Get(0).([]MessageRecipientDAO), args.Get(1).(int64), args.Error(2)
 }
 
 func (m *MockMessageRecipientAdapter) AddRecipientConfig(cmd CmdToAddRecipient, userName string) error {
@@ -41,7 +41,7 @@ func TestGetRecipientConfig(t *testing.T) {
 	countPerPage := 10
 	pageNum := 1
 	userName := "testUser"
-	expectedRecipients := []MessageRecipientDO{{}}
+	expectedRecipients := []MessageRecipientDAO{{}}
 	expectedCount := int64(5)
 
 	mockAdapter.On("GetRecipientConfig", countPerPage, pageNum, userName).Return(expectedRecipients, expectedCount, nil)

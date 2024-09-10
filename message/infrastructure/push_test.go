@@ -1,4 +1,4 @@
-package domain
+package infrastructure
 
 import (
 	"testing"
@@ -11,9 +11,9 @@ type MockMessagePushAdapter struct {
 	mock.Mock
 }
 
-func (m *MockMessagePushAdapter) GetPushConfig(subsIds []string, countPerPage, pageNum int, userName string) ([]MessagePushDO, error) {
+func (m *MockMessagePushAdapter) GetPushConfig(subsIds []string, countPerPage, pageNum int, userName string) ([]MessagePushDAO, error) {
 	args := m.Called(subsIds, countPerPage, pageNum, userName)
-	return args.Get(0).([]MessagePushDO), args.Error(1)
+	return args.Get(0).([]MessagePushDAO), args.Error(1)
 }
 
 func (m *MockMessagePushAdapter) AddPushConfig(cmd CmdToAddPushConfig) error {
@@ -37,7 +37,7 @@ func TestGetPushConfig(t *testing.T) {
 	countPerPage := 10
 	pageNum := 1
 	userName := "testUser"
-	expectedMessages := []MessagePushDO{{}}
+	expectedMessages := []MessagePushDAO{{}}
 
 	mockAdapter.On("GetPushConfig", subsIds, countPerPage, pageNum, userName).Return(expectedMessages, nil)
 

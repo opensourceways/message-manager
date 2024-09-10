@@ -1,4 +1,4 @@
-package domain
+package infrastructure
 
 import (
 	"testing"
@@ -11,19 +11,20 @@ type MockMessageListAdapter struct {
 	mock.Mock
 }
 
-func (m *MockMessageListAdapter) GetInnerMessageQuick(cmd CmdToGetInnerMessageQuick, userName string) ([]MessageListDO, int64, error) {
+func (m *MockMessageListAdapter) GetInnerMessageQuick(cmd CmdToGetInnerMessageQuick,
+	userName string) ([]MessageListDAO, int64, error) {
 	args := m.Called(cmd, userName)
-	return args.Get(0).([]MessageListDO), args.Get(1).(int64), args.Error(2)
+	return args.Get(0).([]MessageListDAO), args.Get(1).(int64), args.Error(2)
 }
 
-func (m *MockMessageListAdapter) GetInnerMessage(cmd CmdToGetInnerMessage, userName string) ([]MessageListDO, int64, error) {
+func (m *MockMessageListAdapter) GetInnerMessage(cmd CmdToGetInnerMessage, userName string) ([]MessageListDAO, int64, error) {
 	args := m.Called(cmd, userName)
-	return args.Get(0).([]MessageListDO), args.Get(1).(int64), args.Error(2)
+	return args.Get(0).([]MessageListDAO), args.Get(1).(int64), args.Error(2)
 }
 
-func (m *MockMessageListAdapter) CountAllUnReadMessage(userName string) ([]CountDO, error) {
+func (m *MockMessageListAdapter) CountAllUnReadMessage(userName string) ([]CountDAO, error) {
 	args := m.Called(userName)
-	return args.Get(0).([]CountDO), args.Error(1)
+	return args.Get(0).([]CountDAO), args.Error(1)
 }
 
 func (m *MockMessageListAdapter) SetMessageIsRead(source, eventId string) error {
@@ -40,7 +41,7 @@ func TestGetInnerMessageQuick(t *testing.T) {
 	mockAdapter := new(MockMessageListAdapter)
 	cmd := CmdToGetInnerMessageQuick{}
 	userName := "testUser"
-	expectedMessages := []MessageListDO{{}}
+	expectedMessages := []MessageListDAO{{}}
 	expectedCount := int64(5)
 
 	mockAdapter.On("GetInnerMessageQuick", cmd, userName).Return(expectedMessages, expectedCount, nil)
@@ -57,7 +58,7 @@ func TestGetInnerMessage(t *testing.T) {
 	mockAdapter := new(MockMessageListAdapter)
 	cmd := CmdToGetInnerMessage{}
 	userName := "testUser"
-	expectedMessages := []MessageListDO{{}}
+	expectedMessages := []MessageListDAO{{}}
 	expectedCount := int64(5)
 
 	mockAdapter.On("GetInnerMessage", cmd, userName).Return(expectedMessages, expectedCount, nil)
@@ -73,7 +74,7 @@ func TestGetInnerMessage(t *testing.T) {
 func TestCountAllUnReadMessage(t *testing.T) {
 	mockAdapter := new(MockMessageListAdapter)
 	userName := "testUser"
-	expectedCounts := []CountDO{{}}
+	expectedCounts := []CountDAO{{}}
 
 	mockAdapter.On("CountAllUnReadMessage", userName).Return(expectedCounts, nil)
 

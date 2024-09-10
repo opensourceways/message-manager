@@ -1,4 +1,4 @@
-package domain
+package infrastructure
 
 import (
 	"testing"
@@ -11,14 +11,14 @@ type MockMessageSubscribeAdapter struct {
 	mock.Mock
 }
 
-func (m *MockMessageSubscribeAdapter) GetAllSubsConfig(userName string) ([]MessageSubscribeDO, error) {
+func (m *MockMessageSubscribeAdapter) GetAllSubsConfig(userName string) ([]MessageSubscribeDAO, error) {
 	args := m.Called(userName)
-	return args.Get(0).([]MessageSubscribeDO), args.Error(1)
+	return args.Get(0).([]MessageSubscribeDAO), args.Error(1)
 }
 
-func (m *MockMessageSubscribeAdapter) GetSubsConfig(userName string) ([]MessageSubscribeDO, int64, error) {
+func (m *MockMessageSubscribeAdapter) GetSubsConfig(userName string) ([]MessageSubscribeDAO, int64, error) {
 	args := m.Called(userName)
-	return args.Get(0).([]MessageSubscribeDO), args.Get(1).(int64), args.Error(2)
+	return args.Get(0).([]MessageSubscribeDAO), args.Get(1).(int64), args.Error(2)
 }
 
 func (m *MockMessageSubscribeAdapter) SaveFilter(cmd CmdToGetSubscribe, userName string) error {
@@ -39,7 +39,7 @@ func (m *MockMessageSubscribeAdapter) RemoveSubsConfig(cmd CmdToDeleteSubscribe,
 func TestGetAllSubsConfig(t *testing.T) {
 	mockAdapter := new(MockMessageSubscribeAdapter)
 	userName := "testUser"
-	expectedSubs := []MessageSubscribeDO{{}}
+	expectedSubs := []MessageSubscribeDAO{{}}
 
 	mockAdapter.On("GetAllSubsConfig", userName).Return(expectedSubs, nil)
 
@@ -53,7 +53,7 @@ func TestGetAllSubsConfig(t *testing.T) {
 func TestGetSubsConfig(t *testing.T) {
 	mockAdapter := new(MockMessageSubscribeAdapter)
 	userName := "testUser"
-	expectedSubs := []MessageSubscribeDO{{}}
+	expectedSubs := []MessageSubscribeDAO{{}}
 	expectedCount := int64(3)
 
 	mockAdapter.On("GetSubsConfig", userName).Return(expectedSubs, expectedCount, nil)
