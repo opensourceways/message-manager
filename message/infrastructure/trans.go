@@ -27,7 +27,7 @@ func TransToDbFormat(source string, eventType string, request CmdToGetSubscribe)
 	} else if utils.IsCveMessage(source) {
 		return TransCveModeFilterToDbFormat(request)
 	}
-	return nil, nil
+	return nil, xerrors.Errorf("can not trans, source : %v", source)
 }
 
 func TransEurModeFilterToDbFormat(modeFilter CmdToGetSubscribe) (datatypes.JSON, error) {
@@ -111,11 +111,7 @@ func TransGiteeModeFilterToDbFormat(eventType string, modeFilter CmdToGetSubscri
 				}
 			}
 		}
-	}
 
-	if modeFilter.MyManagement != "" {
-		lRepo, _ := utils.GetUserAdminRepos(modeFilter.MyManagement)
-		lRepoName = append(lRepoName, lRepo...)
 	}
 	lRepoName = utils.RemoveEmptyStrings(lRepoName)
 	if len(lRepoName) == 1 {
@@ -130,13 +126,16 @@ func TransGiteeModeFilterToDbFormat(eventType string, modeFilter CmdToGetSubscri
 		sNamespace = "oneof=" + strings.Join(lNameSpace, " ")
 	}
 
+	var sMyManagement, sMySig string
+	if modeFilter.MyManagement != "" {
+		sMyManagement = fmt.Sprintf("oneof=%s", modeFilter.MyManagement)
+	}
+	if modeFilter.MySig != "" {
+		sMySig = fmt.Sprintf("oneof=%s", modeFilter.MySig)
+	}
 	var sSigGroupName string
 	if modeFilter.GiteeSigs != "" {
 		sigGroupNames := strings.Split(modeFilter.GiteeSigs, ",")
-		if modeFilter.MySig != "" {
-			lSig, _ := utils.GetUserSigInfo(modeFilter.MySig)
-			sigGroupNames = append(sigGroupNames, lSig...)
-		}
 		sigGroupNames = utils.RemoveEmptyStrings(sigGroupNames)
 		if len(sigGroupNames) == 1 {
 			sSigGroupName = "eq=" + sigGroupNames[0]
@@ -264,6 +263,8 @@ func TransGiteeModeFilterToDbFormat(eventType string, modeFilter CmdToGetSubscri
 			IssueCreator:  sIssueCreator,
 			IssueAssignee: sIssueAssignee,
 			EventTime:     sEventTime,
+			MySig:         sMySig,
+			MyManagement:  sMyManagement,
 		}
 	case "note":
 		param = utils.GiteeNoteDbFormat{
@@ -274,6 +275,8 @@ func TransGiteeModeFilterToDbFormat(eventType string, modeFilter CmdToGetSubscri
 			NoteType:     sNoteType,
 			About:        sAbout,
 			EventTime:    sEventTime,
+			MySig:        sMySig,
+			MyManagement: sMyManagement,
 		}
 	case "pr":
 		param = utils.GiteePullRequestDbFormat{
@@ -287,6 +290,8 @@ func TransGiteeModeFilterToDbFormat(eventType string, modeFilter CmdToGetSubscri
 			PrCreator:     sPrCreator,
 			PrAssignee:    sPrAssignee,
 			EventTime:     sEventTime,
+			MySig:         sMySig,
+			MyManagement:  sMyManagement,
 		}
 	case "push":
 		param = utils.GiteePushDbFormat{
@@ -295,6 +300,8 @@ func TransGiteeModeFilterToDbFormat(eventType string, modeFilter CmdToGetSubscri
 			Namespace:    sNamespace,
 			SigGroupName: sSigGroupName,
 			EventTime:    sEventTime,
+			MySig:        sMySig,
+			MyManagement: sMyManagement,
 		}
 	default:
 		return datatypes.JSON{}, xerrors.Errorf("the eventType is wrong")
@@ -334,6 +341,11 @@ func TransMeetingModeFilterToDbFormat(modeFilter CmdToGetSubscribe) (datatypes.J
 
 	}
 
+	var sMySig string
+	if modeFilter.MySig != "" {
+		sMySig = fmt.Sprintf("oneof=%s", modeFilter.MySig)
+	}
+
 	startTime := utils.ParseUnixTimestamp(modeFilter.StartTime)
 	endTime := utils.ParseUnixTimestamp(modeFilter.EndTime)
 	if startTime != nil && endTime != nil {
@@ -346,6 +358,7 @@ func TransMeetingModeFilterToDbFormat(modeFilter CmdToGetSubscribe) (datatypes.J
 		SigGroup:         sSigGroup,
 		MeetingStartTime: sStart,
 		EventTime:        sEventTime,
+		MySig:            sMySig,
 	}
 
 	jsonStr, err := json.Marshal(dbModeFilter)
@@ -386,10 +399,16 @@ func TransCveModeFilterToDbFormat(modeFilter CmdToGetSubscribe) (datatypes.JSON,
 		sAffected = "or " + strings.Join(template, " ")
 	}
 
+	var sMySig string
+	if modeFilter.MySig != "" {
+		sMySig = fmt.Sprintf("oneof=%s", modeFilter.MySig)
+	}
+
 	dbModeFilter := utils.CveDbFormat{
 		Component: sComponent,
 		State:     sState,
 		Affected:  sAffected,
+		MySig:     sMySig,
 	}
 
 	jsonStr, err := json.Marshal(dbModeFilter)

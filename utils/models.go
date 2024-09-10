@@ -41,6 +41,8 @@ type GiteeIssueDbFormat struct {
 	IssueCreator  string `json:"IssueEvent.Issue.User.Login,omitempty"`
 	IssueAssignee string `json:"IssueEvent.Issue.Assignee.Login,omitempty"`
 	EventTime     string `json:"EventTime,omitempty"`
+	MyManagement  string `json:"RepoAdmins,omitempty"`
+	MySig         string `json:"SigMaintainers,omitempty"`
 }
 type GiteeNoteDbFormat struct {
 	RepoName     string `json:"NoteEvent.Repository.FullName,omitempty"`
@@ -50,6 +52,8 @@ type GiteeNoteDbFormat struct {
 	NoteType     string `json:"NoteEvent.NoteableType,omitempty"`
 	About        string `json:"NoteEvent.Comment.Body,omitempty"`
 	EventTime    string `json:"EventTime,omitempty"`
+	MyManagement string `json:"RepoAdmins,omitempty"`
+	MySig        string `json:"SigMaintainers,omitempty"`
 }
 type GiteePullRequestDbFormat struct {
 	RepoName      string `json:"PullRequestEvent.Repository.FullName,omitempty"`
@@ -62,6 +66,8 @@ type GiteePullRequestDbFormat struct {
 	PrCreator     string `json:"PullRequestEvent.PullRequest.User.Login,omitempty"`
 	PrAssignee    string `json:"PullRequestEvent.PullRequest.Assignee.Login,omitempty"`
 	EventTime     string `json:"EventTime,omitempty"`
+	MyManagement  string `json:"RepoAdmins,omitempty"`
+	MySig         string `json:"SigMaintainers,omitempty"`
 }
 
 type GiteePushDbFormat struct {
@@ -70,6 +76,8 @@ type GiteePushDbFormat struct {
 	Namespace    string `json:"PullRequestEvent.Repository.Namespace,omitempty"`
 	SigGroupName string `json:"SigGroupName,omitempty"`
 	EventTime    string `json:"EventTime,omitempty"`
+	MyManagement string `json:"RepoAdmins,omitempty"`
+	MySig        string `json:"SigMaintainers,omitempty"`
 }
 
 type MeetingDbFormat struct {
@@ -77,10 +85,12 @@ type MeetingDbFormat struct {
 	SigGroup         string `json:"Msg.GroupName,omitempty"`
 	MeetingStartTime string `json:"MeetingStartTime,omitempty"`
 	EventTime        string `json:"EventTime,omitempty"`
+	MySig            string `json:"SigMaintainers,omitempty"`
 }
 
 type CveDbFormat struct {
 	Component string `json:"CVEComponent"`
 	State     string `json:"IssueEvent.Issue.StateName"`
 	Affected  string `json:"CVEAffectVersion"`
+	MySig     string `json:"SigMaintainers,omitempty"`
 }
