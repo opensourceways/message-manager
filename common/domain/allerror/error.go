@@ -14,6 +14,8 @@ const (
 	// errorCodeNoPermission mean no permission
 	errorCodeNoPermission = "no_permission"
 
+	ErrorCodeAccessDenied = "unauthorized"
+
 	// ErrorCodeTokenNotFound means token is not found
 	ErrorCodeTokenNotFound = "token_not_found"
 

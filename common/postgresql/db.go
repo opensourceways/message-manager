@@ -6,6 +6,7 @@ package postgresql
 
 import (
 	"database/sql"
+	"errors"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -29,7 +30,7 @@ func Init(cfg *Config) (err error) {
 	}
 
 	if sqlDb, err = db.DB(); err != nil {
-		return
+		return errors.New("db error")
 	}
 
 	sqlDb.SetConnMaxLifetime(cfg.getLifeDuration())

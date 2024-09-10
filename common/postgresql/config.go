@@ -18,6 +18,7 @@ type Config struct {
 	Life    int    `json:"life"     required:"true"`
 	MaxConn int    `json:"max_conn" required:"true"`
 	MaxIdle int    `json:"max_idle" required:"true"`
+	Dbcert  string `json:"cert"`
 }
 
 func (cfg *Config) SetDefault() {
