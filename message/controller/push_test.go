@@ -45,7 +45,11 @@ func TestGetPushConfig_Success(t *testing.T) {
 	mockService := new(MockMessagePushAppService)
 	AddRouterForMessagePushController(r, mockService)
 
-	req, _ := http.NewRequest("GET", "/message_center/config/push?count_per_page=10&page=1&subscribe_id=sub1,sub2", nil)
+	req, err := http.NewRequest("GET",
+		"/message_center/config/push?count_per_page=10&page=1&subscribe_id=sub1,sub2", nil)
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	req.Header.Set("Authorization", "Bearer token")
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
@@ -59,7 +63,10 @@ func TestGetPushConfig_BindError(t *testing.T) {
 	mockService := new(MockMessagePushAppService)
 	AddRouterForMessagePushController(r, mockService)
 
-	req, _ := http.NewRequest("GET", "/message_center/config/push", nil)
+	req, err := http.NewRequest("GET", "/message_center/config/push", nil)
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
@@ -77,7 +84,11 @@ func TestGetPushConfig_ServiceError(t *testing.T) {
 	countPerPage, pageNum := 10, 1
 	mockService.On("GetPushConfig", countPerPage, pageNum, userName, subsIds).Return(nil, xerrors.New("service error"))
 
-	req, _ := http.NewRequest("GET", "/message_center/config/push?count_per_page=10&page=1&subscribe_id=sub1,sub2", nil)
+	req, err := http.NewRequest("GET",
+		"/message_center/config/push?count_per_page=10&page=1&subscribe_id=sub1,sub2", nil)
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	req.Header.Set("Authorization", "Bearer token")
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
@@ -99,10 +110,16 @@ func TestAddPushConfig_Success(t *testing.T) {
 		NeedMail:         true,
 		NeedInnerMessage: true,
 	}
-	body, _ := json.Marshal(reqBody)
+	body, err := json.Marshal(reqBody)
+	if err != nil {
+		t.Fatal("Failed to marshal messages:", err)
+	}
 	mockService.On("AddPushConfig", mock.Anything).Return(nil)
 
-	req, _ := http.NewRequest("POST", "/message_center/config/push", bytes.NewBuffer(body))
+	req, err := http.NewRequest("POST", "/message_center/config/push", bytes.NewBuffer(body))
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
@@ -116,7 +133,10 @@ func TestAddPushConfig_BindError(t *testing.T) {
 	mockService := new(MockMessagePushAppService)
 	AddRouterForMessagePushController(r, mockService)
 
-	req, _ := http.NewRequest("POST", "/message_center/config/push", nil)
+	req, err := http.NewRequest("POST", "/message_center/config/push", nil)
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
@@ -137,10 +157,16 @@ func TestAddPushConfig_ServiceError(t *testing.T) {
 		NeedMail:         true,
 		NeedInnerMessage: true,
 	}
-	body, _ := json.Marshal(reqBody)
+	body, err := json.Marshal(reqBody)
+	if err != nil {
+		t.Fatal("Failed to marshal messages:", err)
+	}
 	mockService.On("AddPushConfig", mock.Anything).Return(xerrors.New("service error"))
 
-	req, _ := http.NewRequest("POST", "/message_center/config/push", bytes.NewBuffer(body))
+	req, err := http.NewRequest("POST", "/message_center/config/push", bytes.NewBuffer(body))
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
@@ -161,10 +187,16 @@ func TestUpdatePushConfig_Success(t *testing.T) {
 		NeedMail:         true,
 		NeedInnerMessage: true,
 	}
-	body, _ := json.Marshal(reqBody)
+	body, err := json.Marshal(reqBody)
+	if err != nil {
+		t.Fatal("Failed to marshal messages:", err)
+	}
 	mockService.On("UpdatePushConfig", mock.Anything).Return(nil)
 
-	req, _ := http.NewRequest("PUT", "/message_center/config/push", bytes.NewBuffer(body))
+	req, err := http.NewRequest("PUT", "/message_center/config/push", bytes.NewBuffer(body))
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
@@ -178,7 +210,10 @@ func TestUpdatePushConfig_BindError(t *testing.T) {
 	mockService := new(MockMessagePushAppService)
 	AddRouterForMessagePushController(r, mockService)
 
-	req, _ := http.NewRequest("PUT", "/message_center/config/push", nil)
+	req, err := http.NewRequest("PUT", "/message_center/config/push", nil)
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
@@ -199,10 +234,16 @@ func TestUpdatePushConfig_ServiceError(t *testing.T) {
 		NeedMail:         true,
 		NeedInnerMessage: true,
 	}
-	body, _ := json.Marshal(reqBody)
+	body, err := json.Marshal(reqBody)
+	if err != nil {
+		t.Fatal("Failed to marshal messages:", err)
+	}
 	mockService.On("UpdatePushConfig", mock.Anything).Return(xerrors.New("service error"))
 
-	req, _ := http.NewRequest("PUT", "/message_center/config/push", bytes.NewBuffer(body))
+	req, err := http.NewRequest("PUT", "/message_center/config/push", bytes.NewBuffer(body))
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
@@ -219,10 +260,16 @@ func TestRemovePushConfig_Success(t *testing.T) {
 		SubscribeId: 1,
 		RecipientId: 123456,
 	}
-	body, _ := json.Marshal(reqBody)
+	body, err := json.Marshal(reqBody)
+	if err != nil {
+		t.Fatal("Failed to marshal messages:", err)
+	}
 	mockService.On("RemovePushConfig", mock.Anything).Return(nil)
 
-	req, _ := http.NewRequest("DELETE", "/message_center/config/push", bytes.NewBuffer(body))
+	req, err := http.NewRequest("DELETE", "/message_center/config/push", bytes.NewBuffer(body))
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
@@ -236,7 +283,10 @@ func TestRemovePushConfig_BindError(t *testing.T) {
 	mockService := new(MockMessagePushAppService)
 	AddRouterForMessagePushController(r, mockService)
 
-	req, _ := http.NewRequest("DELETE", "/message_center/config/push", nil)
+	req, err := http.NewRequest("DELETE", "/message_center/config/push", nil)
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
@@ -253,10 +303,16 @@ func TestRemovePushConfig_ServiceError(t *testing.T) {
 		SubscribeId: 1,
 		RecipientId: 123456,
 	}
-	body, _ := json.Marshal(reqBody)
+	body, err := json.Marshal(reqBody)
+	if err != nil {
+		t.Fatal("Failed to marshal messages:", err)
+	}
 	mockService.On("RemovePushConfig", mock.Anything).Return(xerrors.New("service error"))
 
-	req, _ := http.NewRequest("DELETE", "/message_center/config/push", bytes.NewBuffer(body))
+	req, err := http.NewRequest("DELETE", "/message_center/config/push", bytes.NewBuffer(body))
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 

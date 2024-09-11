@@ -137,7 +137,10 @@ func TestGetUserSigInfo(t *testing.T) {
 		// 模拟返回的 JSON 数据
 		response := TestSigInfo{Sig: []string{}}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		err := json.NewEncoder(w).Encode(response)
+		if err != nil {
+			t.Fatalf("could not decode response: %v", err)
+		}
 	}
 
 	server := httptest.NewServer(http.HandlerFunc(handler))
@@ -163,7 +166,10 @@ func TestGetUserAdminRepos(t *testing.T) {
 		// 设置 total_count 响应头
 		w.Header().Set("total_count", "3")
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(repos)
+		err := json.NewEncoder(w).Encode(repos)
+		if err != nil {
+			t.Fatalf("could not decode response: %v", err)
+		}
 	}
 
 	server := httptest.NewServer(http.HandlerFunc(handler))

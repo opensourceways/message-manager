@@ -107,7 +107,11 @@ func TestUpdateRecipientConfig(t *testing.T) {
 	mockAppService.On("UpdateRecipientConfig", "testUser", mock.Anything).Return(nil)
 
 	reqBody := `{"id":"1","name":"updatedRecipient"}`
-	req, _ := http.NewRequest(http.MethodPut, "/message_center/config/recipient", strings.NewReader(reqBody))
+	req, err := http.NewRequest(http.MethodPut, "/message_center/config/recipient",
+		strings.NewReader(reqBody))
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	req.Header.Set("Authorization", "Bearer testToken")
 	req.Header.Set("Content-Type", "application/json")
 	recorder := httptest.NewRecorder()
@@ -120,7 +124,11 @@ func TestUpdateRecipientConfig(t *testing.T) {
 	mockAppService.On("UpdateRecipientConfig", "testUser", mock.Anything).Return(xerrors.New("update error"))
 
 	reqBody = `{"id":"1","name":"updatedRecipient"}`
-	req, _ = http.NewRequest(http.MethodPut, "/message_center/config/recipient", strings.NewReader(reqBody))
+	req, err = http.NewRequest(http.MethodPut, "/message_center/config/recipient",
+		strings.NewReader(reqBody))
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	recorder = httptest.NewRecorder()
 
 	router.ServeHTTP(recorder, req)
@@ -138,7 +146,11 @@ func TestRemoveRecipientConfig(t *testing.T) {
 	mockAppService.On("RemoveRecipientConfig", "testUser", mock.Anything).Return(nil)
 
 	reqBody := `{"id":"1"}`
-	req, _ := http.NewRequest(http.MethodDelete, "/message_center/config/recipient", strings.NewReader(reqBody))
+	req, err := http.NewRequest(http.MethodDelete, "/message_center/config/recipient",
+		strings.NewReader(reqBody))
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	req.Header.Set("Authorization", "Bearer testToken")
 	req.Header.Set("Content-Type", "application/json")
 	recorder := httptest.NewRecorder()
@@ -169,7 +181,11 @@ func TestSyncUserInfo(t *testing.T) {
 	mockAppService.On("SyncUserInfo", mock.Anything).Return(uint(1), nil)
 
 	reqBody := `{"user_info":"example"}`
-	req, _ := http.NewRequest(http.MethodPost, "/message_center/config/recipient/sync", strings.NewReader(reqBody))
+	req, err := http.NewRequest(http.MethodPost, "/message_center/config/recipient/sync",
+		strings.NewReader(reqBody))
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	req.Header.Set("Authorization", "Bearer testToken")
 	req.Header.Set("Content-Type", "application/json")
 	recorder := httptest.NewRecorder()
@@ -182,7 +198,11 @@ func TestSyncUserInfo(t *testing.T) {
 	mockAppService.On("SyncUserInfo", mock.Anything).Return(uint(0), xerrors.New("sync error"))
 
 	reqBody = `{"user_info":"example"}`
-	req, _ = http.NewRequest(http.MethodPost, "/message_center/config/recipient/sync", strings.NewReader(reqBody))
+	req, err = http.NewRequest(http.MethodPost, "/message_center/config/recipient/sync",
+		strings.NewReader(reqBody))
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	recorder = httptest.NewRecorder()
 
 	router.ServeHTTP(recorder, req)

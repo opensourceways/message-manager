@@ -50,7 +50,10 @@ func TestGetInnerMessageQuick_Success(t *testing.T) {
 	mockService := new(MockMessageListAppService)
 	AddRouterForMessageListController(r, mockService)
 
-	req, _ := http.NewRequest("GET", "/message_center/inner_quick?source=test", nil)
+	req, err := http.NewRequest("GET", "/message_center/inner_quick?source=test", nil)
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	req.Header.Set("Authorization", "Bearer token")
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
@@ -64,7 +67,10 @@ func TestGetInnerMessageQuick_BindError(t *testing.T) {
 	mockService := new(MockMessageListAppService)
 	AddRouterForMessageListController(r, mockService)
 
-	req, _ := http.NewRequest("GET", "/message_center/inner_quick", nil)
+	req, err := http.NewRequest("GET", "/message_center/inner_quick", nil)
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
@@ -79,7 +85,10 @@ func TestGetInnerMessageQuick_ConvertError(t *testing.T) {
 
 	mockService.On("GetInnerMessageQuick", "testUser", mock.Anything).Return(nil, int64(0), xerrors.New("error"))
 
-	req, _ := http.NewRequest("GET", "/message_center/inner_quick?source=test", nil)
+	req, err := http.NewRequest("GET", "/message_center/inner_quick?source=test", nil)
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
@@ -92,7 +101,10 @@ func TestGetInnerMessage_Success(t *testing.T) {
 	mockService := new(MockMessageListAppService)
 	AddRouterForMessageListController(r, mockService)
 
-	req, _ := http.NewRequest("GET", "/message_center/inner?source=test", nil)
+	req, err := http.NewRequest("GET", "/message_center/inner?source=test", nil)
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
@@ -105,7 +117,10 @@ func TestGetInnerMessage_BindError(t *testing.T) {
 	mockService := new(MockMessageListAppService)
 	AddRouterForMessageListController(r, mockService)
 
-	req, _ := http.NewRequest("GET", "/message_center/inner", nil)
+	req, err := http.NewRequest("GET", "/message_center/inner", nil)
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
@@ -120,7 +135,10 @@ func TestGetInnerMessage_ConvertError(t *testing.T) {
 
 	mockService.On("GetInnerMessage", "testUser", mock.Anything).Return(nil, int64(0), xerrors.New("error"))
 
-	req, _ := http.NewRequest("GET", "/message_center/inner?source=test", nil)
+	req, err := http.NewRequest("GET", "/message_center/inner?source=test", nil)
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
@@ -133,7 +151,10 @@ func TestCountAllUnReadMessage_Success(t *testing.T) {
 	mockService := new(MockMessageListAppService)
 	AddRouterForMessageListController(r, mockService)
 
-	req, _ := http.NewRequest("GET", "/message_center/inner/count", nil)
+	req, err := http.NewRequest("GET", "/message_center/inner/count", nil)
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
@@ -148,7 +169,10 @@ func TestCountAllUnReadMessage_Unauthorized(t *testing.T) {
 
 	mockService.On("CountAllUnReadMessage", "testUser").Return(0, xerrors.New("error"))
 
-	req, _ := http.NewRequest("GET", "/message_center/inner/count", nil)
+	req, err := http.NewRequest("GET", "/message_center/inner/count", nil)
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
@@ -164,10 +188,16 @@ func TestSetMessageIsRead_Success(t *testing.T) {
 	messages := []messageStatus{
 		{Source: "source1", EventId: "event1"},
 	}
-	body, _ := json.Marshal(messages)
+	body, err := json.Marshal(messages)
+	if err != nil {
+		t.Fatal("Failed to marshal messages", err)
+	}
 	mockService.On("SetMessageIsRead", mock.Anything).Return(nil)
 
-	req, _ := http.NewRequest("PUT", "/message_center/inner", bytes.NewBuffer(body))
+	req, err := http.NewRequest("PUT", "/message_center/inner", bytes.NewBuffer(body))
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
@@ -181,7 +211,10 @@ func TestSetMessageIsRead_BindError(t *testing.T) {
 	mockService := new(MockMessageListAppService)
 	AddRouterForMessageListController(r, mockService)
 
-	req, _ := http.NewRequest("PUT", "/message_center/inner", nil)
+	req, err := http.NewRequest("PUT", "/message_center/inner", nil)
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
@@ -197,10 +230,16 @@ func TestSetMessageIsRead_ConvertError(t *testing.T) {
 	messages := []messageStatus{
 		{Source: "source1", EventId: "event1"},
 	}
-	body, _ := json.Marshal(messages)
+	body, err := json.Marshal(messages)
+	if err != nil {
+		t.Fatal("Failed to marshal messages:", err)
+	}
 	mockService.On("SetMessageIsRead", mock.Anything).Return(xerrors.New("error"))
 
-	req, _ := http.NewRequest("PUT", "/message_center/inner", bytes.NewBuffer(body))
+	req, err := http.NewRequest("PUT", "/message_center/inner", bytes.NewBuffer(body))
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
@@ -216,10 +255,16 @@ func TestRemoveMessage_Success(t *testing.T) {
 	messages := []messageStatus{
 		{Source: "source1", EventId: "event1"},
 	}
-	body, _ := json.Marshal(messages)
+	body, err := json.Marshal(messages)
+	if err != nil {
+		t.Fatal("Failed to marshal messages:", err)
+	}
 	mockService.On("RemoveMessage", mock.Anything).Return(nil)
 
-	req, _ := http.NewRequest("DELETE", "/message_center/inner", bytes.NewBuffer(body))
+	req, err := http.NewRequest("DELETE", "/message_center/inner", bytes.NewBuffer(body))
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
@@ -233,7 +278,10 @@ func TestRemoveMessage_BindError(t *testing.T) {
 	mockService := new(MockMessageListAppService)
 	AddRouterForMessageListController(r, mockService)
 
-	req, _ := http.NewRequest("DELETE", "/message_center/inner", nil)
+	req, err := http.NewRequest("DELETE", "/message_center/inner", nil)
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
@@ -249,10 +297,16 @@ func TestRemoveMessage_ConvertError(t *testing.T) {
 	messages := []messageStatus{
 		{Source: "source1", EventId: "event1"},
 	}
-	body, _ := json.Marshal(messages)
+	body, err := json.Marshal(messages)
+	if err != nil {
+		t.Fatal("Failed to marshal messages:", err)
+	}
 	mockService.On("RemoveMessage", mock.Anything).Return(xerrors.New("error"))
 
-	req, _ := http.NewRequest("DELETE", "/message_center/inner", bytes.NewBuffer(body))
+	req, err := http.NewRequest("DELETE", "/message_center/inner", bytes.NewBuffer(body))
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 

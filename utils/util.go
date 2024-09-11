@@ -199,7 +199,7 @@ func GetUserAdminRepos(userName string) ([]string, error) {
 			adminRepos = append(adminRepos, repo.FullName)
 		}
 	}
-	if adminRepos == nil {
+	if len(adminRepos) == 0 {
 		return []string{}, nil // 确保返回空切片而不是 nil
 	}
 	return adminRepos, nil

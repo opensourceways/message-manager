@@ -53,7 +53,10 @@ func TestGetAllSubsConfig(t *testing.T) {
 	// Successful case
 	mockAppService.On("GetAllSubsConfig", "testUser").Return([]app.MessageSubscribeDTO{{}}, nil)
 
-	req, _ := http.NewRequest(http.MethodGet, "/message_center/config/subs/all", nil)
+	req, err := http.NewRequest(http.MethodGet, "/message_center/config/subs/all", nil)
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	req.Header.Set("Authorization", "Bearer testToken")
 	recorder := httptest.NewRecorder()
 
@@ -79,7 +82,10 @@ func TestGetSubsConfig(t *testing.T) {
 	// Successful case
 	mockAppService.On("GetSubsConfig", "testUser").Return([]app.MessageSubscribeDTO{{}}, int64(1), nil)
 
-	req, _ := http.NewRequest(http.MethodGet, "/message_center/config/subs", nil)
+	req, err := http.NewRequest(http.MethodGet, "/message_center/config/subs", nil)
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	req.Header.Set("Authorization", "Bearer testToken")
 	recorder := httptest.NewRecorder()
 
@@ -106,7 +112,11 @@ func TestSaveFilter(t *testing.T) {
 	mockAppService.On("SaveFilter", "testUser", mock.Anything).Return(nil)
 
 	reqBody := `{"filter":"example"}`
-	req, _ := http.NewRequest(http.MethodPost, "/message_center/config/subs_new", strings.NewReader(reqBody))
+	req, err := http.NewRequest(http.MethodPost, "/message_center/config/subs_new",
+		strings.NewReader(reqBody))
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	req.Header.Set("Authorization", "Bearer testToken")
 	req.Header.Set("Content-Type", "application/json")
 	recorder := httptest.NewRecorder()
@@ -117,7 +127,11 @@ func TestSaveFilter(t *testing.T) {
 
 	// Error case (binding error)
 	reqBody = `{"invalid_field":"example"}`
-	req, _ = http.NewRequest(http.MethodPost, "/message_center/config/subs_new", strings.NewReader(reqBody))
+	req, err = http.NewRequest(http.MethodPost, "/message_center/config/subs_new",
+		strings.NewReader(reqBody))
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	recorder = httptest.NewRecorder()
 
 	router.ServeHTTP(recorder, req)
@@ -128,7 +142,11 @@ func TestSaveFilter(t *testing.T) {
 	mockAppService.On("SaveFilter", "testUser", mock.Anything).Return(xerrors.New("save error"))
 
 	reqBody = `{"filter":"example"}`
-	req, _ = http.NewRequest(http.MethodPost, "/message_center/config/subs_new", strings.NewReader(reqBody))
+	req, err = http.NewRequest(http.MethodPost, "/message_center/config/subs_new",
+		strings.NewReader(reqBody))
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	recorder = httptest.NewRecorder()
 
 	router.ServeHTTP(recorder, req)
@@ -146,7 +164,11 @@ func TestAddSubsConfig(t *testing.T) {
 	mockAppService.On("AddSubsConfig", "testUser", mock.Anything).Return([]uint{1}, nil)
 
 	reqBody := `{"name":"new subscription"}`
-	req, _ := http.NewRequest(http.MethodPost, "/message_center/config/subs", strings.NewReader(reqBody))
+	req, err := http.NewRequest(http.MethodPost, "/message_center/config/subs",
+		strings.NewReader(reqBody))
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	req.Header.Set("Authorization", "Bearer testToken")
 	req.Header.Set("Content-Type", "application/json")
 	recorder := httptest.NewRecorder()
@@ -157,7 +179,11 @@ func TestAddSubsConfig(t *testing.T) {
 
 	// Error case (binding error)
 	reqBody = `{"invalid_field":"new subscription"}`
-	req, _ = http.NewRequest(http.MethodPost, "/message_center/config/subs", strings.NewReader(reqBody))
+	req, err = http.NewRequest(http.MethodPost, "/message_center/config/subs",
+		strings.NewReader(reqBody))
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	recorder = httptest.NewRecorder()
 
 	router.ServeHTTP(recorder, req)
@@ -168,7 +194,11 @@ func TestAddSubsConfig(t *testing.T) {
 	mockAppService.On("AddSubsConfig", "testUser", mock.Anything).Return(nil, xerrors.New("add error"))
 
 	reqBody = `{"name":"new subscription"}`
-	req, _ = http.NewRequest(http.MethodPost, "/message_center/config/subs", strings.NewReader(reqBody))
+	req, err = http.NewRequest(http.MethodPost, "/message_center/config/subs",
+		strings.NewReader(reqBody))
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	recorder = httptest.NewRecorder()
 
 	router.ServeHTTP(recorder, req)
@@ -186,7 +216,11 @@ func TestRemoveSubsConfig(t *testing.T) {
 	mockAppService.On("RemoveSubsConfig", "testUser", mock.Anything).Return(nil)
 
 	reqBody := `{"id":1}`
-	req, _ := http.NewRequest(http.MethodDelete, "/message_center/config/subs", strings.NewReader(reqBody))
+	req, err := http.NewRequest(http.MethodDelete, "/message_center/config/subs",
+		strings.NewReader(reqBody))
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	req.Header.Set("Authorization", "Bearer testToken")
 	req.Header.Set("Content-Type", "application/json")
 	recorder := httptest.NewRecorder()
@@ -197,7 +231,11 @@ func TestRemoveSubsConfig(t *testing.T) {
 
 	// Error case (binding error)
 	reqBody = `{"invalid_field":1}`
-	req, _ = http.NewRequest(http.MethodDelete, "/message_center/config/subs", strings.NewReader(reqBody))
+	req, err = http.NewRequest(http.MethodDelete, "/message_center/config/subs",
+		strings.NewReader(reqBody))
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	recorder = httptest.NewRecorder()
 
 	router.ServeHTTP(recorder, req)
@@ -208,7 +246,11 @@ func TestRemoveSubsConfig(t *testing.T) {
 	mockAppService.On("RemoveSubsConfig", "testUser", mock.Anything).Return(xerrors.New("remove error"))
 
 	reqBody = `{"id":1}`
-	req, _ = http.NewRequest(http.MethodDelete, "/message_center/config/subs", strings.NewReader(reqBody))
+	req, err = http.NewRequest(http.MethodDelete, "/message_center/config/subs",
+		strings.NewReader(reqBody))
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
 	recorder = httptest.NewRecorder()
 
 	router.ServeHTTP(recorder, req)
