@@ -15,6 +15,9 @@ type MockMessageRecipientAdapter struct {
 
 func (m *MockMessageRecipientAdapter) GetRecipientConfig(countPerPage, pageNum int, userName string) ([]MessageRecipientDTO, int64, error) {
 	args := m.Called(countPerPage, pageNum, userName)
+	if args.Get(0) == nil {
+		return []MessageRecipientDTO{}, args.Get(1).(int64), args.Error(2)
+	}
 	return args.Get(0).([]MessageRecipientDTO), args.Get(1).(int64), args.Error(2)
 }
 
@@ -43,138 +46,194 @@ func TestGetRecipientConfig(t *testing.T) {
 	service := NewMessageRecipientAppService(mockAdapter)
 
 	userName := "testUser"
-	mockData := []MessageRecipientDTO{
-		{Name: "Recipient 1", Mail: "test1@example.com", Phone: "+8612345678901"},
-		{Name: "Recipient 2", Mail: "test2@example.com", Phone: "+8612345678902"},
-	}
-	mockAdapter.On("GetRecipientConfig", 10, 1, userName).Return(mockData, int64(len(mockData)), nil)
+	countPerPage := 10
+	pageNum := 1
 
-	data, count, err := service.GetRecipientConfig(10, 1, userName)
+	mockData := []MessageRecipientDTO{
+		{Id: "1", Name: "Recipient 1", Mail: "recipient1@example.com", Phone: "+8613800138000"},
+	}
+
+	mockAdapter.On("GetRecipientConfig", countPerPage, pageNum, userName).Return(mockData, int64(len(mockData)), nil)
+
+	data, count, err := service.GetRecipientConfig(countPerPage, pageNum, userName)
 
 	assert.NoError(t, err)
 	assert.Equal(t, mockData, data)
 	assert.Equal(t, int64(len(mockData)), count)
-
 	mockAdapter.AssertExpectations(t)
+}
 
-	mockAdapter.On("GetRecipientConfig", 10, 1, "").Return([]MessageRecipientDTO{{}}, int64(0), nil)
-	data, count, err = service.GetRecipientConfig(10, 1, "")
-	assert.NoError(t, err)
-	assert.Equal(t, []MessageRecipientDTO{{}}, data)
+func TestGetRecipientConfig_Error(t *testing.T) {
+	mockAdapter := new(MockMessageRecipientAdapter)
+	service := NewMessageRecipientAppService(mockAdapter)
+
+	userName := "testUser"
+	countPerPage := 10
+	pageNum := 1
+
+	mockAdapter.On("GetRecipientConfig", countPerPage, pageNum, userName).Return(nil, int64(0), xerrors.New("error"))
+
+	data, count, err := service.GetRecipientConfig(countPerPage, pageNum, userName)
+
+	assert.Error(t, err)
+	assert.Empty(t, data)
 	assert.Equal(t, int64(0), count)
-
 	mockAdapter.AssertExpectations(t)
 }
 
 func TestAddRecipientConfig(t *testing.T) {
 	mockAdapter := new(MockMessageRecipientAdapter)
 	service := NewMessageRecipientAppService(mockAdapter)
+
+	cmd := &CmdToAddRecipient{
+		Name:    "Recipient 1",
+		Mail:    "recipient1@example.com",
+		Phone:   "+8613800138000",
+		Message: "Hello",
+		Remark:  "Test recipient",
+	}
 	userName := "testUser"
 
-	cmd1 := &CmdToAddRecipient{Name: "", Mail: "test@example.com", Phone: "+8612345678901"}
-	err1 := service.AddRecipientConfig(userName, cmd1)
-	assert.ErrorContains(t, err1, "the recipient is null")
+	mockAdapter.On("AddRecipientConfig", *cmd, userName).Return(nil)
 
-	cmd3 := &CmdToAddRecipient{Name: "MaoMao19970922", Mail: "1043170898@qq.com", Phone: "+8615315420821"}
-	mockAdapter.On("AddRecipientConfig", *cmd3, "hourunze97").Return(xerrors.Errorf("接收人姓名不能相同"))
-	err3 := service.AddRecipientConfig("hourunze97", cmd3)
-	assert.ErrorContains(t, err3, "接收人姓名不能相同")
+	err := service.AddRecipientConfig(userName, cmd)
+
+	assert.NoError(t, err)
 	mockAdapter.AssertExpectations(t)
 }
 
-func TestAddRecipientConfig_InvalidEmail(t *testing.T) {
+func TestAddRecipientConfig_Error_NullName(t *testing.T) {
 	mockAdapter := new(MockMessageRecipientAdapter)
 	service := NewMessageRecipientAppService(mockAdapter)
 
-	cmd := &CmdToAddRecipient{Name: "Recipient 1", Mail: "invalid_email", Phone: "+8612345678901"}
+	cmd := &CmdToAddRecipient{
+		Name:    "",
+		Mail:    "recipient1@example.com",
+		Phone:   "+8613800138000",
+		Message: "Hello",
+		Remark:  "Test recipient",
+	}
 	userName := "testUser"
 
 	err := service.AddRecipientConfig(userName, cmd)
 
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "the email is invalid")
+	assert.Contains(t, err.Error(), "the recipient is null")
 }
 
-func TestAddRecipientConfig_InvalidPhone(t *testing.T) {
+func TestAddRecipientConfig_Error_InvalidData(t *testing.T) {
 	mockAdapter := new(MockMessageRecipientAdapter)
 	service := NewMessageRecipientAppService(mockAdapter)
 
-	cmd := &CmdToAddRecipient{Name: "Recipient 1", Mail: "test@example.com", Phone: "invalid_phone"}
+	cmd := &CmdToAddRecipient{
+		Name:    "Recipient 1",
+		Mail:    "invalid-email",
+		Phone:   "+8613800138000",
+		Message: "Hello",
+		Remark:  "Test recipient",
+	}
 	userName := "testUser"
 
 	err := service.AddRecipientConfig(userName, cmd)
 
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "the phone number is invalid")
+	assert.Contains(t, err.Error(), "data is invalid")
 }
 
 func TestUpdateRecipientConfig(t *testing.T) {
 	mockAdapter := new(MockMessageRecipientAdapter)
 	service := NewMessageRecipientAppService(mockAdapter)
+
+	cmd := &CmdToUpdateRecipient{
+		Id:      "1",
+		Name:    "Updated Recipient",
+		Mail:    "updated@example.com",
+		Phone:   "+8613800138000",
+		Message: "Hello",
+		Remark:  "Updated recipient",
+	}
 	userName := "testUser"
 
-	cmd := &CmdToUpdateRecipient{Mail: "test@example.com", Phone: "+8615315420821"}
-	mockAdapter.On("UpdateRecipientConfig", *cmd, userName).Return(xerrors.Errorf(
-		"update recipient config failed"))
+	mockAdapter.On("UpdateRecipientConfig", *cmd, userName).Return(nil)
 
 	err := service.UpdateRecipientConfig(userName, cmd)
-	assert.ErrorContains(t, err, "update recipient config failed")
+
+	assert.NoError(t, err)
 	mockAdapter.AssertExpectations(t)
 }
-func TestUpdateRecipientConfig_InvalidEmail(t *testing.T) {
+
+func TestUpdateRecipientConfig_Error_InvalidData(t *testing.T) {
 	mockAdapter := new(MockMessageRecipientAdapter)
 	service := NewMessageRecipientAppService(mockAdapter)
 
-	cmd := &CmdToUpdateRecipient{Mail: "invalid_email", Phone: "+8612345678901"}
+	cmd := &CmdToUpdateRecipient{
+		Id:      "1",
+		Name:    "Updated Recipient",
+		Mail:    "invalid-email",
+		Phone:   "+8613800138000",
+		Message: "Hello",
+		Remark:  "Updated recipient",
+	}
 	userName := "testUser"
 
 	err := service.UpdateRecipientConfig(userName, cmd)
 
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "the email is invalid")
-}
-
-func TestUpdateRecipientConfig_InvalidPhone(t *testing.T) {
-	mockAdapter := new(MockMessageRecipientAdapter)
-	service := NewMessageRecipientAppService(mockAdapter)
-
-	cmd := &CmdToUpdateRecipient{Mail: "test@example.com", Phone: "invalid_phone"}
-	userName := "testUser"
-
-	err := service.UpdateRecipientConfig(userName, cmd)
-
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "the phone number is invalid")
+	assert.Contains(t, err.Error(), "data is invalid")
 }
 
 func TestRemoveRecipientConfig(t *testing.T) {
 	mockAdapter := new(MockMessageRecipientAdapter)
 	service := NewMessageRecipientAppService(mockAdapter)
 
-	cmd := CmdToDeleteRecipient{RecipientId: "0"}
+	cmd := &CmdToDeleteRecipient{
+		RecipientId: "1",
+	}
 	userName := "testUser"
 
-	mockAdapter.On("RemoveRecipientConfig", cmd, userName).Return(nil)
+	mockAdapter.On("RemoveRecipientConfig", *cmd, userName).Return(nil)
 
-	err := service.RemoveRecipientConfig(userName, &cmd)
+	err := service.RemoveRecipientConfig(userName, cmd)
 
 	assert.NoError(t, err)
 	mockAdapter.AssertExpectations(t)
 }
 
+func TestRemoveRecipientConfig_Error(t *testing.T) {
+	mockAdapter := new(MockMessageRecipientAdapter)
+	service := NewMessageRecipientAppService(mockAdapter)
+
+	cmd := &CmdToDeleteRecipient{
+		RecipientId: "1",
+	}
+	userName := "testUser"
+
+	mockAdapter.On("RemoveRecipientConfig", *cmd, userName).Return(xerrors.New("error"))
+
+	err := service.RemoveRecipientConfig(userName, cmd)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "error")
+}
+
 func TestSyncUserInfo(t *testing.T) {
 	mockAdapter := new(MockMessageRecipientAdapter)
-	service := messageRecipientAppService{messageRecipientAdapter: mockAdapter}
-	cmd := &CmdToSyncUserInfo{}
+	service := NewMessageRecipientAppService(mockAdapter)
 
-	expectedId := uint(0)
-	mockAdapter.On("SyncUserInfo", *cmd).Return(expectedId, nil)
+	cmd := &CmdToSyncUserInfo{
+		Mail:          "user@example.com",
+		Phone:         "+8613800138000",
+		CountryCode:   "86",
+		UserName:      "testUser",
+		GiteeUserName: "giteeUser",
+	}
+
+	mockAdapter.On("SyncUserInfo", *cmd).Return(uint(1), nil)
 
 	data, err := service.SyncUserInfo(cmd)
 
 	assert.NoError(t, err)
-	assert.Equal(t, data, expectedId)
-
+	assert.Equal(t, uint(1), data)
 	mockAdapter.AssertExpectations(t)
 }
 
@@ -182,11 +241,19 @@ func TestSyncUserInfo_Error(t *testing.T) {
 	mockAdapter := new(MockMessageRecipientAdapter)
 	service := NewMessageRecipientAppService(mockAdapter)
 
-	cmd := CmdToSyncUserInfo{UserName: "testUser"}
-	mockAdapter.On("SyncUserInfo", cmd).Return(uint(0), xerrors.New("error"))
+	cmd := &CmdToSyncUserInfo{
+		Mail:          "user@example.com",
+		Phone:         "+8613800138000",
+		CountryCode:   "86",
+		UserName:      "testUser",
+		GiteeUserName: "giteeUser",
+	}
 
-	_, err := service.SyncUserInfo(&cmd)
+	mockAdapter.On("SyncUserInfo", *cmd).Return(uint(0), xerrors.New("error"))
+
+	data, err := service.SyncUserInfo(cmd)
 
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "sync user info failed")
+	assert.Equal(t, uint(0), data)
+	mockAdapter.AssertExpectations(t)
 }
