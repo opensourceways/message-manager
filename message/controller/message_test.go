@@ -8,10 +8,11 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/opensourceways/message-manager/message/app"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"golang.org/x/xerrors"
+
+	"github.com/opensourceways/message-manager/message/app"
 )
 
 // MockMessageListAppService 是 MessageListAppService 的模拟实现
@@ -19,12 +20,14 @@ type MockMessageListAppService struct {
 	mock.Mock
 }
 
-func (m *MockMessageListAppService) GetInnerMessageQuick(userName string, cmd *app.CmdToGetInnerMessageQuick) ([]app.MessageListDTO, int64, error) {
+func (m *MockMessageListAppService) GetInnerMessageQuick(userName string,
+	cmd *app.CmdToGetInnerMessageQuick) ([]app.MessageListDTO, int64, error) {
 	args := m.Called(userName, cmd)
 	return args.Get(0).([]app.MessageListDTO), args.Get(1).(int64), args.Error(2)
 }
 
-func (m *MockMessageListAppService) GetInnerMessage(userName string, cmd *app.CmdToGetInnerMessage) ([]app.MessageListDTO, int64, error) {
+func (m *MockMessageListAppService) GetInnerMessage(userName string,
+	cmd *app.CmdToGetInnerMessage) ([]app.MessageListDTO, int64, error) {
 	args := m.Called(userName, cmd)
 	return args.Get(0).([]app.MessageListDTO), args.Get(1).(int64), args.Error(2)
 }
@@ -83,7 +86,8 @@ func TestGetInnerMessageQuick_ConvertError(t *testing.T) {
 	mockService := new(MockMessageListAppService)
 	AddRouterForMessageListController(r, mockService)
 
-	mockService.On("GetInnerMessageQuick", "testUser", mock.Anything).Return(nil, int64(0), xerrors.New("error"))
+	mockService.On("GetInnerMessageQuick", "testUser", mock.Anything).
+		Return(nil, int64(0), xerrors.New("error"))
 
 	req, err := http.NewRequest("GET", "/message_center/inner_quick?source=test", nil)
 	if err != nil {
@@ -133,7 +137,8 @@ func TestGetInnerMessage_ConvertError(t *testing.T) {
 	mockService := new(MockMessageListAppService)
 	AddRouterForMessageListController(r, mockService)
 
-	mockService.On("GetInnerMessage", "testUser", mock.Anything).Return(nil, int64(0), xerrors.New("error"))
+	mockService.On("GetInnerMessage", "testUser", mock.Anything).
+		Return(nil, int64(0), xerrors.New("error"))
 
 	req, err := http.NewRequest("GET", "/message_center/inner?source=test", nil)
 	if err != nil {
@@ -167,7 +172,8 @@ func TestCountAllUnReadMessage_Unauthorized(t *testing.T) {
 	mockService := new(MockMessageListAppService)
 	AddRouterForMessageListController(r, mockService)
 
-	mockService.On("CountAllUnReadMessage", "testUser").Return(0, xerrors.New("error"))
+	mockService.On("CountAllUnReadMessage", "testUser").
+		Return(0, xerrors.New("error"))
 
 	req, err := http.NewRequest("GET", "/message_center/inner/count", nil)
 	if err != nil {

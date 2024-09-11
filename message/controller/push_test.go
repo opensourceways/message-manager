@@ -8,10 +8,11 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/opensourceways/message-manager/message/app"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"golang.org/x/xerrors"
+
+	"github.com/opensourceways/message-manager/message/app"
 )
 
 // MockMessagePushAppService 是 MessagePushAppService 的模拟实现
@@ -19,7 +20,8 @@ type MockMessagePushAppService struct {
 	mock.Mock
 }
 
-func (m *MockMessagePushAppService) GetPushConfig(countPerPage, pageNum int, userName string, subsIds []string) ([]app.MessagePushDTO, error) {
+func (m *MockMessagePushAppService) GetPushConfig(countPerPage, pageNum int,
+	userName string, subsIds []string) ([]app.MessagePushDTO, error) {
 	args := m.Called(countPerPage, pageNum, userName, subsIds)
 	return args.Get(0).([]app.MessagePushDTO), args.Error(1)
 }
@@ -82,7 +84,8 @@ func TestGetPushConfig_ServiceError(t *testing.T) {
 	userName := "testUser"
 	subsIds := []string{"sub1", "sub2"}
 	countPerPage, pageNum := 10, 1
-	mockService.On("GetPushConfig", countPerPage, pageNum, userName, subsIds).Return(nil, xerrors.New("service error"))
+	mockService.On("GetPushConfig", countPerPage, pageNum, userName, subsIds).
+		Return(nil, xerrors.New("service error"))
 
 	req, err := http.NewRequest("GET",
 		"/message_center/config/push?count_per_page=10&page=1&subscribe_id=sub1,sub2", nil)
