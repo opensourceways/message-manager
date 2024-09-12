@@ -25,253 +25,195 @@ func MessageListAdapter() *messageAdapter {
 
 type messageAdapter struct{}
 
-func GenQuery(query *gorm.DB, params CmdToGetInnerMessage) *gorm.DB {
-	// 消息源
-	if params.Source != "" {
-		query = query.Where("inner_message.source = ?", params.Source)
+// 单值过滤
+func applySingleValueFilter(query *gorm.DB, column string, value string) *gorm.DB {
+	if value != "" {
+		query = query.Where(column+" = ?", value)
 	}
+	return query
+}
 
-	// 消息是否已读
-	if params.IsRead != "" {
-		query = query.Where("is_read = ?", params.IsRead)
+// 关键字过滤
+func applyKeyWordFilter(query *gorm.DB, field string, keyWord string) *gorm.DB {
+	if keyWord != "" {
+		query = query.Where(field+" ILIKE ?", "%"+keyWord+"%")
 	}
+	return query
+}
 
-	//是否为机器人消息
-	if params.IsBot != "" {
-		lIsBot := strings.Split(params.IsBot, ",")
-		if len(lIsBot) == 1 {
-			if lIsBot[0] == "true" {
-				switch params.EventType {
-				case "pr":
-					query = query.
-						Where(`jsonb_extract_path_text(cloud_event_message.data_json, 
-'PullRequestEvent','Sender','Name') =  ANY(?)`,
-							"{ci-robot, openeuler-ci-bot, openeuler-sync-bot}")
-				case "issue":
-					query = query.
-						Where(`jsonb_extract_path_text(cloud_event_message.data_json, 
-'IssueEvent','Sender','Name') = ANY(?)`,
-							"{ci-robot, openeuler-ci-bot, openeuler-sync-bot}")
-				case "note":
-					query = query.
-						Where(`jsonb_extract_path_text(cloud_event_message.data_json, 
-'NoteEvent','Sender','Name') = ANY(?)`,
-							"{ci-robot, openeuler-ci-bot, openeuler-sync-bot}")
-				}
-			} else {
-				switch params.EventType {
-				case "pr":
-					query = query.
-						Where(`jsonb_extract_path_text(cloud_event_message.data_json, 
-'PullRequestEvent','Sender','Name') <> ALL(?)`,
-							"{ci-robot, openeuler-ci-bot, openeuler-sync-bot}")
-				case "issue":
-					query = query.
-						Where(`jsonb_extract_path_text(cloud_event_message.data_json, 
-'IssueEvent','Sender','Name') <> ALL(?)`,
-							"{ci-robot, openeuler-ci-bot, openeuler-sync-bot}")
-				case "note":
-					query = query.
-						Where(`jsonb_extract_path_text(cloud_event_message.data_json, 
-'NoteEvent','Sender','Name') <> ALL(?)`,
-							"{ci-robot, openeuler-ci-bot, openeuler-sync-bot}")
-				}
+// 仓库过滤
+func applyRepoFilter(query *gorm.DB, myManagement string, repos string) *gorm.DB {
+	var lRepo []string
+	if myManagement != "" {
+		lRepo, _ = utils.GetUserAdminRepos(myManagement)
+	}
+	if repos != "" {
+		lRepo = append(lRepo, strings.Split(repos, ",")...)
+	}
+	if len(lRepo) != 0 {
+		query = query.Where("cloud_event_message.source_group = ANY(?)", fmt.Sprintf("{%s}",
+			strings.Join(lRepo, ",")))
+	}
+	return query
+}
 
-			}
+// 时间过滤
+func applyTimeFilter(query *gorm.DB, startTime string, endTime string) *gorm.DB {
+	start := utils.ParseUnixTimestamp(startTime)
+	end := utils.ParseUnixTimestamp(endTime)
+	if start != nil && end != nil {
+		query = query.Where("cloud_event_message.time BETWEEN ? AND ?", *start, *end)
+	} else if start != nil {
+		query = query.Where("cloud_event_message.time >= ?", *start)
+	} else if end != nil {
+		query = query.Where("cloud_event_message.time <= ?", *end)
+	}
+	return query
+}
+
+// 处理布尔值的过滤条件
+func applyBotFilter(query *gorm.DB, isBot bool, eventType string) *gorm.DB {
+	if isBot {
+		botNames := "{ci-robot, openeuler-ci-bot, openeuler-sync-bot}"
+		condition := fmt.Sprintf(`jsonb_extract_path_text(cloud_event_message.data_json, 
+'%sEvent', 'Sender', 'Name')`, eventType)
+		query = query.Where(condition+" = ANY(?)", botNames)
+	} else {
+		botNames := "{ci-robot, openeuler-ci-bot, openeuler-sync-bot}"
+		condition := fmt.Sprintf(`jsonb_extract_path_text(cloud_event_message.data_json, 
+'%sEvent', 'Sender', 'Name')`, eventType)
+		query = query.Where(condition+" <> ALL(?)", botNames)
+	}
+	return query
+}
+
+// sig组过滤
+func applySigGroupFilter(query *gorm.DB, mySig string, giteeSigs string) *gorm.DB {
+	var lSig []string
+	// 获取我的sig组
+	if mySig != "" {
+		sigs, err := utils.GetUserSigInfo(mySig)
+		if err == nil {
+			lSig = append(lSig, sigs...)
 		}
 	}
-
-	// gitee事件类型
-	if params.EventType != "" {
-		query = query.Where("cloud_event_message.type = ANY(?)", fmt.Sprintf("{%s}",
-			params.EventType))
+	// 添加 Gitee 仓库所属sig
+	if giteeSigs != "" {
+		lSig = append(lSig, strings.Split(giteeSigs, ",")...)
 	}
-
-	// 关键字模糊搜索
-	if params.KeyWord != "" {
-		query = query.Where("cloud_event_message.source_group ILIKE ?", "%"+params.KeyWord+"%")
-	}
-
-	var lSig []string
-	// 我的sig组
-	if params.MySig != "" {
-		lSig, _ = utils.GetUserSigInfo(params.MySig)
-	}
-
-	// gitee仓库所属sig组
-	if params.GiteeSigs != "" {
-		lSig = append(lSig, strings.Split(params.GiteeSigs, ",")...)
-	}
-
-	if len(lSig) != 0 {
-		query = query.
-			Where("jsonb_extract_path_text(cloud_event_message.data_json, 'SigGroupName') = ANY(?)",
-				fmt.Sprintf("{%s}", strings.Join(lSig, ",")))
-	}
-
-	var lRepo []string
-	// 我管理的仓库
-	if params.MyManagement != "" {
-		lRepo, _ = utils.GetUserAdminRepos(params.MyManagement)
-	}
-
-	// 按仓库
-	if params.Repos != "" {
-		lRepo = append(lRepo, strings.Split(params.Repos, ",")...)
-	}
-
-	if len(lRepo) != 0 {
-		query = query.Where("cloud_event_message.source_group = ANY(?)",
+	// 如果有sig，则添加过滤条件
+	if len(lSig) > 0 {
+		query = query.Where("jsonb_extract_path_text(cloud_event_message.data_json, "+
+			"'SigGroupName') = ANY(?)",
 			fmt.Sprintf("{%s}", strings.Join(lSig, ",")))
 	}
 
-	// 按时间
-	startTime := utils.ParseUnixTimestamp(params.StartTime)
-	endTime := utils.ParseUnixTimestamp(params.EndTime)
-	if startTime != nil && endTime != nil {
-		query = query.Where("cloud_event_message.time BETWEEN ? AND ?", *startTime, *endTime)
-	} else if startTime != nil {
-		query = query.Where("cloud_event_message.time >= ?", *startTime)
-	} else if endTime != nil {
-		query = query.Where("cloud_event_message.time <= ?", *endTime)
+	return query
+}
+
+// 复合过滤，处理PullRequest和Issue
+func applyCompositeFilters(query *gorm.DB, eventType string, state string, creator string,
+	assignee string) *gorm.DB {
+	query = applySingleValueFilter(query, fmt.Sprintf("jsonb_extract_path_text("+
+		"cloud_event_message.data_json, '%s', 'State')", eventType), state)
+	query = applySingleValueFilter(query, fmt.Sprintf("jsonb_extract_path_text("+
+		"cloud_event_message.data_json, '%s', 'User', 'Login')", eventType), creator)
+	query = applySingleValueFilter(query, fmt.Sprintf("jsonb_extract_path_text("+
+		"cloud_event_message.data_json, '%s', 'Assignee', 'Login')", eventType), assignee)
+	return query
+}
+
+// @某人消息过滤
+func applyAboutFilter(query *gorm.DB, about string) *gorm.DB {
+	if about != "" {
+		query = query.Where("jsonb_extract_path_text(cloud_event_message.data_json, 'NoteEvent', "+
+			"'Comment', 'Body') LIKE ?", "%"+about+"%")
 	}
+	return query
+}
 
-	// PullRequest事件的状态
-	if params.PrState != "" {
-		query = query.
-			Where("jsonb_extract_path_text(cloud_event_message.data_json, 'PullRequestEvent',"+
-				"'PullRequest', 'State') = ANY(?)", fmt.Sprintf("{%s}", params.PrState))
+// Build相关过滤
+func applyBuildFilters(query *gorm.DB, buildStatus string, buildOwner string,
+	buildCreator string, buildEnv string) *gorm.DB {
+	query = applySingleValueFilter(query, "jsonb_extract_path_text(cloud_event_message.data_json,"+
+		" 'Body', 'Status')", buildStatus)
+	query = applySingleValueFilter(query, "cloud_event_message.user", buildOwner)
+	query = applySingleValueFilter(query, "jsonb_extract_path_text(cloud_event_message.data_json,"+
+		" 'Body', 'User')", buildCreator)
+	query = applySingleValueFilter(query, "jsonb_extract_path_text(cloud_event_message.data_json,"+
+		" 'Body', 'Chroot')", buildEnv)
+	return query
+}
+
+// 会议相关过滤
+func applyMeetingFilters(query *gorm.DB, meetingAction string, meetingSigGroup string,
+	meetingStartTime string, meetingEndTime string) *gorm.DB {
+	query = applySingleValueFilter(query, "jsonb_extract_path_text(cloud_event_message.data_json,"+
+		" 'Action')", meetingAction)
+	query = applySingleValueFilter(query, "jsonb_extract_path_text(cloud_event_message.data_json,"+
+		" 'Msg', 'GroupName')", meetingSigGroup)
+
+	if meetingStartTime != "" && meetingEndTime != "" {
+		start := utils.ParseUnixTimestamp(meetingStartTime)
+		end := utils.ParseUnixTimestamp(meetingEndTime)
+		if start != nil && end != nil {
+			query = query.Where("jsonb_extract_path_text(cloud_event_message.data_json, "+
+				"'MeetingStartTime') BETWEEN ? AND ?", start.Format(time.DateTime), end.Format(time.DateTime))
+		}
 	}
+	return query
+}
 
-	// PullRequest的创建者
-	if params.PrCreator != "" {
-		query = query.
-			Where("jsonb_extract_path_text(cloud_event_message.data_json,"+
-				"'PullRequestEvent','PullRequest','User','Login') = ANY(?)",
-				fmt.Sprintf("{%s}", params.PrCreator))
-	}
-
-	// PullRequest指派人
-	if params.PrAssignee != "" {
-		query = query.Where("jsonb_extract_path_text(cloud_event_message.data_json,"+
-			"'PullRequestEvent','PullRequest','Assignee','Login') = ANY(?)",
-			fmt.Sprintf("{%s}", params.PrCreator))
-	}
-
-	// Issue事件状态
-	if params.IssueState != "" {
-		query = query.
-			Where("jsonb_extract_path_text(cloud_event_message.data_json,"+
-				"'IssueEvent', 'Issue', 'State') = ANY(?)",
-				fmt.Sprintf("{%s}", params.IssueState))
-	}
-
-	// Issue创建者
-	if params.IssueCreator != "" {
-		query = query.
-			Where("jsonb_extract_path_text(cloud_event_message.data_json,"+
-				"'IssueEvent','Issue','User','Login') = ANY(?)",
-				fmt.Sprintf("{%s}", params.IssueCreator))
-	}
-
-	// Issue指派人
-	if params.IssueAssignee != "" {
-		query = query.
-			Where("jsonb_extract_path_text(cloud_event_message.data_json,"+
-				"'IssueEvent','Issue','Assignee','Login') = ANY(?)",
-				fmt.Sprintf("{%s}", params.IssueAssignee))
-	}
-
-	// 评论类型
-	if params.NoteType != "" {
-		query = query.
-			Where("jsonb_extract_path_text(cloud_event_message.data_json,"+
-				"'NoteEvent','NoteableType') = ANY(?)", fmt.Sprintf("{%s}", params.NoteType))
-	}
-
-	// @某人消息
-	if params.About != "" {
-		query = query.Where("jsonb_extract_path_text(cloud_event_message."+
-			"data_json,'NoteEvent','Comment','Body') LIKE ?", "%"+params.About+"%")
-	}
-
-	// eur构建任务状态
-	if params.BuildStatus != "" {
-		query = query.
-			Where("jsonb_extract_path_text(cloud_event_message.data_json,"+
-				"'Body','Status') = ANY(?)", fmt.Sprintf("{%s}", params.BuildStatus))
-	}
-
-	// eur仓库owner
-	if params.BuildOwner != "" {
-		query = query.Where("cloud_event_message.user = ANY(?)", fmt.Sprintf("{%s}",
-			params.BuildOwner))
-	}
-
-	// eur构建任务创建者
-	if params.BuildCreator != "" {
-		query = query.
-			Where("jsonb_extract_path_text(cloud_event_message.data_json,"+
-				"'Body','User') = ANY(?)", fmt.Sprintf("{%s}", params.BuildCreator))
-	}
-
-	if params.BuildEnv != "" {
-		query = query.Where("jsonb_extract_path_text(cloud_event_message.data_json,"+
-			"'Body','Chroot') = ANY(?)", fmt.Sprintf("{%s}", params.BuildEnv))
-	}
-
-	// 会议状态
-	if params.MeetingAction != "" {
-		query = query.
-			Where("jsonb_extract_path_text(cloud_event_message.data_json,'Action') = ANY(?)",
-				fmt.Sprintf("{%s}", params.MeetingAction))
-	}
-
-	// 会议所属sig组
-	if params.MeetingSigGroup != "" {
-		query = query.
-			Where("jsonb_extract_path_text(cloud_event_message.data_json,"+
-				"'Msg','GroupName') = ANY(?)", fmt.Sprintf("{%s}", params.MeetingSigGroup))
-	}
-
-	//会议时间
-	if params.MeetingStartTime != "" && params.MeetingEndTime != "" {
-		meetingStartTime := utils.ParseUnixTimestamp(params.MeetingStartTime)
-		meetingEndTime := utils.ParseUnixTimestamp(params.MeetingEndTime)
-
-		query = query.
-			Where("jsonb_extract_path_text(cloud_event_message."+
-				"data_json,'MeetingStartTime') BETWEEN ? AND ?",
-				meetingStartTime.Format(time.DateTime), meetingEndTime.Format(time.DateTime))
-	}
-
-	if params.CVEComponent != "" {
-		lComponent := strings.Split(params.CVEComponent, ",")
+// CVE相关过滤
+func applyCVEFilters(query *gorm.DB, cveComponent string, cveState string, cveAffected string) *gorm.DB {
+	if cveComponent != "" {
+		lComponent := strings.Split(cveComponent, ",")
 		var sql []string
 		for _, comp := range lComponent {
 			sql = append(sql, "%"+comp+"%")
 		}
-		query = query.
-			Where("jsonb_extract_path_text(cloud_event_message.data_json,"+
-				"'CVEComponent') LIKE ANY (?)", fmt.Sprintf("{%s}", strings.Join(sql, ",")))
+		query = query.Where("jsonb_extract_path_text(cloud_event_message.data_json, "+
+			"'CVEComponent') LIKE ANY (?)", fmt.Sprintf("{%s}", strings.Join(sql, ",")))
 	}
+	query = applySingleValueFilter(query, "jsonb_extract_path_text(cloud_event_message.data_json,"+
+		" 'IssueEvent', 'Issue', 'StateName')", cveState)
 
-	if params.CVEState != "" {
-		query = query.
-			Where("jsonb_extract_path_text(cloud_event_message.data_json,"+
-				"'IssueEvent','Issue','StateName') = ANY(?)", fmt.Sprintf("{%s}", params.CVEState))
-	}
-
-	if params.CVEAffected != "" {
-		lAffected := strings.Split(params.CVEAffected, ",")
+	if cveAffected != "" {
+		lAffected := strings.Split(cveAffected, ",")
 		var sql []string
 		for _, affect := range lAffected {
 			sql = append(sql, "%"+affect+"%")
 		}
-		query = query.Where("jsonb_extract_path_text(cloud_event_message.data_json,"+
+		query = query.Where("jsonb_extract_path_text(cloud_event_message.data_json, "+
 			"'CVEAffectVersion') LIKE ANY (?)", fmt.Sprintf("{%s}", strings.Join(sql, ",")))
 	}
+	return query
+}
 
+func GenQuery(query *gorm.DB, params CmdToGetInnerMessage) *gorm.DB {
+	// 简单过滤
+	query = applySingleValueFilter(query, "inner_message.source", params.Source)
+	query = applySingleValueFilter(query, "is_read", params.IsRead)
+	query = applySingleValueFilter(query, "cloud_event_message.type", params.EventType)
+	query = applySingleValueFilter(query, "jsonb_extract_path_text(cloud_event_message."+
+		"data_json, 'NoteEvent', 'NoteableType')", params.NoteType)
+	query = applyKeyWordFilter(query, "cloud_event_message.source_group", params.KeyWord)
+	query = applyRepoFilter(query, params.MyManagement, params.Repos)
+	query = applyTimeFilter(query, params.StartTime, params.EndTime)
+
+	// 复杂过滤
+	query = applyBotFilter(query, params.IsBot, params.EventType)
+	query = applySigGroupFilter(query, params.MySig, params.GiteeSigs)
+	query = applyCompositeFilters(query, "PullRequestEvent", params.PrState, params.PrCreator,
+		params.PrAssignee)
+	query = applyCompositeFilters(query, "IssueEvent", params.IssueState, params.IssueCreator,
+		params.IssueAssignee)
+	query = applyAboutFilter(query, params.About)
+	query = applyBuildFilters(query, params.BuildStatus, params.BuildOwner, params.BuildCreator,
+		params.BuildEnv)
+	query = applyMeetingFilters(query, params.MeetingAction, params.MeetingSigGroup,
+		params.MeetingStartTime, params.MeetingEndTime)
+	query = applyCVEFilters(query, params.CVEComponent, params.CVEState, params.CVEAffected)
 	return query
 }
 
