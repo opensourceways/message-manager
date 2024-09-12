@@ -11,7 +11,7 @@ type queryInnerParams struct {
 	EventType        string `form:"event_type" json:"event_type"`
 	IsRead           string `form:"is_read" json:"is_read"`
 	KeyWord          string `form:"key_word" json:"key_word"`
-	IsBot            bool   `form:"is_bot" json:"is_bot"`
+	IsBot            string `form:"is_bot" json:"is_bot"`
 	GiteeSigs        string `form:"sig" json:"sig"`
 	Repos            string `form:"repos" json:"repos"`
 	CountPerPage     int    `form:"count_per_page" json:"count_per_page"`

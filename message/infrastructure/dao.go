@@ -96,7 +96,7 @@ type CmdToGetInnerMessage struct {
 	EventType        string `json:"event_type"`
 	IsRead           string `json:"is_read"`
 	KeyWord          string `json:"key_word"`
-	IsBot            bool   `json:"is_bot"`
+	IsBot            string `json:"is_bot"`
 	GiteeSigs        string `json:"sig"`
 	Repos            string `json:"repos"`
 	CountPerPage     int    `json:"count_per_page"`

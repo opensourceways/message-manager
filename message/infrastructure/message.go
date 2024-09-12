@@ -72,13 +72,13 @@ func applyTimeFilter(query *gorm.DB, startTime string, endTime string) *gorm.DB 
 }
 
 // 处理布尔值的过滤条件
-func applyBotFilter(query *gorm.DB, isBot bool, eventType string) *gorm.DB {
-	if isBot {
+func applyBotFilter(query *gorm.DB, isBot string, eventType string) *gorm.DB {
+	if isBot == "true" {
 		botNames := "{ci-robot, openeuler-ci-bot, openeuler-sync-bot}"
 		condition := fmt.Sprintf(`jsonb_extract_path_text(cloud_event_message.data_json, 
 '%sEvent', 'Sender', 'Name')`, eventType)
 		query = query.Where(condition+" = ANY(?)", botNames)
-	} else {
+	} else if isBot == "false" {
 		botNames := "{ci-robot, openeuler-ci-bot, openeuler-sync-bot}"
 		condition := fmt.Sprintf(`jsonb_extract_path_text(cloud_event_message.data_json, 
 '%sEvent', 'Sender', 'Name')`, eventType)
