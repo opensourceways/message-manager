@@ -30,283 +30,25 @@ func TransToDbFormat(source string, eventType string, request CmdToGetSubscribe)
 	return nil, xerrors.Errorf("can not trans, source : %v", source)
 }
 
-func TransEurModeFilterToDbFormat(modeFilter CmdToGetSubscribe) (datatypes.JSON, error) {
-	var sOwner, sUser, sStatus, sEnv string
-	if modeFilter.BuildOwner != "" {
-		lOwner := utils.RemoveEmptyStrings(strings.Split(modeFilter.BuildOwner, ","))
-		if len(lOwner) == 1 {
-			sOwner = "eq=" + lOwner[0]
-		} else if len(lOwner) > 1 {
-			sOwner = "oneof=" + strings.Join(lOwner, " ")
-		}
+func buildStringFilter(values []string) string {
+	values = utils.RemoveEmptyStrings(values)
+	if len(values) == 1 {
+		return "eq=" + values[0]
+	} else if len(values) > 1 {
+		return "oneof=" + strings.Join(values, " ")
 	}
-	if modeFilter.BuildCreator != "" {
-		lUser := utils.RemoveEmptyStrings(strings.Split(modeFilter.BuildCreator, ","))
-		if len(lUser) == 1 {
-			sUser = "eq=" + lUser[0]
-		} else if len(lUser) > 1 {
-			sUser = "oneof=" + strings.Join(lUser, " ")
-		}
-	}
-	if modeFilter.BuildStatus != "" {
-		lStatus := utils.RemoveEmptyStrings(strings.Split(modeFilter.BuildStatus, ","))
-		if len(lStatus) == 1 {
-			sStatus = "eq=" + lStatus[0]
-		} else if len(lStatus) > 1 {
-			sStatus = "oneof=" + strings.Join(lStatus, " ")
-		}
-	}
-	if modeFilter.BuildEnv != "" {
-		lEnv := utils.RemoveEmptyStrings(strings.Split(modeFilter.BuildEnv, ","))
-		if len(lEnv) == 1 {
-			sEnv = "eq=" + lEnv[0]
-		} else if len(lEnv) > 1 {
-			sEnv = "oneof=" + strings.Join(lEnv, " ")
-		}
-	}
-
-	startTime := utils.ParseUnixTimestamp(modeFilter.StartTime)
-	endTime := utils.ParseUnixTimestamp(modeFilter.EndTime)
-	var sEventTime string
-	if startTime != nil && endTime != nil {
-		sEventTime = fmt.Sprintf("gt=%s,lt=%s", startTime.Format(time.DateTime),
-			endTime.Format(time.DateTime))
-
-	}
-	dbModeFilter := utils.EurDbFormat{
-		Status:    sStatus,
-		Owner:     sOwner,
-		User:      sUser,
-		Env:       sEnv,
-		EventTime: sEventTime,
-	}
-
-	jsonStr, err := json.Marshal(dbModeFilter)
-	if err != nil {
-		return datatypes.JSON{}, err
-	}
-
-	return jsonStr, nil
+	return ""
 }
 
-func TransGiteeModeFilterToDbFormat(eventType string, modeFilter CmdToGetSubscribe) (
-	datatypes.JSON, error) {
-	repoNames := utils.RemoveEmptyStrings(strings.Split(modeFilter.Repos, ","))
-	var lRepoName, lNameSpace []string
-	var sRepoName, sNamespace string
-
-	if len(repoNames) != 0 {
-		mergeRepoNames := utils.MergePaths(repoNames)
-		for _, repoName := range mergeRepoNames {
-			if repoName == "*" {
-				lRepoName = []string{}
-				lNameSpace = []string{}
-				break
-			} else {
-				lName := strings.Split(repoName, "/")
-				if lName[1] == "*" {
-					lNameSpace = append(lNameSpace, lName[0])
-				} else {
-					lRepoName = append(lRepoName, repoName)
-				}
-			}
-		}
-
-	}
-	lRepoName = utils.RemoveEmptyStrings(lRepoName)
-	if len(lRepoName) == 1 {
-		sRepoName = "eq=" + lRepoName[0]
-	} else if len(lRepoName) > 1 {
-		sRepoName = "oneof=" + strings.Join(lRepoName, " ")
-	}
-
-	if len(lNameSpace) == 1 {
-		sNamespace = "eq=" + lNameSpace[0]
-	} else if len(lNameSpace) > 1 {
-		sNamespace = "oneof=" + strings.Join(lNameSpace, " ")
-	}
-
-	var sMyManagement, sMySig string
-	if modeFilter.MyManagement != "" {
-		sMyManagement = fmt.Sprintf("oneof=%s", modeFilter.MyManagement)
-	}
-	if modeFilter.MySig != "" {
-		sMySig = fmt.Sprintf("oneof=%s", modeFilter.MySig)
-	}
-	var sSigGroupName string
-	if modeFilter.GiteeSigs != "" {
-		sigGroupNames := strings.Split(modeFilter.GiteeSigs, ",")
-		sigGroupNames = utils.RemoveEmptyStrings(sigGroupNames)
-		if len(sigGroupNames) == 1 {
-			sSigGroupName = "eq=" + sigGroupNames[0]
-		} else if len(sigGroupNames) > 1 {
-			sSigGroupName = "oneof=" + strings.Join(sigGroupNames, " ")
-		}
-	}
-	var sIsBot string
-	if modeFilter.IsBot == "true" {
-		sIsBot = "oneof=openeuler-ci-bot ci-robot openeuler-sync-bot"
-	} else if modeFilter.IsBot == "false" {
-		sIsBot = "ne=openeuler-ci-bot,ne=ci-robot,ne=openeuler-sync-bot"
-	}
-
-	var sPrState, sAction, sPrMergeStatus string
-	if modeFilter.PrState != "" {
-		prStates := utils.RemoveEmptyStrings(strings.Split(modeFilter.PrState, ","))
-		var lStatus, lAction, lMergeStatus []string
-		for _, ps := range prStates {
-			if ps == "can_be_merged" || ps == "cannot_be_merged" {
-				lMergeStatus = append(lMergeStatus, ps)
-			} else if ps == "set_draft" {
-				lAction = append(lAction, ps)
-			} else {
-				lStatus = append(lStatus, ps)
-			}
-		}
-
-		if len(lStatus) == 1 {
-			sPrState = "eq=" + lStatus[0]
-		} else if len(lStatus) > 1 {
-			sPrState = "oneof=" + strings.Join(lStatus, " ")
-		}
-
-		if len(lAction) == 1 {
-			sAction = "eq=" + lAction[0]
-		} else if len(lAction) > 1 {
-			sAction = "oneof=" + strings.Join(lAction, " ")
-		}
-
-		if len(lMergeStatus) == 1 {
-			sPrMergeStatus = "eq=" + lMergeStatus[0]
-		} else if len(lStatus) > 1 {
-			sPrMergeStatus = "oneof=" + strings.Join(lMergeStatus, " ")
-		}
-	}
-	var sPrCreator string
-	if modeFilter.PrCreator != "" {
-		prCreators := utils.RemoveEmptyStrings(strings.Split(modeFilter.
-			PrCreator, ","))
-		if len(prCreators) == 1 {
-			sPrCreator = "eq=" + prCreators[0]
-		} else if len(prCreators) > 1 {
-			sPrCreator = "oneof=" + strings.Join(prCreators, " ")
-		}
-	}
-	var sPrAssignee string
-	if modeFilter.PrAssignee != "" {
-		prAssignees := utils.RemoveEmptyStrings(strings.Split(modeFilter.PrAssignee, ","))
-		if len(prAssignees) == 1 {
-			sPrAssignee = "eq=" + prAssignees[0]
-		} else if len(prAssignees) > 1 {
-			sPrAssignee = "oneof=" + strings.Join(prAssignees, " ")
-		}
-	}
-	var sIssueState string
-	if modeFilter.IssueState != "" {
-		issueStates := utils.RemoveEmptyStrings(strings.Split(modeFilter.IssueState, ","))
-		if len(issueStates) == 1 {
-			sIssueState = "eq=" + issueStates[0]
-		} else if len(issueStates) > 1 {
-			sIssueState = "oneof=" + strings.Join(issueStates, " ")
-		}
-	}
-
-	var sIssueCreator string
-	if modeFilter.IssueCreator != "" {
-		issueCreators := utils.RemoveEmptyStrings(strings.Split(modeFilter.IssueCreator, ","))
-		if len(issueCreators) == 1 {
-			sIssueCreator = "eq=" + issueCreators[0]
-		} else if len(issueCreators) > 1 {
-			sIssueCreator = "oneof=" + strings.Join(issueCreators, " ")
-		}
-	}
-	var sIssueAssignee string
-	if modeFilter.IssueAssignee != "" {
-		issueAssignees := utils.RemoveEmptyStrings(strings.Split(modeFilter.IssueAssignee, ","))
-		if len(issueAssignees) == 1 {
-			sIssueAssignee = "eq=" + issueAssignees[0]
-		} else if len(issueAssignees) > 1 {
-			sIssueAssignee = "oneof=" + strings.Join(issueAssignees, " ")
-		}
-	}
-	var sNoteType string
-	if modeFilter.NoteType != "" {
-		noteTypes := utils.RemoveEmptyStrings(strings.Split(modeFilter.NoteType, ","))
-		if len(noteTypes) == 1 {
-			sNoteType = "eq=" + noteTypes[0]
-		} else if len(noteTypes) > 1 {
-			sNoteType = "oneof=" + strings.Join(noteTypes, " ")
-		}
-	}
-	var sAbout string
-	if modeFilter.About != "" {
-		sAbout = "contains=" + sAbout
-	}
-
-	startTime := utils.ParseUnixTimestamp(modeFilter.StartTime)
-	endTime := utils.ParseUnixTimestamp(modeFilter.EndTime)
-	var sEventTime string
+func buildTimeFilter(startTime, endTime *time.Time) string {
 	if startTime != nil && endTime != nil {
-		sEventTime = fmt.Sprintf("gt=%s,lt=%s", startTime.Format(time.DateTime),
+		return fmt.Sprintf("gt=%s,lt=%s", startTime.Format(time.DateTime),
 			endTime.Format(time.DateTime))
 	}
+	return ""
+}
 
-	var param interface{}
-	switch eventType {
-	case "issue":
-		param = utils.GiteeIssueDbFormat{
-			RepoName:      sRepoName,
-			IsBot:         sIsBot,
-			Namespace:     sNamespace,
-			SigGroupName:  sSigGroupName,
-			IssueState:    sIssueState,
-			IssueCreator:  sIssueCreator,
-			IssueAssignee: sIssueAssignee,
-			EventTime:     sEventTime,
-			MySig:         sMySig,
-			MyManagement:  sMyManagement,
-		}
-	case "note":
-		param = utils.GiteeNoteDbFormat{
-			RepoName:     sRepoName,
-			IsBot:        sIsBot,
-			Namespace:    sNamespace,
-			SigGroupName: sSigGroupName,
-			NoteType:     sNoteType,
-			About:        sAbout,
-			EventTime:    sEventTime,
-			MySig:        sMySig,
-			MyManagement: sMyManagement,
-		}
-	case "pr":
-		param = utils.GiteePullRequestDbFormat{
-			RepoName:      sRepoName,
-			IsBot:         sIsBot,
-			Namespace:     sNamespace,
-			SigGroupName:  sSigGroupName,
-			PrState:       sPrState,
-			PrAction:      sAction,
-			PrMergeStatus: sPrMergeStatus,
-			PrCreator:     sPrCreator,
-			PrAssignee:    sPrAssignee,
-			EventTime:     sEventTime,
-			MySig:         sMySig,
-			MyManagement:  sMyManagement,
-		}
-	case "push":
-		param = utils.GiteePushDbFormat{
-			RepoName:     sRepoName,
-			IsBot:        sIsBot,
-			Namespace:    sNamespace,
-			SigGroupName: sSigGroupName,
-			EventTime:    sEventTime,
-			MySig:        sMySig,
-			MyManagement: sMyManagement,
-		}
-	default:
-		return datatypes.JSON{}, xerrors.Errorf("the eventType is wrong")
-	}
-
+func marshalToJson(param interface{}) (datatypes.JSON, error) {
 	jsonStr, err := json.Marshal(param)
 	if err != nil {
 		return datatypes.JSON{}, err
@@ -314,107 +56,207 @@ func TransGiteeModeFilterToDbFormat(eventType string, modeFilter CmdToGetSubscri
 	return jsonStr, nil
 }
 
-func TransMeetingModeFilterToDbFormat(modeFilter CmdToGetSubscribe) (datatypes.JSON,
-	error) {
-	var sAction, sSigGroup, sStart, sEventTime string
-	if modeFilter.MeetingAction != "" {
-		lAction := utils.RemoveEmptyStrings(strings.Split(modeFilter.MeetingAction, ","))
-		if len(lAction) == 1 {
-			sAction = "eq=" + lAction[0]
-		} else if len(lAction) > 1 {
-			sAction = "oneof=" + strings.Join(lAction, " ")
-		}
+// TransEurModeFilterToDbFormat 处理 Eur 过滤器
+func TransEurModeFilterToDbFormat(modeFilter CmdToGetSubscribe) (datatypes.JSON, error) {
+	dbModeFilter := utils.EurDbFormat{
+		Owner:  buildStringFilter(strings.Split(modeFilter.BuildOwner, ",")),
+		User:   buildStringFilter(strings.Split(modeFilter.BuildCreator, ",")),
+		Status: buildStringFilter(strings.Split(modeFilter.BuildStatus, ",")),
+		Env:    buildStringFilter(strings.Split(modeFilter.BuildEnv, ",")),
+		EventTime: buildTimeFilter(utils.ParseUnixTimestamp(modeFilter.StartTime),
+			utils.ParseUnixTimestamp(modeFilter.EndTime)),
 	}
-	if modeFilter.MeetingSigGroup != "" {
-		lSig := utils.RemoveEmptyStrings(strings.Split(modeFilter.MeetingSigGroup, ","))
-		if len(lSig) == 1 {
-			sSigGroup = "eq=" + lSig[0]
-		} else if len(lSig) > 1 {
-			sSigGroup = "oneof=" + strings.Join(lSig, " ")
-		}
-	}
-	meetingStartTime := utils.ParseUnixTimestamp(modeFilter.StartTime)
-	meetingEndTime := utils.ParseUnixTimestamp(modeFilter.EndTime)
-	if meetingStartTime != nil && meetingEndTime != nil {
-		sStart = fmt.Sprintf("gt=%s,lt=%s", meetingStartTime.Format(time.DateTime),
-			meetingEndTime.Format(time.DateTime))
-
-	}
-
-	var sMySig string
-	if modeFilter.MySig != "" {
-		sMySig = fmt.Sprintf("oneof=%s", modeFilter.MySig)
-	}
-
-	startTime := utils.ParseUnixTimestamp(modeFilter.StartTime)
-	endTime := utils.ParseUnixTimestamp(modeFilter.EndTime)
-	if startTime != nil && endTime != nil {
-		sEventTime = fmt.Sprintf("gt=%s,lt=%s", startTime.Format(time.DateTime),
-			endTime.Format(time.DateTime))
-
-	}
-	dbModeFilter := utils.MeetingDbFormat{
-		Action:           sAction,
-		SigGroup:         sSigGroup,
-		MeetingStartTime: sStart,
-		EventTime:        sEventTime,
-		MySig:            sMySig,
-	}
-
-	jsonStr, err := json.Marshal(dbModeFilter)
-	if err != nil {
-		return datatypes.JSON{}, err
-	}
-
-	return jsonStr, nil
+	return marshalToJson(dbModeFilter)
 }
 
+// 获取机器人过滤器
+func getBotFilter(isBot string) string {
+	if isBot == "true" {
+		return "oneof=openeuler-ci-bot ci-robot openeuler-sync-bot"
+	} else if isBot == "false" {
+		return "ne=openeuler-ci-bot,ne=ci-robot,ne=openeuler-sync-bot"
+	}
+	return ""
+}
+
+func getStateFilter(prState string) (state, action, mergeStatus string) {
+	// 处理 PR 状态、动作和合并状态
+	if prState != "" {
+		prStates := utils.RemoveEmptyStrings(strings.Split(prState, ","))
+		var lStatus, lAction, lMergeStatus []string
+
+		for _, ps := range prStates {
+			switch ps {
+			case "can_be_merged", "cannot_be_merged":
+				lMergeStatus = append(lMergeStatus, ps)
+			case "set_draft":
+				lAction = append(lAction, ps)
+			default:
+				lStatus = append(lStatus, ps)
+			}
+		}
+
+		if len(lStatus) == 1 {
+			state = "eq=" + lStatus[0]
+		} else if len(lStatus) > 1 {
+			state = "oneof=" + strings.Join(lStatus, " ")
+		}
+
+		if len(lAction) == 1 {
+			action = "eq=" + lAction[0]
+		} else if len(lAction) > 1 {
+			action = "oneof=" + strings.Join(lAction, " ")
+		}
+
+		if len(lMergeStatus) == 1 {
+			mergeStatus = "eq=" + lMergeStatus[0]
+		} else if len(lMergeStatus) > 1 {
+			mergeStatus = "oneof=" + strings.Join(lMergeStatus, " ")
+		}
+	}
+	return
+}
+
+// 获取 Gitee 数据库格式
+func getGiteeDbFormat(eventType string, modeFilter CmdToGetSubscribe, lRepoName,
+	lNameSpace []string) interface{} {
+	sRepoName := buildStringFilter(lRepoName)
+	sNamespace := buildStringFilter(lNameSpace)
+	sMyManagement := fmt.Sprintf("oneof=%s", modeFilter.MyManagement)
+	sMySig := fmt.Sprintf("oneof=%s", modeFilter.MySig)
+	sSigGroupName := buildStringFilter(strings.Split(modeFilter.GiteeSigs, ","))
+	sIsBot := getBotFilter(modeFilter.IsBot)
+	eventTime := buildTimeFilter(utils.ParseUnixTimestamp(modeFilter.StartTime),
+		utils.ParseUnixTimestamp(modeFilter.EndTime))
+
+	sState, sAction, sMergeStatus := getStateFilter(modeFilter.PrState)
+
+	switch eventType {
+	case "issue":
+		return utils.GiteeIssueDbFormat{
+			RepoName:      sRepoName,
+			IsBot:         sIsBot,
+			Namespace:     sNamespace,
+			SigGroupName:  sSigGroupName,
+			IssueState:    buildStringFilter(strings.Split(modeFilter.IssueState, ",")),
+			IssueCreator:  buildStringFilter(strings.Split(modeFilter.IssueCreator, ",")),
+			IssueAssignee: buildStringFilter(strings.Split(modeFilter.IssueAssignee, ",")),
+			EventTime:     eventTime,
+			MySig:         sMySig,
+			MyManagement:  sMyManagement,
+		}
+	case "note":
+		return utils.GiteeNoteDbFormat{
+			RepoName:     sRepoName,
+			IsBot:        sIsBot,
+			Namespace:    sNamespace,
+			SigGroupName: sSigGroupName,
+			NoteType:     buildStringFilter(strings.Split(modeFilter.NoteType, ",")),
+			About:        buildStringFilter([]string{modeFilter.About}),
+			EventTime:    eventTime,
+			MySig:        sMySig,
+			MyManagement: sMyManagement,
+		}
+	case "pr":
+		return utils.GiteePullRequestDbFormat{
+			RepoName:      sRepoName,
+			IsBot:         sIsBot,
+			Namespace:     sNamespace,
+			SigGroupName:  sSigGroupName,
+			PrState:       sState,
+			PrAction:      sAction,
+			PrMergeStatus: sMergeStatus,
+			PrCreator:     buildStringFilter(strings.Split(modeFilter.PrCreator, ",")),
+			PrAssignee:    buildStringFilter(strings.Split(modeFilter.PrAssignee, ",")),
+			EventTime:     eventTime,
+			MySig:         sMySig,
+			MyManagement:  sMyManagement,
+		}
+	case "push":
+		return utils.GiteePushDbFormat{
+			RepoName:     sRepoName,
+			IsBot:        sIsBot,
+			Namespace:    sNamespace,
+			SigGroupName: sSigGroupName,
+			EventTime:    eventTime,
+			MySig:        sMySig,
+			MyManagement: sMyManagement,
+		}
+	default:
+		return nil
+	}
+}
+
+// TransGiteeModeFilterToDbFormat 处理 GiteeMode 过滤器
+func TransGiteeModeFilterToDbFormat(eventType string, modeFilter CmdToGetSubscribe) (
+	datatypes.JSON, error) {
+	repoNames := utils.RemoveEmptyStrings(strings.Split(modeFilter.Repos, ","))
+	var lRepoName, lNameSpace []string
+
+	// 处理仓库名和命名空间
+	for _, repoName := range utils.MergePaths(repoNames) {
+		if repoName == "*" {
+			lRepoName, lNameSpace = []string{}, []string{}
+			break
+		}
+		lName := strings.Split(repoName, "/")
+		if lName[1] == "*" {
+			lNameSpace = append(lNameSpace, lName[0])
+		} else {
+			lRepoName = append(lRepoName, repoName)
+		}
+	}
+	dbModeFilter := getGiteeDbFormat(eventType, modeFilter, lRepoName, lNameSpace)
+	return marshalToJson(dbModeFilter)
+}
+
+// TransMeetingModeFilterToDbFormat 处理 MeetingMode 过滤器
+func TransMeetingModeFilterToDbFormat(modeFilter CmdToGetSubscribe) (datatypes.JSON, error) {
+	dbModeFilter := utils.MeetingDbFormat{
+		Action:   buildStringFilter(strings.Split(modeFilter.MeetingAction, ",")),
+		SigGroup: buildStringFilter(strings.Split(modeFilter.MeetingSigGroup, ",")),
+		MeetingStartTime: buildTimeFilter(utils.ParseUnixTimestamp(modeFilter.StartTime),
+			utils.ParseUnixTimestamp(modeFilter.EndTime)),
+		EventTime: buildTimeFilter(utils.ParseUnixTimestamp(modeFilter.StartTime),
+			utils.ParseUnixTimestamp(modeFilter.EndTime)),
+		MySig: fmt.Sprintf("oneof=%s", modeFilter.MySig),
+	}
+	return marshalToJson(dbModeFilter)
+}
+
+// 处理 CVE 组件过滤器
+func buildCveComponentFilter(component string) string {
+	if component == "" {
+		return ""
+	}
+	lComponent := strings.Split(component, ",")
+	var template []string
+	for _, comp := range lComponent {
+		template = append(template, "contains="+comp)
+	}
+	return "or " + strings.Join(template, " ")
+}
+
+// 处理 CVE 影响过滤器
+func buildCveAffectedFilter(affected string) string {
+	if affected == "" {
+		return ""
+	}
+	lAffected := strings.Split(affected, ",")
+	var template []string
+	for _, aff := range lAffected {
+		template = append(template, "contains="+aff)
+	}
+	return "or " + strings.Join(template, " ")
+}
+
+// TransCveModeFilterToDbFormat 处理 CVE 过滤器
 func TransCveModeFilterToDbFormat(modeFilter CmdToGetSubscribe) (datatypes.JSON, error) {
-	var sComponent, sState, sAffected string
-
-	if modeFilter.CVEComponent != "" {
-		lComponent := strings.Split(modeFilter.CVEComponent, ",")
-		var template []string
-		for _, comp := range lComponent {
-			template = append(template, "contains="+comp)
-		}
-		sComponent = "or " + strings.Join(template, " ")
-	}
-
-	if modeFilter.IssueState != "" {
-		cveStates := utils.RemoveEmptyStrings(strings.Split(modeFilter.IssueState, ","))
-		if len(cveStates) == 1 {
-			sState = "eq=" + cveStates[0]
-		} else if len(cveStates) > 1 {
-			sState = "oneof=" + strings.Join(cveStates, " ")
-		}
-	}
-
-	if modeFilter.CVEAffected != "" {
-		lAffected := strings.Split(modeFilter.CVEAffected, ",")
-		var template []string
-		for _, affect := range lAffected {
-			template = append(template, "contains="+affect)
-		}
-		sAffected = "or " + strings.Join(template, " ")
-	}
-
-	var sMySig string
-	if modeFilter.MySig != "" {
-		sMySig = fmt.Sprintf("oneof=%s", modeFilter.MySig)
-	}
-
 	dbModeFilter := utils.CveDbFormat{
-		Component: sComponent,
-		State:     sState,
-		Affected:  sAffected,
-		MySig:     sMySig,
+		Component: buildCveComponentFilter(modeFilter.CVEComponent),
+		State:     buildStringFilter(strings.Split(modeFilter.IssueState, ",")),
+		Affected:  buildCveAffectedFilter(modeFilter.CVEAffected),
+		MySig:     fmt.Sprintf("oneof=%s", modeFilter.MySig),
 	}
-
-	jsonStr, err := json.Marshal(dbModeFilter)
-	if err != nil {
-		return datatypes.JSON{}, err
-	}
-
-	return jsonStr, nil
+	return marshalToJson(dbModeFilter)
 }
