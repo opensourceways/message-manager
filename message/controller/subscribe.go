@@ -40,6 +40,7 @@ type messageSubscribeController struct {
 // @Tags			message_subscribe
 // @Accept			json
 // @Success			202	 {object}  app.MessageSubscribeDTO
+// @Failure			401	string unauthorized  用户未授权
 // @Failure			500	string system_error  查询失败
 // @Router			/message_center/config/subs/all [get]
 func (ctl *messageSubscribeController) GetAllSubsConfig(ctx *gin.Context) {
@@ -50,7 +51,8 @@ func (ctl *messageSubscribeController) GetAllSubsConfig(ctx *gin.Context) {
 	}
 	data, err := ctl.appService.GetAllSubsConfig(userName)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
+		ctx.JSON(http.StatusInternalServerError,
+			gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data})
 	}
@@ -62,7 +64,7 @@ func (ctl *messageSubscribeController) GetAllSubsConfig(ctx *gin.Context) {
 // @Tags			message_subscribe
 // @Accept			json
 // @Success			202	 {object}  app.MessageSubscribeDTO
-// @Success         202  int count
+// @Failure			401	string unauthorized  用户未授权
 // @Failure			500	string system_error  查询失败
 // @Router			/message_center/config/subs [get]
 func (ctl *messageSubscribeController) GetSubsConfig(ctx *gin.Context) {
@@ -72,7 +74,8 @@ func (ctl *messageSubscribeController) GetSubsConfig(ctx *gin.Context) {
 		return
 	}
 	if data, count, err := ctl.appService.GetSubsConfig(userName); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
+		ctx.JSON(http.StatusInternalServerError,
+			gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
 	}
@@ -86,6 +89,7 @@ func (ctl *messageSubscribeController) GetSubsConfig(ctx *gin.Context) {
 // @Param			body body subscribeDTO true "subscribeDTO"
 // @Success			202	string accept  保存成功
 // @Failure         400 string bad_request  无法解析请求正文
+// @Failure			401	string unauthorized  用户未授权
 // @Failure			500	string system_error  保存失败
 // @Router			/message_center/config/subs_new [post]
 func (ctl *messageSubscribeController) SaveFilter(ctx *gin.Context) {
@@ -97,7 +101,8 @@ func (ctl *messageSubscribeController) SaveFilter(ctx *gin.Context) {
 
 	cmd, err := req.toCmd()
 	if err != nil {
-		commonctl.SendBadRequestParam(ctx, xerrors.Errorf("failed to convert req to cmd, %w", err))
+		commonctl.SendBadRequestParam(ctx,
+			xerrors.Errorf("failed to convert req to cmd, %w", err))
 		return
 	}
 	userName, err := user.GetEulerUserName(ctx)
@@ -106,7 +111,8 @@ func (ctl *messageSubscribeController) SaveFilter(ctx *gin.Context) {
 		return
 	}
 	if err := ctl.appService.SaveFilter(userName, &cmd); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("保存失败，err:%v", err)})
+		ctx.JSON(http.StatusInternalServerError,
+			gin.H{"error": xerrors.Errorf("保存失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"message": "保存成功"})
 	}
@@ -120,6 +126,7 @@ func (ctl *messageSubscribeController) SaveFilter(ctx *gin.Context) {
 // @Accept			json
 // @Success			202	string Accept  新增配置成功
 // @Failure			400	string bad_request  无法解析请求正文
+// @Failure			401	string unauthorized  用户未授权
 // @Failure			500	string system_error  新增配置失败
 // @Router			/message_center/config/subs [post]
 func (ctl *messageSubscribeController) AddSubsConfig(ctx *gin.Context) {
@@ -131,7 +138,8 @@ func (ctl *messageSubscribeController) AddSubsConfig(ctx *gin.Context) {
 
 	cmd, err := req.toCmd()
 	if err != nil {
-		commonctl.SendBadRequestParam(ctx, xerrors.Errorf("failed to convert req to cmd, %w", err))
+		commonctl.SendBadRequestParam(ctx,
+			xerrors.Errorf("failed to convert req to cmd, %w", err))
 		return
 	}
 	userName, err := user.GetEulerUserName(ctx)
@@ -141,9 +149,46 @@ func (ctl *messageSubscribeController) AddSubsConfig(ctx *gin.Context) {
 	}
 	data, err := ctl.appService.AddSubsConfig(userName, &cmd)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("新增配置失败，err:%v", err)})
+		ctx.JSON(http.StatusInternalServerError,
+			gin.H{"error": xerrors.Errorf("新增配置失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"newId": data, "message": "新增配置成功"})
+	}
+}
+
+// UpdateSubsConfig
+// @Summary			UpdateSubsConfig
+// @Description		update a subscribe_config
+// @Tags			message_subscribe
+// @Param			body body updateSubscribeDTO true "updateSubscribeDTO"
+// @Accept			json
+// @Success			202	string Accept  更新配置成功
+// @Failure			400	string bad_request  无法解析请求正文
+// @Failure			401	string unauthorized  用户未授权
+// @Failure			500	string system_error  更新配置成功
+// @Router			/message_center/config/subs [post]
+func (ctl *messageSubscribeController) UpdateSubsConfig(ctx *gin.Context) {
+	var req updateSubscribeDTO
+	if err := ctx.BindJSON(&req); err != nil {
+		commonctl.SendBadRequestParam(ctx, xerrors.Errorf("failed to bind params, %w", err))
+		return
+	}
+	cmd, err := req.toCmd()
+	if err != nil {
+		commonctl.SendBadRequestParam(ctx,
+			xerrors.Errorf("failed to convert req to cmd, %w", err))
+		return
+	}
+	userName, err := user.GetEulerUserName(ctx)
+	if err != nil {
+		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
+		return
+	}
+	err = ctl.appService.UpdateSubsConfig(userName, &cmd)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "更新配置成功", "error": err})
+	} else {
+		ctx.JSON(http.StatusAccepted, gin.H{"message": "更新配置成功"})
 	}
 }
 
@@ -155,6 +200,7 @@ func (ctl *messageSubscribeController) AddSubsConfig(ctx *gin.Context) {
 // @Param 			body body deleteSubscribeDTO true "deleteSubscribeDTO"
 // @Success			202 string Accept  删除配置成功
 // @Failure			400	string bad_request  无法解析请求正文
+// @Failure			401	string unauthorized  用户未授权
 // @Failure			500	string system_error  删除配置失败
 // @Router			/message_center/config/subs [delete]
 func (ctl *messageSubscribeController) RemoveSubsConfig(ctx *gin.Context) {
@@ -165,7 +211,8 @@ func (ctl *messageSubscribeController) RemoveSubsConfig(ctx *gin.Context) {
 	}
 	cmd, err := req.toCmd()
 	if err != nil {
-		commonctl.SendBadRequestParam(ctx, xerrors.Errorf("failed to convert req to cmd, %w", err))
+		commonctl.SendBadRequestParam(ctx,
+			xerrors.Errorf("failed to convert req to cmd, %w", err))
 		return
 	}
 	userName, err := user.GetEulerUserName(ctx)
@@ -175,7 +222,8 @@ func (ctl *messageSubscribeController) RemoveSubsConfig(ctx *gin.Context) {
 	}
 	err = ctl.appService.RemoveSubsConfig(userName, &cmd)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("删除配置失败，err:%v", err)})
+		ctx.JSON(http.StatusInternalServerError,
+			gin.H{"error": xerrors.Errorf("删除配置失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"message": "删除配置成功"})
 	}

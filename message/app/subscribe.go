@@ -15,6 +15,7 @@ type MessageSubscribeAppService interface {
 	GetSubsConfig(userName string) ([]MessageSubscribeDTO, int64, error)
 	SaveFilter(userName string, cmd *CmdToGetSubscribe) error
 	AddSubsConfig(userName string, cmd *CmdToAddSubscribe) ([]uint, error)
+	UpdateSubsConfig(userName string, cmd *CmdToUpdateSubscribe) error
 	RemoveSubsConfig(userName string, cmd *CmdToDeleteSubscribe) error
 }
 
@@ -67,6 +68,16 @@ func (s *messageSubscribeAppService) AddSubsConfig(userName string,
 		return []uint{}, xerrors.Errorf("add subs failed, err:%v", err)
 	} else {
 		return data, nil
+	}
+}
+
+func (s *messageSubscribeAppService) UpdateSubsConfig(userName string,
+	cmd *CmdToUpdateSubscribe) error {
+	err := s.messageSubscribeAdapter.UpdateSubsConfig(*cmd, userName)
+	if err != nil {
+		return xerrors.Errorf("update subs failed, err:%v", err)
+	} else {
+		return nil
 	}
 }
 

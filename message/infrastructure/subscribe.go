@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"golang.org/x/xerrors"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -115,6 +116,19 @@ func (ctl *messageSubscribeAdapter) AddSubsConfig(cmd CmdToAddSubscribe, userNam
 		subscribeIds = append(subscribeIds, id)
 	}
 	return subscribeIds, nil
+}
+
+func (ctl *messageSubscribeAdapter) UpdateSubsConfig(cmd CmdToUpdateSubscribe,
+	userName string) error {
+	if result := postgresql.DB().Table("message_center.subscribe_config").
+		Where(gorm.Expr("is_deleted = ?", false)).
+		Where("source = ? AND mode_name = ?", cmd.Source, cmd.OldName).
+		Where("user_name = ?", userName).
+		Update("mode_name", cmd.NewName); result.Error != nil {
+		logrus.Errorf("update subscribe config failed, err:%v", result.Error)
+		return xerrors.Errorf("更新配置失败")
+	}
+	return nil
 }
 
 func (ctl *messageSubscribeAdapter) RemoveSubsConfig(cmd CmdToDeleteSubscribe, userName string) error {

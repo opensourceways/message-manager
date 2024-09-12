@@ -228,6 +228,12 @@ type CmdToAddSubscribe struct {
 	ModeName    string         `json:"mode_name"`
 }
 
+type CmdToUpdateSubscribe struct {
+	Source  string `json:"source"`
+	OldName string `json:"old_name"`
+	NewName string `json:"new_name"`
+}
+
 type CmdToDeleteSubscribe struct {
 	Source    string `json:"source"`
 	EventType string `json:"event_type"`

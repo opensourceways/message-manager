@@ -26,4 +26,5 @@ type CmdToDeleteRecipient = domain.CmdToDeleteRecipient
 type CmdToSyncUserInfo = domain.CmdToSyncUserInfo
 type CmdToGetSubscribe = domain.CmdToGetSubscribe
 type CmdToAddSubscribe = domain.CmdToAddSubscribe
+type CmdToUpdateSubscribe = domain.CmdToUpdateSubscribe
 type CmdToDeleteSubscribe = domain.CmdToDeleteSubscribe

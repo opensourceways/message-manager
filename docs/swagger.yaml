@@ -238,6 +238,15 @@ definitions:
       remark:
         type: string
     type: object
+  controller.updateSubscribeDTO:
+    properties:
+      new_name:
+        type: string
+      old_name:
+        type: string
+      source:
+        type: string
+    type: object
 info:
   contact: {}
   description: This is a Message Manager Server.
@@ -489,6 +498,10 @@ paths:
           description: Bad Request
           schema:
             type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
         "500":
           description: Internal Server Error
           schema:
@@ -504,7 +517,11 @@ paths:
         "202":
           description: Accepted
           schema:
-            type: int
+            $ref: '#/definitions/app.MessageSubscribeDTO'
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
         "500":
           description: Internal Server Error
           schema:
@@ -515,14 +532,14 @@ paths:
     post:
       consumes:
       - application/json
-      description: add a subscribe_config
+      description: update a subscribe_config
       parameters:
-      - description: newSubscribeDTO
+      - description: updateSubscribeDTO
         in: body
         name: body
         required: true
         schema:
-          $ref: '#/definitions/controller.newSubscribeDTO'
+          $ref: '#/definitions/controller.updateSubscribeDTO'
       responses:
         "202":
           description: Accepted
@@ -532,11 +549,15 @@ paths:
           description: Bad Request
           schema:
             type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
         "500":
           description: Internal Server Error
           schema:
             type: string
-      summary: AddSubsConfig
+      summary: UpdateSubsConfig
       tags:
       - message_subscribe
   /message_center/config/subs/all:
@@ -549,6 +570,10 @@ paths:
           description: Accepted
           schema:
             $ref: '#/definitions/app.MessageSubscribeDTO'
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
         "500":
           description: Internal Server Error
           schema:
@@ -575,6 +600,10 @@ paths:
             type: string
         "400":
           description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
           schema:
             type: string
         "500":

@@ -370,7 +370,13 @@ const docTemplate = `{
                     "202": {
                         "description": "Accepted",
                         "schema": {
-                            "type": "int"
+                            "$ref": "#/definitions/app.MessageSubscribeDTO"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     "500": {
@@ -382,22 +388,22 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "add a subscribe_config",
+                "description": "update a subscribe_config",
                 "consumes": [
                     "application/json"
                 ],
                 "tags": [
                     "message_subscribe"
                 ],
-                "summary": "AddSubsConfig",
+                "summary": "UpdateSubsConfig",
                 "parameters": [
                     {
-                        "description": "newSubscribeDTO",
+                        "description": "updateSubscribeDTO",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controller.newSubscribeDTO"
+                            "$ref": "#/definitions/controller.updateSubscribeDTO"
                         }
                     }
                 ],
@@ -410,6 +416,12 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "type": "string"
                         }
@@ -455,6 +467,12 @@ const docTemplate = `{
                             "type": "string"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -479,6 +497,12 @@ const docTemplate = `{
                         "description": "Accepted",
                         "schema": {
                             "$ref": "#/definitions/app.MessageSubscribeDTO"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     "500": {
@@ -520,6 +544,12 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "type": "string"
                         }
@@ -1075,6 +1105,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "remark": {
+                    "type": "string"
+                }
+            }
+        },
+        "controller.updateSubscribeDTO": {
+            "type": "object",
+            "properties": {
+                "new_name": {
+                    "type": "string"
+                },
+                "old_name": {
+                    "type": "string"
+                },
+                "source": {
                     "type": "string"
                 }
             }

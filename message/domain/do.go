@@ -26,4 +26,5 @@ type CmdToDeleteRecipient = infrastructure.CmdToDeleteRecipient
 type CmdToSyncUserInfo = infrastructure.CmdToSyncUserInfo
 type CmdToGetSubscribe = infrastructure.CmdToGetSubscribe
 type CmdToAddSubscribe = infrastructure.CmdToAddSubscribe
+type CmdToUpdateSubscribe = infrastructure.CmdToUpdateSubscribe
 type CmdToDeleteSubscribe = infrastructure.CmdToDeleteSubscribe

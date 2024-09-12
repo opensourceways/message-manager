@@ -70,6 +70,19 @@ func (req *newSubscribeDTO) toCmd() (cmd app.CmdToAddSubscribe, err error) {
 	return
 }
 
+type updateSubscribeDTO struct {
+	Source  string `json:"source"`
+	OldName string `json:"old_name"`
+	NewName string `json:"new_name"`
+}
+
+func (req *updateSubscribeDTO) toCmd() (cmd app.CmdToUpdateSubscribe, err error) {
+	cmd.Source = req.Source
+	cmd.OldName = req.OldName
+	cmd.NewName = req.NewName
+	return
+}
+
 type deleteSubscribeDTO struct {
 	Source    string `json:"source"`
 	EventType string `json:"event_type"`
