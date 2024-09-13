@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/opensourceways/message-manager/common/user"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/xerrors"
 
 	commonctl "github.com/opensourceways/message-manager/common/controller"
@@ -118,6 +119,7 @@ func (ctl *messageListController) CountAllUnReadMessage(ctx *gin.Context) {
 		return
 	}
 	if data, err := ctl.appService.CountAllUnReadMessage(userName); err != nil {
+		logrus.Errorf("get count data failed, err:%v", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("获取失败，"+
 			"err:%v", err)})
 	} else {
