@@ -117,13 +117,20 @@ func getStateFilter(prState string) (state, action, mergeStatus string) {
 	return
 }
 
+func getGiteeOneOfFilter(value string) string {
+	if value != "" {
+		return "oneof=" + value
+	}
+	return ""
+}
+
 // 获取 Gitee 数据库格式
 func getGiteeDbFormat(eventType string, modeFilter CmdToGetSubscribe, lRepoName,
 	lNameSpace []string) interface{} {
 	sRepoName := buildStringFilter(lRepoName)
 	sNamespace := buildStringFilter(lNameSpace)
-	sMyManagement := fmt.Sprintf("oneof=%s", modeFilter.MyManagement)
-	sMySig := fmt.Sprintf("oneof=%s", modeFilter.MySig)
+	sMyManagement := getGiteeOneOfFilter(modeFilter.MyManagement)
+	sMySig := getGiteeOneOfFilter(modeFilter.MySig)
 	sSigGroupName := buildStringFilter(strings.Split(modeFilter.GiteeSigs, ","))
 	sIsBot := getBotFilter(modeFilter.IsBot)
 	eventTime := buildTimeFilter(utils.ParseUnixTimestamp(modeFilter.StartTime),
