@@ -106,7 +106,9 @@ type CmdToGetInnerMessage struct {
 	StartTime        string `json:"start_time"`
 	EndTime          string `json:"end_time"`
 	MySig            string `json:"my_sig"`
+	OtherSig         string `json:"other_sig_"`
 	MyManagement     string `json:"my_management"`
+	OtherManagement  string `json:"other_management"`
 	PrState          string `json:"pr_state"`
 	PrCreator        string `json:"pr_creator"`
 	PrAssignee       string `json:"pr_assignee"`
@@ -198,7 +200,9 @@ type CmdToGetSubscribe struct {
 	StartTime        string `json:"start_time,omitempty"`
 	EndTime          string `json:"end_time,omitempty"`
 	MySig            string `json:"my_sig,omitempty"`
+	OtherSig         string `json:"other_sig,omitempty"`
 	MyManagement     string `json:"my_management,omitempty"`
+	OtherManagement  string `json:"other_management,omitempty"`
 	PrState          string `json:"pr_state,omitempty"`
 	PrCreator        string `json:"pr_creator,omitempty"`
 	PrAssignee       string `json:"pr_assignee,omitempty"`

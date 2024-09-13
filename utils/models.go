@@ -33,51 +33,59 @@ type EurDbFormat struct {
 }
 
 type GiteeIssueDbFormat struct {
-	RepoName      string `json:"IssueEvent.Repository.FullName,omitempty"`
-	IsBot         string `json:"IssueEvent.Sender.Name,omitempty"`
-	Namespace     string `json:"IssueEvent.Repository.Namespace,omitempty"`
-	SigGroupName  string `json:"SigGroupName,omitempty"`
-	IssueState    string `json:"IssueEvent.Issue.State,omitempty"`
-	IssueCreator  string `json:"IssueEvent.Issue.User.Login,omitempty"`
-	IssueAssignee string `json:"IssueEvent.Issue.Assignee.Login,omitempty"`
-	EventTime     string `json:"EventTime,omitempty"`
-	MyManagement  string `json:"RepoAdmins,omitempty"`
-	MySig         string `json:"SigMaintainers,omitempty"`
+	RepoName        string `json:"IssueEvent.Repository.FullName,omitempty"`
+	IsBot           string `json:"IssueEvent.Sender.Name,omitempty"`
+	Namespace       string `json:"IssueEvent.Repository.Namespace,omitempty"`
+	SigGroupName    string `json:"SigGroupName,omitempty"`
+	IssueState      string `json:"IssueEvent.Issue.State,omitempty"`
+	IssueCreator    string `json:"IssueEvent.Issue.User.Login,omitempty"`
+	IssueAssignee   string `json:"IssueEvent.Issue.Assignee.Login,omitempty"`
+	EventTime       string `json:"EventTime,omitempty"`
+	MyManagement    string `json:"RepoAdmins,omitempty"`
+	OtherManagement string `json:"RepoAdmins,omitempty"`
+	MySig           string `json:"SigMaintainers,omitempty"`
+	OtherSig        string `json:"SigMaintainers,omitempty"`
 }
 type GiteeNoteDbFormat struct {
-	RepoName     string `json:"NoteEvent.Repository.FullName,omitempty"`
-	IsBot        string `json:"NoteEvent.Sender.Name,omitempty"`
-	Namespace    string `json:"NoteEvent.Repository.Namespace,omitempty"`
-	SigGroupName string `json:"SigGroupName,omitempty"`
-	NoteType     string `json:"NoteEvent.NoteableType,omitempty"`
-	About        string `json:"NoteEvent.Comment.Body,omitempty"`
-	EventTime    string `json:"EventTime,omitempty"`
-	MyManagement string `json:"RepoAdmins,omitempty"`
-	MySig        string `json:"SigMaintainers,omitempty"`
+	RepoName        string `json:"NoteEvent.Repository.FullName,omitempty"`
+	IsBot           string `json:"NoteEvent.Sender.Name,omitempty"`
+	Namespace       string `json:"NoteEvent.Repository.Namespace,omitempty"`
+	SigGroupName    string `json:"SigGroupName,omitempty"`
+	NoteType        string `json:"NoteEvent.NoteableType,omitempty"`
+	About           string `json:"NoteEvent.Comment.Body,omitempty"`
+	EventTime       string `json:"EventTime,omitempty"`
+	MyManagement    string `json:"RepoAdmins,omitempty"`
+	OtherManagement string `json:"RepoAdmins,omitempty"`
+	MySig           string `json:"SigMaintainers,omitempty"`
+	OtherSig        string `json:"SigMaintainers,omitempty"`
 }
 type GiteePullRequestDbFormat struct {
-	RepoName      string `json:"PullRequestEvent.Repository.FullName,omitempty"`
-	IsBot         string `json:"PullRequestEvent.Sender.Name,omitempty"`
-	Namespace     string `json:"PullRequestEvent.Repository.Namespace,omitempty"`
-	SigGroupName  string `json:"SigGroupName,omitempty"`
-	PrState       string `json:"PullRequestEvent.PullRequest.State,omitempty"`
-	PrAction      string `json:"PullRequestEvent.Action,omitempty"`
-	PrMergeStatus string `json:"PullRequestEvent.MergeStatus,omitempty"`
-	PrCreator     string `json:"PullRequestEvent.PullRequest.User.Login,omitempty"`
-	PrAssignee    string `json:"PullRequestEvent.PullRequest.Assignee.Login,omitempty"`
-	EventTime     string `json:"EventTime,omitempty"`
-	MyManagement  string `json:"RepoAdmins,omitempty"`
-	MySig         string `json:"SigMaintainers,omitempty"`
+	RepoName        string `json:"PullRequestEvent.Repository.FullName,omitempty"`
+	IsBot           string `json:"PullRequestEvent.Sender.Name,omitempty"`
+	Namespace       string `json:"PullRequestEvent.Repository.Namespace,omitempty"`
+	SigGroupName    string `json:"SigGroupName,omitempty"`
+	PrState         string `json:"PullRequestEvent.PullRequest.State,omitempty"`
+	PrAction        string `json:"PullRequestEvent.Action,omitempty"`
+	PrMergeStatus   string `json:"PullRequestEvent.MergeStatus,omitempty"`
+	PrCreator       string `json:"PullRequestEvent.PullRequest.User.Login,omitempty"`
+	PrAssignee      string `json:"PullRequestEvent.PullRequest.Assignee.Login,omitempty"`
+	EventTime       string `json:"EventTime,omitempty"`
+	MyManagement    string `json:"RepoAdmins,omitempty"`
+	OtherManagement string `json:"RepoAdmins,omitempty"`
+	MySig           string `json:"SigMaintainers,omitempty"`
+	OtherSig        string `json:"SigMaintainers,omitempty"`
 }
 
 type GiteePushDbFormat struct {
-	RepoName     string `json:"PushEvent.Repository.FullName,omitempty"`
-	IsBot        string `json:"PushEvent.Sender.Name,omitempty"`
-	Namespace    string `json:"PullRequestEvent.Repository.Namespace,omitempty"`
-	SigGroupName string `json:"SigGroupName,omitempty"`
-	EventTime    string `json:"EventTime,omitempty"`
-	MyManagement string `json:"RepoAdmins,omitempty"`
-	MySig        string `json:"SigMaintainers,omitempty"`
+	RepoName        string `json:"PushEvent.Repository.FullName,omitempty"`
+	IsBot           string `json:"PushEvent.Sender.Name,omitempty"`
+	Namespace       string `json:"PullRequestEvent.Repository.Namespace,omitempty"`
+	SigGroupName    string `json:"SigGroupName,omitempty"`
+	EventTime       string `json:"EventTime,omitempty"`
+	MyManagement    string `json:"RepoAdmins,omitempty"`
+	OtherManagement string `json:"RepoAdmins,omitempty"`
+	MySig           string `json:"SigMaintainers,omitempty"`
+	OtherSig        string `json:"SigMaintainers,omitempty"`
 }
 
 type MeetingDbFormat struct {
@@ -86,6 +94,7 @@ type MeetingDbFormat struct {
 	MeetingStartTime string `json:"MeetingStartTime,omitempty"`
 	EventTime        string `json:"EventTime,omitempty"`
 	MySig            string `json:"SigMaintainers,omitempty"`
+	OtherSig         string `json:"SigMaintainers,omitempty"`
 }
 
 type CveDbFormat struct {
@@ -93,4 +102,5 @@ type CveDbFormat struct {
 	State     string `json:"IssueEvent.Issue.StateName"`
 	Affected  string `json:"CVEAffectVersion"`
 	MySig     string `json:"SigMaintainers,omitempty"`
+	OtherSig  string `json:"SigMaintainers,omitempty"`
 }

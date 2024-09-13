@@ -117,9 +117,16 @@ func getStateFilter(prState string) (state, action, mergeStatus string) {
 	return
 }
 
-func getGiteeOneOfFilter(value string) string {
+func getOneOfFilter(value string) string {
 	if value != "" {
 		return "oneof=" + value
+	}
+	return ""
+}
+
+func getNotOneOfFilter(value string) string {
+	if value != "" {
+		return "oneof!=" + value
 	}
 	return ""
 }
@@ -129,8 +136,10 @@ func getGiteeDbFormat(eventType string, modeFilter CmdToGetSubscribe, lRepoName,
 	lNameSpace []string) interface{} {
 	sRepoName := buildStringFilter(lRepoName)
 	sNamespace := buildStringFilter(lNameSpace)
-	sMyManagement := getGiteeOneOfFilter(modeFilter.MyManagement)
-	sMySig := getGiteeOneOfFilter(modeFilter.MySig)
+	sMyManagement := getOneOfFilter(modeFilter.MyManagement)
+	sOtherManagement := getNotOneOfFilter(modeFilter.OtherManagement)
+	sMySig := getOneOfFilter(modeFilter.MySig)
+	sOtherSig := getNotOneOfFilter(modeFilter.OtherSig)
 	sSigGroupName := buildStringFilter(strings.Split(modeFilter.GiteeSigs, ","))
 	sIsBot := getBotFilter(modeFilter.IsBot)
 	eventTime := buildTimeFilter(utils.ParseUnixTimestamp(modeFilter.StartTime),
@@ -141,53 +150,61 @@ func getGiteeDbFormat(eventType string, modeFilter CmdToGetSubscribe, lRepoName,
 	switch eventType {
 	case "issue":
 		return utils.GiteeIssueDbFormat{
-			RepoName:      sRepoName,
-			IsBot:         sIsBot,
-			Namespace:     sNamespace,
-			SigGroupName:  sSigGroupName,
-			IssueState:    buildStringFilter(strings.Split(modeFilter.IssueState, ",")),
-			IssueCreator:  buildStringFilter(strings.Split(modeFilter.IssueCreator, ",")),
-			IssueAssignee: buildStringFilter(strings.Split(modeFilter.IssueAssignee, ",")),
-			EventTime:     eventTime,
-			MySig:         sMySig,
-			MyManagement:  sMyManagement,
+			RepoName:        sRepoName,
+			IsBot:           sIsBot,
+			Namespace:       sNamespace,
+			SigGroupName:    sSigGroupName,
+			IssueState:      buildStringFilter(strings.Split(modeFilter.IssueState, ",")),
+			IssueCreator:    buildStringFilter(strings.Split(modeFilter.IssueCreator, ",")),
+			IssueAssignee:   buildStringFilter(strings.Split(modeFilter.IssueAssignee, ",")),
+			EventTime:       eventTime,
+			MySig:           sMySig,
+			MyManagement:    sMyManagement,
+			OtherSig:        sOtherSig,
+			OtherManagement: sOtherManagement,
 		}
 	case "note":
 		return utils.GiteeNoteDbFormat{
-			RepoName:     sRepoName,
-			IsBot:        sIsBot,
-			Namespace:    sNamespace,
-			SigGroupName: sSigGroupName,
-			NoteType:     buildStringFilter(strings.Split(modeFilter.NoteType, ",")),
-			About:        buildStringFilter([]string{modeFilter.About}),
-			EventTime:    eventTime,
-			MySig:        sMySig,
-			MyManagement: sMyManagement,
+			RepoName:        sRepoName,
+			IsBot:           sIsBot,
+			Namespace:       sNamespace,
+			SigGroupName:    sSigGroupName,
+			NoteType:        buildStringFilter(strings.Split(modeFilter.NoteType, ",")),
+			About:           buildStringFilter([]string{modeFilter.About}),
+			EventTime:       eventTime,
+			MySig:           sMySig,
+			MyManagement:    sMyManagement,
+			OtherSig:        sOtherSig,
+			OtherManagement: sOtherManagement,
 		}
 	case "pr":
 		return utils.GiteePullRequestDbFormat{
-			RepoName:      sRepoName,
-			IsBot:         sIsBot,
-			Namespace:     sNamespace,
-			SigGroupName:  sSigGroupName,
-			PrState:       sState,
-			PrAction:      sAction,
-			PrMergeStatus: sMergeStatus,
-			PrCreator:     buildStringFilter(strings.Split(modeFilter.PrCreator, ",")),
-			PrAssignee:    buildStringFilter(strings.Split(modeFilter.PrAssignee, ",")),
-			EventTime:     eventTime,
-			MySig:         sMySig,
-			MyManagement:  sMyManagement,
+			RepoName:        sRepoName,
+			IsBot:           sIsBot,
+			Namespace:       sNamespace,
+			SigGroupName:    sSigGroupName,
+			PrState:         sState,
+			PrAction:        sAction,
+			PrMergeStatus:   sMergeStatus,
+			PrCreator:       buildStringFilter(strings.Split(modeFilter.PrCreator, ",")),
+			PrAssignee:      buildStringFilter(strings.Split(modeFilter.PrAssignee, ",")),
+			EventTime:       eventTime,
+			MySig:           sMySig,
+			MyManagement:    sMyManagement,
+			OtherSig:        sOtherSig,
+			OtherManagement: sOtherManagement,
 		}
 	case "push":
 		return utils.GiteePushDbFormat{
-			RepoName:     sRepoName,
-			IsBot:        sIsBot,
-			Namespace:    sNamespace,
-			SigGroupName: sSigGroupName,
-			EventTime:    eventTime,
-			MySig:        sMySig,
-			MyManagement: sMyManagement,
+			RepoName:        sRepoName,
+			IsBot:           sIsBot,
+			Namespace:       sNamespace,
+			SigGroupName:    sSigGroupName,
+			EventTime:       eventTime,
+			MySig:           sMySig,
+			MyManagement:    sMyManagement,
+			OtherSig:        sOtherSig,
+			OtherManagement: sOtherManagement,
 		}
 	default:
 		return nil
@@ -226,7 +243,8 @@ func TransMeetingModeFilterToDbFormat(modeFilter CmdToGetSubscribe) (datatypes.J
 			utils.ParseUnixTimestamp(modeFilter.EndTime)),
 		EventTime: buildTimeFilter(utils.ParseUnixTimestamp(modeFilter.StartTime),
 			utils.ParseUnixTimestamp(modeFilter.EndTime)),
-		MySig: fmt.Sprintf("oneof=%s", modeFilter.MySig),
+		MySig:    getOneOfFilter(modeFilter.MySig),
+		OtherSig: getNotOneOfFilter(modeFilter.OtherSig),
 	}
 	return marshalToJson(dbModeFilter)
 }
@@ -263,7 +281,8 @@ func TransCveModeFilterToDbFormat(modeFilter CmdToGetSubscribe) (datatypes.JSON,
 		Component: buildCveComponentFilter(modeFilter.CVEComponent),
 		State:     buildStringFilter(strings.Split(modeFilter.IssueState, ",")),
 		Affected:  buildCveAffectedFilter(modeFilter.CVEAffected),
-		MySig:     fmt.Sprintf("oneof=%s", modeFilter.MySig),
+		MySig:     getOneOfFilter(modeFilter.MySig),
+		OtherSig:  getNotOneOfFilter(modeFilter.OtherSig),
 	}
 	return marshalToJson(dbModeFilter)
 }
