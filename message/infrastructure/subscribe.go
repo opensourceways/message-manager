@@ -5,6 +5,7 @@ Copyright (c) Huawei Technologies Co., Ltd. 2024. All rights reserved
 package infrastructure
 
 import (
+	"encoding/json"
 	"strings"
 	"time"
 
@@ -60,6 +61,11 @@ func (ctl *messageSubscribeAdapter) SaveFilter(cmd CmdToGetSubscribe, userName s
 	modeFilter, _ = TransToDbFormat(cmd.Source, cmd.EventType, cmd)
 	isDefault := new(bool)
 	*isDefault = false
+	jsonFilter, err := json.Marshal(cmd)
+	if err != nil {
+		return xerrors.Errorf("marshal data failed, err:%v", err)
+	}
+
 	result := postgresql.DB().Table("message_center.subscribe_config").
 		Create(MessageSubscribeDAOWithoutId{
 			Source:      cmd.Source,
@@ -71,6 +77,7 @@ func (ctl *messageSubscribeAdapter) SaveFilter(cmd CmdToGetSubscribe, userName s
 			UpdatedAt:   time.Now(),
 			UserName:    userName,
 			IsDefault:   isDefault,
+			WebFilter:   jsonFilter,
 		})
 	if result.Error != nil {
 		return xerrors.Errorf("保存配置失败")
