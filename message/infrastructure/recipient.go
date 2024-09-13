@@ -175,7 +175,8 @@ func getDefaultFilter(userName string, giteeUserName string) ([]MessageSubscribe
 			SpecVersion: "1.0",
 			ModeName:    "待我参加的会议",
 			ModeFilter: datatypes.JSON(
-				fmt.Sprintf(`{"Msg.GroupName": "oneof=%s"}`, strings.Join(mySig, " ")))})
+				fmt.Sprintf(`{"Msg.GroupName": "oneof=%s"}`, strings.Join(mySig, " "))),
+			WebFilter: datatypes.JSON(fmt.Sprintf(`{"my_sig": "%s"}`, giteeUserName))})
 	}
 
 	return defaultFilter, nil
@@ -237,6 +238,7 @@ func subscribeDefault(recipientId uint, userName string, giteeUserName string) {
 			EventType:   subs.EventType,
 			SpecVersion: subs.SpecVersion,
 			ModeFilter:  subs.ModeFilter,
+			WebFilter:   subs.WebFilter,
 			ModeName:    subs.ModeName,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
