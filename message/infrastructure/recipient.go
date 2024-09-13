@@ -6,7 +6,6 @@ package infrastructure
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/opensourceways/message-manager/utils"
@@ -140,18 +139,8 @@ func (ctl *messageRecipientAdapter) SyncUserInfo(cmd CmdToSyncUserInfo) (uint, e
 	return id, nil
 }
 
-func getDefaultFilter(userName string, giteeUserName string) ([]MessageSubscribeDAO, error) {
-	mySig, err := utils.GetUserSigInfo(giteeUserName)
-	if err != nil {
-		return []MessageSubscribeDAO{}, xerrors.Errorf("get user sig info failed, err:%v", err)
-	}
+func getDefaultFilter(giteeUserName string) ([]MessageSubscribeDAO, error) {
 	defaultFilter := []MessageSubscribeDAO{
-		{Source: utils.EurSource, EventType: "build", SpecVersion: "1.0", ModeName: "我触发的构建",
-			ModeFilter: datatypes.JSON(fmt.Sprintf(`{"Body.User": "eq=%s"}`, userName)),
-			WebFilter:  datatypes.JSON(fmt.Sprintf(`{"build_creator": "%s"}`, userName))},
-		{Source: utils.EurSource, EventType: "build", SpecVersion: "1.0", ModeName: "我的项目",
-			ModeFilter: datatypes.JSON(fmt.Sprintf(`{"Body.Owner": "eq=%s"}`, userName)),
-			WebFilter:  datatypes.JSON(fmt.Sprintf(`{"build_owner": "%s"}`, userName))},
 		{Source: utils.GiteeSource, EventType: "issue", SpecVersion: "1.0", ModeName: "指派给我的issue",
 			ModeFilter: datatypes.JSON(
 				fmt.Sprintf(`{"IssueEvent.Issue.Assignee.Login": "eq=%s"}`, giteeUserName)),
@@ -167,18 +156,6 @@ func getDefaultFilter(userName string, giteeUserName string) ([]MessageSubscribe
 				fmt.Sprintf(`{"NoteEvent.Issue.User.Login": "eq=%s"}`, giteeUserName)),
 			WebFilter: datatypes.JSON(fmt.Sprintf(`{"note_type": "issue", "event_type": "note"}`))},
 	}
-
-	if len(mySig) != 0 {
-		defaultFilter = append(defaultFilter, MessageSubscribeDAO{
-			Source:      utils.MeetingSource,
-			EventType:   "build",
-			SpecVersion: "1.0",
-			ModeName:    "待我参加的会议",
-			ModeFilter: datatypes.JSON(
-				fmt.Sprintf(`{"Msg.GroupName": "oneof=%s"}`, strings.Join(mySig, " "))),
-			WebFilter: datatypes.JSON(fmt.Sprintf(`{"my_sig": "%s"}`, giteeUserName))})
-	}
-
 	return defaultFilter, nil
 }
 
@@ -216,7 +193,7 @@ func addPushConfig(subsId int, recipientId int64) error {
 }
 
 func subscribeDefault(recipientId uint, userName string, giteeUserName string) {
-	defaultFilter, err := getDefaultFilter(userName, giteeUserName)
+	defaultFilter, err := getDefaultFilter(giteeUserName)
 	if err != nil {
 		logrus.Errorf("get default filter failed, err:%v", err)
 		return
