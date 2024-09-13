@@ -360,10 +360,9 @@ func (s *messageAdapter) CountAllUnReadMessage(userName string) ([]CountDAO, err
 	AND inner_message.is_deleted = ? 
 	AND recipient_config.is_deleted = ?
 	GROUP BY inner_message.source`
-	if err := postgresql.DB().Raw(sqlCount, false, userName, false, false).
-		Scan(&CountData); err != nil {
-		logrus.Errorf("get count failed, err:%v", err.Error)
-		return []CountDAO{}, xerrors.Errorf("get count failed, err:%v", err)
+	if result := postgresql.DB().Raw(sqlCount, false, userName, false, false).
+		Scan(&CountData); result.Error != nil {
+		return []CountDAO{}, xerrors.Errorf("get count failed, err:%v", result.Error)
 	}
 	return CountData, nil
 }
