@@ -147,20 +147,25 @@ func getDefaultFilter(userName string, giteeUserName string) ([]MessageSubscribe
 	}
 	defaultFilter := []MessageSubscribeDAO{
 		{Source: utils.EurSource, EventType: "build", SpecVersion: "1.0", ModeName: "我触发的构建",
-			ModeFilter: datatypes.JSON(fmt.Sprintf(
-				`{"Body.User": "eq=%s"}`, userName))},
+			ModeFilter: datatypes.JSON(fmt.Sprintf(`{"Body.User": "eq=%s"}`, userName)),
+			WebFilter:  datatypes.JSON(fmt.Sprintf(`{"build_creator": "%s"}`, userName))},
 		{Source: utils.EurSource, EventType: "build", SpecVersion: "1.0", ModeName: "我的项目",
-			ModeFilter: datatypes.JSON(fmt.Sprintf(
-				`{"Body.Owner": "eq=%s"}`, userName))},
+			ModeFilter: datatypes.JSON(fmt.Sprintf(`{"Body.Owner": "eq=%s"}`, userName)),
+			WebFilter:  datatypes.JSON(fmt.Sprintf(`{"build_owner": "%s"}`, userName))},
 		{Source: utils.GiteeSource, EventType: "issue", SpecVersion: "1.0", ModeName: "指派给我的issue",
-			ModeFilter: datatypes.JSON(fmt.Sprintf(
-				`{"IssueEvent.Issue.Assignee.Login": "eq=%s"}`, giteeUserName))},
+			ModeFilter: datatypes.JSON(
+				fmt.Sprintf(`{"IssueEvent.Issue.Assignee.Login": "eq=%s"}`, giteeUserName)),
+			WebFilter: datatypes.JSON(fmt.Sprintf(
+				`{"issue_assignee": "%s", "event_type": "issue"}`, giteeUserName))},
 		{Source: utils.GiteeSource, EventType: "pr", SpecVersion: "1.0", ModeName: "待我处理的pr",
 			ModeFilter: datatypes.JSON(fmt.Sprintf(
-				`{"PullRequestEvent.PullRequest.Assignee.Login": "eq=%s"}`, giteeUserName))},
+				`{"PullRequestEvent.PullRequest.Assignee.Login": "eq=%s"}`, giteeUserName)),
+			WebFilter: datatypes.JSON(fmt.Sprintf(
+				`{"pr_assignee": "%s", "event_type": "pr"}`, giteeUserName))},
 		{Source: utils.GiteeSource, EventType: "note", SpecVersion: "1.0", ModeName: "我提的issue的评论",
-			ModeFilter: datatypes.JSON(fmt.Sprintf(
-				`{"NoteEvent.Issue.User.Login": "eq=%s"}`, giteeUserName))},
+			ModeFilter: datatypes.JSON(
+				fmt.Sprintf(`{"NoteEvent.Issue.User.Login": "eq=%s"}`, giteeUserName)),
+			WebFilter: datatypes.JSON(fmt.Sprintf(`{"note_type": "issue", "event_type": "note"}`))},
 	}
 
 	if len(mySig) != 0 {

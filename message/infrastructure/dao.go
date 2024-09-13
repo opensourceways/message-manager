@@ -65,6 +65,7 @@ type MessageSubscribeDAO struct {
 	UpdatedAt   time.Time      `gorm:"column:updated_at"    json:"updated_at"  swaggerignore:"true"`
 	UserName    string         `gorm:"column:user_name"     json:"user_name"`
 	IsDefault   *bool          `gorm:"column:is_default"    json:"is_default"`
+	WebFilter   datatypes.JSON `gorm:"column:web_filter"    json:"web_filter"  swaggerignore:"true"`
 }
 
 type MessageSubscribeDAOWithoutId struct {
