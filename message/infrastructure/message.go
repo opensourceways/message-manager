@@ -362,6 +362,7 @@ func (s *messageAdapter) CountAllUnReadMessage(userName string) ([]CountDAO, err
 	GROUP BY inner_message.source`
 	if err := postgresql.DB().Raw(sqlCount, false, userName, false, false).
 		Scan(&CountData); err != nil {
+		logrus.Errorf("get count failed, err:%v", err.Error)
 		return []CountDAO{}, xerrors.Errorf("get count failed, err:%v", err)
 	}
 	return CountData, nil
