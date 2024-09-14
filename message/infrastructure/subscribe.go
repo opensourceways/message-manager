@@ -6,6 +6,7 @@ package infrastructure
 
 import (
 	"encoding/json"
+	"log"
 	"strings"
 	"time"
 
@@ -53,6 +54,21 @@ func (ctl *messageSubscribeAdapter) GetSubsConfig(userName string) ([]MessageSub
 	return response, Count, nil
 }
 
+func getRecipientId(userName string) *int64 {
+	var id int64 // 假设 id 是 int 类型
+	result := postgresql.DB().Table("message_center.recipient_config").
+		Select("id").
+		Where("is_deleted = ?", false).
+		Where("user_id = ?", userName).
+		First(&id)
+	if result.Error != nil {
+		// 处理错误
+		log.Println("Error fetching id:", result.Error)
+		return nil
+	}
+	return &id
+}
+
 func (ctl *messageSubscribeAdapter) SaveFilter(cmd CmdToGetSubscribe, userName string) error {
 	if userName == "" {
 		return xerrors.Errorf("用户名为空")
@@ -66,24 +82,30 @@ func (ctl *messageSubscribeAdapter) SaveFilter(cmd CmdToGetSubscribe, userName s
 		return xerrors.Errorf("marshal data failed, err:%v", err)
 	}
 
+	subs := MessageSubscribeDAO{
+		Source:      cmd.Source,
+		EventType:   cmd.EventType,
+		SpecVersion: cmd.SpecVersion,
+		ModeFilter:  modeFilter,
+		ModeName:    cmd.ModeName,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+		UserName:    userName,
+		IsDefault:   isDefault,
+		WebFilter:   jsonFilter,
+	}
+
 	result := postgresql.DB().Table("message_center.subscribe_config").
-		Create(MessageSubscribeDAOWithoutId{
-			Source:      cmd.Source,
-			EventType:   cmd.EventType,
-			SpecVersion: cmd.SpecVersion,
-			ModeFilter:  modeFilter,
-			ModeName:    cmd.ModeName,
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
-			UserName:    userName,
-			IsDefault:   isDefault,
-			WebFilter:   jsonFilter,
-		})
+		Create(&subs)
 	if result.Error != nil {
 		return xerrors.Errorf("保存配置失败")
-	} else {
-		return nil
 	}
+
+	err = addPushConfig(int(subs.Id), *getRecipientId(userName))
+	if err != nil {
+		return xerrors.Errorf("订阅失败,err:%v", err)
+	}
+	return nil
 }
 
 func (ctl *messageSubscribeAdapter) AddSubsConfig(cmd CmdToAddSubscribe, userName string) ([]uint, error) {
