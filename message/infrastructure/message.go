@@ -191,7 +191,7 @@ func applyCVEFilters(query *gorm.DB, cveComponent string, cveState string, cveAf
 			sql = append(sql, "%"+affect+"%")
 		}
 		query = query.Where("jsonb_extract_path_text(cloud_event_message.data_json, "+
-			"'CVEAffectVersion') LIKE ANY (?)", fmt.Sprintf("{%s}", strings.Join(sql, ",")))
+			"'CVEAffectVersion') ILIKE ANY (?)", fmt.Sprintf("{%s}", strings.Join(sql, ",")))
 	}
 	return query
 }
