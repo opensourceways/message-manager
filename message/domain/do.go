@@ -12,6 +12,7 @@ type MessageListDO = infrastructure.MessageListDAO
 type MessagePushDO = infrastructure.MessagePushDAO
 type MessageRecipientDO = infrastructure.MessageRecipientDAO
 type MessageSubscribeDO = infrastructure.MessageSubscribeDAO
+type MessageSubscribeDOWithPushConfig = infrastructure.MessageSubscribeDAOWithPushConfig
 type CountDO = infrastructure.CountDAO
 
 type CmdToGetInnerMessageQuick = infrastructure.CmdToGetInnerMessageQuick

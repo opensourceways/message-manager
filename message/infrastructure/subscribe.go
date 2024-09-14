@@ -38,17 +38,19 @@ func (ctl *messageSubscribeAdapter) GetAllSubsConfig(userName string) ([]Message
 	return response, nil
 }
 
-func (ctl *messageSubscribeAdapter) GetSubsConfig(userName string) ([]MessageSubscribeDAO, int64, error) {
-	var response []MessageSubscribeDAO
+func (ctl *messageSubscribeAdapter) GetSubsConfig(userName string) ([]MessageSubscribeDAOWithPushConfig, int64, error) {
+	var response []MessageSubscribeDAOWithPushConfig
 
 	query := postgresql.DB().Table("message_center.subscribe_config").
+		Select("subscribe_config.*, push_config.need_mail").
+		Joins("JOIN message_center.push_config ON subscribe_config.id = push_config.subscribe_id").
 		Where(gorm.Expr("subscribe_config.is_deleted = ?", false)).
 		Where("subscribe_config.user_name = ?", userName)
 
 	var Count int64
 	query.Count(&Count)
 	if result := query.Order("subscribe_config.id").Find(&response); result.Error != nil {
-		return []MessageSubscribeDAO{}, 0, xerrors.Errorf("查询失败")
+		return []MessageSubscribeDAOWithPushConfig{}, 0, xerrors.Errorf("查询失败")
 	}
 
 	return response, Count, nil

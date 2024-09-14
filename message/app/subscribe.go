@@ -12,7 +12,7 @@ import (
 
 type MessageSubscribeAppService interface {
 	GetAllSubsConfig(userName string) ([]MessageSubscribeDTO, error)
-	GetSubsConfig(userName string) ([]MessageSubscribeDTO, int64, error)
+	GetSubsConfig(userName string) ([]MessageSubscribeDTOWithPushConfig, int64, error)
 	SaveFilter(userName string, cmd *CmdToGetSubscribe) error
 	AddSubsConfig(userName string, cmd *CmdToAddSubscribe) ([]uint, error)
 	UpdateSubsConfig(userName string, cmd *CmdToUpdateSubscribe) error
@@ -39,11 +39,11 @@ func (s *messageSubscribeAppService) GetAllSubsConfig(userName string) ([]Messag
 	return response, nil
 }
 
-func (s *messageSubscribeAppService) GetSubsConfig(userName string) ([]MessageSubscribeDTO,
+func (s *messageSubscribeAppService) GetSubsConfig(userName string) ([]MessageSubscribeDTOWithPushConfig,
 	int64, error) {
 	response, count, err := s.messageSubscribeAdapter.GetSubsConfig(userName)
 	if err != nil {
-		return []MessageSubscribeDTO{}, 0, err
+		return []MessageSubscribeDTOWithPushConfig{}, 0, err
 	}
 	return response, count, nil
 }
