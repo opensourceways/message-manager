@@ -60,7 +60,7 @@ func getRecipientId(userName string) *uint {
 		Select("id").
 		Where("is_deleted = ?", false).
 		Where("user_id = ?", userName).
-		First(&id)
+		Scan(&id)
 	if result.Error != nil {
 		// 处理错误
 		log.Println("Error fetching id:", result.Error)
