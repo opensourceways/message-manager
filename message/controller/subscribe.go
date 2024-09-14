@@ -27,6 +27,7 @@ func AddRouterForMessageSubscribeController(
 	v1.GET("/subs/all", ctl.GetAllSubsConfig)
 	v1.POST("/subs", ctl.AddSubsConfig)
 	v1.POST("/subs_new", ctl.SaveFilter)
+	v1.PUT("/subs", ctl.UpdateSubsConfig)
 	v1.DELETE("/subs", ctl.RemoveSubsConfig)
 }
 
@@ -166,7 +167,7 @@ func (ctl *messageSubscribeController) AddSubsConfig(ctx *gin.Context) {
 // @Failure			400	string bad_request  无法解析请求正文
 // @Failure			401	string unauthorized  用户未授权
 // @Failure			500	string system_error  更新配置成功
-// @Router			/message_center/config/subs [post]
+// @Router			/message_center/config/subs [put]
 func (ctl *messageSubscribeController) UpdateSubsConfig(ctx *gin.Context) {
 	var req updateSubscribeDTO
 	if err := ctx.BindJSON(&req); err != nil {

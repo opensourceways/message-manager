@@ -157,6 +157,7 @@ func (ctl *messageSubscribeAdapter) UpdateSubsConfig(cmd CmdToUpdateSubscribe,
 	userName string) error {
 	if result := postgresql.DB().Table("message_center.subscribe_config").
 		Where(gorm.Expr("is_deleted = ?", false)).
+		Where(gorm.Expr("is_default = ?", false)).
 		Where("source = ? AND mode_name = ?", cmd.Source, cmd.OldName).
 		Where("user_name = ?", userName).
 		Update("mode_name", cmd.NewName); result.Error != nil {
