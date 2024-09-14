@@ -159,6 +159,12 @@ func applyMeetingFilters(query *gorm.DB, meetingAction string, meetingSigGroup s
 		if start != nil && end != nil {
 			query = query.Where("jsonb_extract_path_text(cloud_event_message.data_json, "+
 				"'MeetingStartTime') BETWEEN ? AND ?", start.Format(time.DateTime), end.Format(time.DateTime))
+		} else if start != nil {
+			query = query.Where("jsonb_extract_path_text(cloud_event_message.data_json,"+
+				"'MeetingStartTime') >= ?", *start)
+		} else if end != nil {
+			query = query.Where("jsonb_extract_path_text(cloud_event_message.data_json,"+
+				"'MeetingStartTime') >= ?", *end)
 		}
 	}
 	return query
