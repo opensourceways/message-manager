@@ -54,8 +54,8 @@ func (ctl *messageSubscribeAdapter) GetSubsConfig(userName string) ([]MessageSub
 	return response, Count, nil
 }
 
-func getRecipientId(userName string) *int64 {
-	var id int64 // 假设 id 是 int 类型
+func getRecipientId(userName string) *uint {
+	var id uint
 	result := postgresql.DB().Table("message_center.recipient_config").
 		Select("id").
 		Where("is_deleted = ?", false).
@@ -101,7 +101,11 @@ func (ctl *messageSubscribeAdapter) SaveFilter(cmd CmdToGetSubscribe, userName s
 		return xerrors.Errorf("保存配置失败")
 	}
 
-	err = addPushConfig(int(subs.Id), *getRecipientId(userName))
+	recipientId := getRecipientId(userName)
+	if recipientId == nil {
+		return nil
+	}
+	err = addPushConfig(int(subs.Id), int64(*recipientId))
 	if err != nil {
 		return xerrors.Errorf("订阅失败,err:%v", err)
 	}
