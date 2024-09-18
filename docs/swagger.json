@@ -379,7 +379,7 @@
                     }
                 }
             },
-            "post": {
+            "put": {
                 "description": "update a subscribe_config",
                 "consumes": [
                     "application/json"
@@ -396,6 +396,53 @@
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/controller.updateSubscribeDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "add a subscribe_config",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "message_subscribe"
+                ],
+                "summary": "AddSubsConfig",
+                "parameters": [
+                    {
+                        "description": "newSubscribeDTO",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.newSubscribeDTO"
                         }
                     }
                 ],
@@ -565,6 +612,198 @@
                     "message_center"
                 ],
                 "summary": "GetInnerMessage",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "@我的",
+                        "name": "about",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "eur我执行的",
+                        "name": "build_creator",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "eur构建环境",
+                        "name": "build_env",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "eur我的项目",
+                        "name": "build_owner",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "eur构建状态",
+                        "name": "build_status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "count_per_page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "cve影响系统版本",
+                        "name": "cve_affected",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "cve组件仓库",
+                        "name": "cve_component",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "cve漏洞状态",
+                        "name": "cve_state",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "结束时间",
+                        "name": "end_time",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "事件类型",
+                        "name": "event_type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "是否机器人",
+                        "name": "is_bot",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "是否已读",
+                        "name": "is_read",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "issue指派者",
+                        "name": "issue_assignee",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "issue提交者",
+                        "name": "issue_creator",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "issue事件状态",
+                        "name": "issue_state",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "关键字模糊搜索",
+                        "name": "key_word",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "会议操作",
+                        "name": "meeting_action",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "会议结束时间",
+                        "name": "meeting_end_time",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "会议所属sig",
+                        "name": "meeting_sig",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "会议开始时间",
+                        "name": "meeting_start_time",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "我管理的仓库",
+                        "name": "my_management",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "我的sig组",
+                        "name": "my_sig",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "评论类型",
+                        "name": "note_type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pr指派者",
+                        "name": "pr_assignee",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pr提交者",
+                        "name": "pr_creator",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pr事件状态",
+                        "name": "pr_state",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "仓库筛选",
+                        "name": "repos",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sig组筛选",
+                        "name": "sig",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "消息源",
+                        "name": "source",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "起始时间",
+                        "name": "start_time",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "202": {
                         "description": "Accepted",
@@ -929,105 +1168,135 @@
             "type": "object",
             "properties": {
                 "about": {
+                    "description": "@我的",
                     "type": "string"
                 },
                 "build_creator": {
+                    "description": "eur我执行的",
                     "type": "string"
                 },
                 "build_env": {
+                    "description": "eur构建环境",
                     "type": "string"
                 },
                 "build_owner": {
+                    "description": "eur我的项目",
                     "type": "string"
                 },
                 "build_status": {
+                    "description": "eur构建状态",
                     "type": "string"
                 },
                 "count_per_page": {
                     "type": "integer"
                 },
                 "cve_affected": {
+                    "description": "cve影响系统版本",
                     "type": "string"
                 },
                 "cve_component": {
+                    "description": "cve组件仓库",
                     "type": "string"
                 },
                 "cve_state": {
+                    "description": "cve漏洞状态",
                     "type": "string"
                 },
                 "end_time": {
+                    "description": "结束时间",
                     "type": "string"
                 },
                 "event_type": {
+                    "description": "事件类型",
                     "type": "string"
                 },
                 "is_bot": {
+                    "description": "是否机器人",
                     "type": "string"
                 },
                 "is_read": {
+                    "description": "是否已读",
                     "type": "string"
                 },
                 "issue_assignee": {
+                    "description": "issue指派者",
                     "type": "string"
                 },
                 "issue_creator": {
+                    "description": "issue提交者",
                     "type": "string"
                 },
                 "issue_state": {
+                    "description": "issue事件状态",
                     "type": "string"
                 },
                 "key_word": {
+                    "description": "关键字模糊搜索",
                     "type": "string"
                 },
                 "meeting_action": {
+                    "description": "会议操作",
                     "type": "string"
                 },
                 "meeting_end_time": {
+                    "description": "会议结束时间",
                     "type": "string"
                 },
                 "meeting_sig": {
+                    "description": "会议所属sig",
                     "type": "string"
                 },
                 "meeting_start_time": {
+                    "description": "会议开始时间",
                     "type": "string"
                 },
                 "mode_name": {
                     "type": "string"
                 },
                 "my_management": {
+                    "description": "我管理的仓库",
                     "type": "string"
                 },
                 "my_sig": {
+                    "description": "我的sig组",
                     "type": "string"
                 },
                 "note_type": {
+                    "description": "评论类型",
                     "type": "string"
                 },
                 "page": {
                     "type": "integer"
                 },
                 "pr_assignee": {
+                    "description": "pr指派者",
                     "type": "string"
                 },
                 "pr_creator": {
+                    "description": "pr提交者",
                     "type": "string"
                 },
                 "pr_state": {
+                    "description": "pr事件状态",
                     "type": "string"
                 },
                 "repos": {
+                    "description": "仓库筛选",
                     "type": "string"
                 },
                 "sig": {
+                    "description": "sig组筛选",
                     "type": "string"
                 },
                 "source": {
+                    "description": "消息源",
                     "type": "string"
                 },
                 "spec_version": {
                     "type": "string"
                 },
                 "start_time": {
+                    "description": "起始时间",
                     "type": "string"
                 }
             }

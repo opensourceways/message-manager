@@ -73,6 +73,7 @@ func (ctl *messageListController) GetInnerMessageQuick(ctx *gin.Context) {
 // @Summary			GetInnerMessage
 // @Description		get inner message
 // @Tags			message_center
+// @Param           Params query queryInnerParams true "Query InnerParams"
 // @Accept			json
 // @Success			202	 {object}  app.MessageListDTO
 // @Failure			500	string system_error  查询失败

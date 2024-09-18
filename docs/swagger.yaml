@@ -125,72 +125,102 @@ definitions:
   controller.subscribeDTO:
     properties:
       about:
+        description: '@我的'
         type: string
       build_creator:
+        description: eur我执行的
         type: string
       build_env:
+        description: eur构建环境
         type: string
       build_owner:
+        description: eur我的项目
         type: string
       build_status:
+        description: eur构建状态
         type: string
       count_per_page:
         type: integer
       cve_affected:
+        description: cve影响系统版本
         type: string
       cve_component:
+        description: cve组件仓库
         type: string
       cve_state:
+        description: cve漏洞状态
         type: string
       end_time:
+        description: 结束时间
         type: string
       event_type:
+        description: 事件类型
         type: string
       is_bot:
+        description: 是否机器人
         type: string
       is_read:
+        description: 是否已读
         type: string
       issue_assignee:
+        description: issue指派者
         type: string
       issue_creator:
+        description: issue提交者
         type: string
       issue_state:
+        description: issue事件状态
         type: string
       key_word:
+        description: 关键字模糊搜索
         type: string
       meeting_action:
+        description: 会议操作
         type: string
       meeting_end_time:
+        description: 会议结束时间
         type: string
       meeting_sig:
+        description: 会议所属sig
         type: string
       meeting_start_time:
+        description: 会议开始时间
         type: string
       mode_name:
         type: string
       my_management:
+        description: 我管理的仓库
         type: string
       my_sig:
+        description: 我的sig组
         type: string
       note_type:
+        description: 评论类型
         type: string
       page:
         type: integer
       pr_assignee:
+        description: pr指派者
         type: string
       pr_creator:
+        description: pr提交者
         type: string
       pr_state:
+        description: pr事件状态
         type: string
       repos:
+        description: 仓库筛选
         type: string
       sig:
+        description: sig组筛选
         type: string
       source:
+        description: 消息源
         type: string
       spec_version:
         type: string
       start_time:
+        description: 起始时间
         type: string
     type: object
   controller.syncUserInfoDTO:
@@ -532,6 +562,37 @@ paths:
     post:
       consumes:
       - application/json
+      description: add a subscribe_config
+      parameters:
+      - description: newSubscribeDTO
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controller.newSubscribeDTO'
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: AddSubsConfig
+      tags:
+      - message_subscribe
+    put:
+      consumes:
+      - application/json
       description: update a subscribe_config
       parameters:
       - description: updateSubscribeDTO
@@ -645,6 +706,133 @@ paths:
       consumes:
       - application/json
       description: get inner message
+      parameters:
+      - description: '@我的'
+        in: query
+        name: about
+        type: string
+      - description: eur我执行的
+        in: query
+        name: build_creator
+        type: string
+      - description: eur构建环境
+        in: query
+        name: build_env
+        type: string
+      - description: eur我的项目
+        in: query
+        name: build_owner
+        type: string
+      - description: eur构建状态
+        in: query
+        name: build_status
+        type: string
+      - in: query
+        name: count_per_page
+        type: integer
+      - description: cve影响系统版本
+        in: query
+        name: cve_affected
+        type: string
+      - description: cve组件仓库
+        in: query
+        name: cve_component
+        type: string
+      - description: cve漏洞状态
+        in: query
+        name: cve_state
+        type: string
+      - description: 结束时间
+        in: query
+        name: end_time
+        type: string
+      - description: 事件类型
+        in: query
+        name: event_type
+        type: string
+      - description: 是否机器人
+        in: query
+        name: is_bot
+        type: string
+      - description: 是否已读
+        in: query
+        name: is_read
+        type: string
+      - description: issue指派者
+        in: query
+        name: issue_assignee
+        type: string
+      - description: issue提交者
+        in: query
+        name: issue_creator
+        type: string
+      - description: issue事件状态
+        in: query
+        name: issue_state
+        type: string
+      - description: 关键字模糊搜索
+        in: query
+        name: key_word
+        type: string
+      - description: 会议操作
+        in: query
+        name: meeting_action
+        type: string
+      - description: 会议结束时间
+        in: query
+        name: meeting_end_time
+        type: string
+      - description: 会议所属sig
+        in: query
+        name: meeting_sig
+        type: string
+      - description: 会议开始时间
+        in: query
+        name: meeting_start_time
+        type: string
+      - description: 我管理的仓库
+        in: query
+        name: my_management
+        type: string
+      - description: 我的sig组
+        in: query
+        name: my_sig
+        type: string
+      - description: 评论类型
+        in: query
+        name: note_type
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - description: pr指派者
+        in: query
+        name: pr_assignee
+        type: string
+      - description: pr提交者
+        in: query
+        name: pr_creator
+        type: string
+      - description: pr事件状态
+        in: query
+        name: pr_state
+        type: string
+      - description: 仓库筛选
+        in: query
+        name: repos
+        type: string
+      - description: sig组筛选
+        in: query
+        name: sig
+        type: string
+      - description: 消息源
+        in: query
+        name: source
+        type: string
+      - description: 起始时间
+        in: query
+        name: start_time
+        type: string
       responses:
         "202":
           description: Accepted
