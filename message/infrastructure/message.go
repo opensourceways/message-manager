@@ -344,7 +344,7 @@ func (s *messageAdapter) GetInnerMessage(cmd CmdToGetInnerMessage,
 
 	var response []MessageListDAO
 	offsetNum := (cmd.PageNum - 1) * cmd.CountPerPage
-	if result := query.Limit(cmd.CountPerPage).Offset(offsetNum).
+	if result := query.Debug().Limit(cmd.CountPerPage).Offset(offsetNum).
 		Order("cloud_event_message.time DESC").
 		Scan(&response); result.Error != nil {
 		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
