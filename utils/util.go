@@ -31,11 +31,15 @@ func ParseUnixTimestamp(timestampStr string) *time.Time {
 	if timestampStr == "" {
 		return nil
 	}
+	// 解析字符串为整数
 	timestamp, err := strconv.ParseInt(timestampStr, 10, 64)
 	if err != nil {
 		return nil
 	}
-	t := time.Unix(timestamp, 0)
+	// 将毫秒转换为秒和纳秒
+	seconds := timestamp / 1000
+	nanoseconds := (timestamp % 1000) * 1000000
+	t := time.Unix(seconds, nanoseconds)
 	return &t
 }
 
