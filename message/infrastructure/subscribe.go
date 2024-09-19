@@ -75,6 +75,17 @@ func (ctl *messageSubscribeAdapter) SaveFilter(cmd CmdToGetSubscribe, userName s
 	if userName == "" {
 		return xerrors.Errorf("用户名为空")
 	}
+
+	var existData MessageSubscribeDAO
+
+	if result := postgresql.DB().Table("message_center.subscribe_config").
+		Where(gorm.Expr("is_deleted = ?", false)).
+		Where("source = ? AND mode_name = ?", cmd.Source, cmd.ModeName).
+		Where("user_name = ?", userName).
+		Scan(&existData); result.RowsAffected != 0 {
+		return xerrors.Errorf("保存配置失败")
+	}
+
 	var modeFilter datatypes.JSON
 	modeFilter, _ = TransToDbFormat(cmd.Source, cmd.EventType, cmd)
 	isDefault := new(bool)
