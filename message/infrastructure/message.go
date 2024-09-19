@@ -187,7 +187,8 @@ func applyCVEFilters(query *gorm.DB, cveComponent string, cveState string, cveAf
 			"'CVEComponent') LIKE ANY (?)", fmt.Sprintf("{%s}", strings.Join(sql, ",")))
 	}
 	query = applySingleValueFilter(query, "jsonb_extract_path_text(cloud_event_message.data_json,"+
-		" 'IssueEvent', 'Issue', 'StateName')", cveState)
+		" 'IssueEvent', 'Issue', 'State')",
+		fmt.Sprintf("ANY (%s)", fmt.Sprintf("{%s}", cveState)))
 
 	if cveAffected != "" {
 		lAffected := strings.Split(cveAffected, ",")
