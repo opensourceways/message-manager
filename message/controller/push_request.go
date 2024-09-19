@@ -37,12 +37,12 @@ func (req *newPushConfigDTO) toCmd() (cmd app.CmdToAddPushConfig, err error) {
 }
 
 type updatePushConfigDTO struct {
-	SubscribeId      []int  `json:"subscribe_id"`
-	RecipientId      string `json:"recipient_id"`
-	NeedMessage      bool   `json:"need_message"`
-	NeedPhone        bool   `json:"need_phone"`
-	NeedMail         bool   `json:"need_mail"`
-	NeedInnerMessage bool   `json:"need_inner_message"`
+	SubscribeId      []string `json:"subscribe_id"`
+	RecipientId      string   `json:"recipient_id"`
+	NeedMessage      bool     `json:"need_message"`
+	NeedPhone        bool     `json:"need_phone"`
+	NeedMail         bool     `json:"need_mail"`
+	NeedInnerMessage bool     `json:"need_inner_message"`
 }
 
 func (req *updatePushConfigDTO) toCmd() (cmd app.CmdToUpdatePushConfig, err error) {
