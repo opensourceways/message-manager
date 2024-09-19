@@ -114,8 +114,13 @@ func applySigGroupFilter(query *gorm.DB, mySig string, giteeSigs string) *gorm.D
 // 复合过滤，处理PullRequest和Issue
 func applyCompositeFilters(query *gorm.DB, eventType string, state string, creator string,
 	assignee string) *gorm.DB {
-	query = applySingleValueFilter(query, fmt.Sprintf("jsonb_extract_path_text("+
-		"cloud_event_message.data_json, '%s', 'State')", eventType), state)
+	if eventType == "IssueEvent" {
+		query = applySingleValueFilter(query, fmt.Sprintf("jsonb_extract_path_text("+
+			"cloud_event_message.data_json, '%s', 'Issue', 'State')", eventType), state)
+	} else if eventType == "PullRequestEvent" {
+		query = applySingleValueFilter(query, fmt.Sprintf("jsonb_extract_path_text("+
+			"cloud_event_message.data_json, '%s', 'State')", eventType), state)
+	}
 	query = applySingleValueFilter(query, fmt.Sprintf("jsonb_extract_path_text("+
 		"cloud_event_message.data_json, '%s', 'User', 'Login')", eventType), creator)
 	query = applySingleValueFilter(query, fmt.Sprintf("jsonb_extract_path_text("+
