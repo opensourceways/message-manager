@@ -99,7 +99,7 @@ type MeetingDbFormat struct {
 
 type CveDbFormat struct {
 	Component    string `json:"CVEComponent,omitempty"`
-	State        string `json:"IssueEvent.Issue.StateName"`
+	State        string `json:"IssueEvent.Issue.State,omitempty"`
 	SigGroupName string `json:"SigGroupName,omitempty"`
 	Affected     string `json:"CVEAffectVersion,omitempty"`
 	MySig        string `json:"SigMaintainers,omitempty"`
