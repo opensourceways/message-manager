@@ -273,6 +273,16 @@ func GenQueryQuick(query *gorm.DB, data MessageSubscribeDAO) *gorm.DB {
 			query = query.
 				Where("jsonb_extract_path_text(cloud_event_message."+
 					"data_json,'MeetingStartTime') BETWEEN ? AND ?", matches[1], matches[2])
+		} else if strings.Contains(k, "CVEAffectVersion") {
+			vString = strings.ReplaceAll(vString, "contains=", "")
+			lString := strings.Split(vString, " ")
+			var newLString []string
+			for _, s := range lString {
+				newLString = append(newLString, "%"+s+"%")
+			}
+			query = query.Where("jsonb_extract_path_text(cloud_event_message.data_json, "+
+				"'CVEAffectVersion') ILIKE ANY(?)",
+				fmt.Sprintf("{%s}", strings.Join(newLString, ",")))
 		} else {
 			if vString != "" {
 				vString = strings.ReplaceAll(vString, "oneof=", "")
