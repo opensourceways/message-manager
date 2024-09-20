@@ -238,9 +238,12 @@ func GenQueryQuick(query *gorm.DB, data MessageSubscribeDAO) *gorm.DB {
 		logrus.Errorf("unmarshal modefilter failed, err:%v", err)
 		return query
 	}
-	query = query.Where("inner_message.source = ?", data.Source)
-	query = query.Where("cloud_event_message.type = ?", data.EventType)
-
+	if data.Source != "" {
+		query = query.Where("inner_message.source = ?", data.Source)
+	}
+	if data.EventType != "" {
+		query = query.Where("cloud_event_message.type = ?", data.EventType)
+	}
 	for k, v := range modeFilterMap {
 		splitK := strings.Split(k, ".")
 		vString, ok := v.(string)
@@ -271,9 +274,11 @@ func GenQueryQuick(query *gorm.DB, data MessageSubscribeDAO) *gorm.DB {
 				Where("jsonb_extract_path_text(cloud_event_message."+
 					"data_json,'MeetingStartTime') BETWEEN ? AND ?", matches[1], matches[2])
 		} else {
-			vString = strings.ReplaceAll(vString, "oneof=", "")
-			vString = strings.ReplaceAll(vString, "eq=", "")
-			query = query.Where(queryString+" = ANY(?)", fmt.Sprintf("{%s}", vString))
+			if vString != "" {
+				vString = strings.ReplaceAll(vString, "oneof=", "")
+				vString = strings.ReplaceAll(vString, "eq=", "")
+				query = query.Where(queryString+" = ANY(?)", fmt.Sprintf("{%s}", vString))
+			}
 		}
 	}
 	return query

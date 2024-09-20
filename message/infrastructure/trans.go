@@ -272,17 +272,23 @@ func buildCveAffectedFilter(affected string) string {
 	for _, aff := range lAffected {
 		template = append(template, "contains="+aff)
 	}
-	return "or " + strings.Join(template, " ")
+	if len(template) == 1 {
+		return template[0]
+	} else if len(template) > 1 {
+		return "or " + strings.Join(template, " ")
+	}
+	return ""
 }
 
 // TransCveModeFilterToDbFormat 处理 CVE 过滤器
 func TransCveModeFilterToDbFormat(modeFilter CmdToGetSubscribe) (datatypes.JSON, error) {
 	dbModeFilter := utils.CveDbFormat{
-		Component: buildCveComponentFilter(modeFilter.CVEComponent),
-		State:     buildStringFilter(strings.Split(modeFilter.IssueState, ",")),
-		Affected:  buildCveAffectedFilter(modeFilter.CVEAffected),
-		MySig:     getOneOfFilter(modeFilter.MySig),
-		OtherSig:  getNotOneOfFilter(modeFilter.OtherSig),
+		Component:    buildCveComponentFilter(modeFilter.CVEComponent),
+		State:        buildStringFilter(strings.Split(modeFilter.IssueState, ",")),
+		Affected:     buildCveAffectedFilter(modeFilter.CVEAffected),
+		SigGroupName: buildStringFilter(strings.Split(modeFilter.GiteeSigs, ",")),
+		MySig:        getOneOfFilter(modeFilter.MySig),
+		OtherSig:     getNotOneOfFilter(modeFilter.OtherSig),
 	}
 	return marshalToJson(dbModeFilter)
 }
