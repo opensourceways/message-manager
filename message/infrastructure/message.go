@@ -78,25 +78,37 @@ func applyBotFilter(query *gorm.DB, isBot string, eventType string) *gorm.DB {
 		return fmt.Sprintf(`jsonb_extract_path_text(cloud_event_message.data_json,
 '%sEvent', 'Sender', 'Name')`, event)
 	}
+
+	generateConditions := func(operator string) string {
+		var suffix string
+		if operator == "=" {
+			suffix = fmt.Sprintf(" ANY(%s)", botNames)
+		} else {
+			suffix = fmt.Sprintf(" ALL(%s)", botNames)
+		}
+		conditions := []string{
+			condition("Issue") + " " + operator + suffix,
+			condition("PullRequest") + " " + operator + suffix,
+			condition("Note") + " " + operator + suffix,
+		}
+		if operator == "=" {
+			return strings.Join(conditions, " OR ")
+		} else {
+			return strings.Join(conditions, " AND ")
+		}
+	}
 	if isBot == "true" {
 		if eventType != "" {
 			query = query.Where(condition(eventType)+" = ANY(?)", botNames)
 		} else {
-			// 处理多个事件类型
-			conditions := []string{
-				condition("Issue"), condition("PullRequest"), condition("Note"),
-			}
-			query = query.Where(strings.Join(conditions, " OR ")+" = ANY(?)", botNames)
+			query = query.Where(generateConditions("="), botNames)
 		}
 	} else if isBot == "false" {
 		query = query.Where(condition(eventType)+" <> ALL(?)", botNames)
 	} else {
-		// 处理非 bot 的情况
-		conditions := []string{
-			condition("Issue"), condition("PullRequest"), condition("Note"),
-		}
-		query = query.Where(strings.Join(conditions, " AND ")+" <> ALL(?)", botNames)
+		query = query.Where(generateConditions("<>"), botNames)
 	}
+
 	return query
 }
 
