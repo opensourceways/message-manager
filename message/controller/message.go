@@ -24,7 +24,7 @@ func AddRouterForMessageListController(
 	}
 
 	v1 := r.Group("/message_center")
-	v1.GET("/inner", ctl.GetInnerMessage)
+	v1.POST("/inner", ctl.GetInnerMessage)
 	v1.GET("/inner_quick", ctl.GetInnerMessageQuick)
 	v1.GET("/inner/count", ctl.CountAllUnReadMessage)
 	v1.PUT("/inner", ctl.SetMessageIsRead)
@@ -78,10 +78,10 @@ func (ctl *messageListController) GetInnerMessageQuick(ctx *gin.Context) {
 // @Success			202	 {object}  app.MessageListDTO
 // @Failure			500	string system_error  查询失败
 // @Failure         400 string bad_request  无法解析请求正文
-// @Router			/message_center/inner [get]
+// @Router			/message_center/inner [post]
 func (ctl *messageListController) GetInnerMessage(ctx *gin.Context) {
 	var params queryInnerParams
-	if err := ctx.ShouldBindQuery(&params); err != nil {
+	if err := ctx.ShouldBindJSON(&params); err != nil {
 		commonctl.SendBadRequestParam(ctx, xerrors.Errorf("failed to bind params, %w", err))
 		return
 	}
