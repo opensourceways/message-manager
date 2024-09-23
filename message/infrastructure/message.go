@@ -84,7 +84,7 @@ func applyBotFilter(query *gorm.DB, isBot string, eventType string) *gorm.DB {
 		} else {
 			// 处理多个事件类型
 			conditions := []string{
-				condition("Issue"), condition("PullRequest"), condition("Note")
+				condition("Issue"), condition("PullRequest"), condition("Note"),
 			}
 			query = query.Where(strings.Join(conditions, " OR ")+" = ANY(?)", botNames)
 		}
