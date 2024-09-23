@@ -73,7 +73,7 @@ func applyTimeFilter(query *gorm.DB, startTime string, endTime string) *gorm.DB 
 
 // 处理机器人过滤条件
 func applyBotFilter(query *gorm.DB, isBot string, eventType string) *gorm.DB {
-	botNames := "{ci-robot, openeuler-ci-bot, openeuler-sync-bot}"
+	botNames := []string{"ci-robot", "openeuler-ci-bot", "openeuler-sync-bot"}
 	condition := func(event string) string {
 		return fmt.Sprintf(`jsonb_extract_path_text(cloud_event_message.data_json,
 '%sEvent', 'Sender', 'Name')`, event)
@@ -82,9 +82,9 @@ func applyBotFilter(query *gorm.DB, isBot string, eventType string) *gorm.DB {
 	generateConditions := func(operator string) string {
 		var suffix string
 		if operator == "=" {
-			suffix = fmt.Sprintf(" ANY(%s)", botNames)
+			suffix = fmt.Sprintf(" ANY(%s)", strings.Join(botNames, ","))
 		} else {
-			suffix = fmt.Sprintf(" ALL(%s)", botNames)
+			suffix = fmt.Sprintf(" ALL(%s)", strings.Join(botNames, ","))
 		}
 		conditions := []string{
 			condition("Issue") + " " + operator + suffix,
@@ -99,13 +99,13 @@ func applyBotFilter(query *gorm.DB, isBot string, eventType string) *gorm.DB {
 	}
 	if isBot == "true" {
 		if eventType != "" {
-			query = query.Where(condition(eventType)+" = ANY(?)", botNames)
+			query = query.Where(condition(eventType)+" = ANY(?)", strings.Join(botNames, ","))
 		} else {
 			query = query.Where(generateConditions("="))
 		}
 	} else if isBot == "false" {
 		if eventType != "" {
-			query = query.Where(condition(eventType)+" <> ALL(?)", botNames)
+			query = query.Where(condition(eventType)+" <> ALL(?)", strings.Join(botNames, ","))
 		} else {
 			query = query.Where(generateConditions("<>"))
 		}
