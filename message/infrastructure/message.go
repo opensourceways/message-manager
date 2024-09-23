@@ -101,12 +101,12 @@ func applyBotFilter(query *gorm.DB, isBot string, eventType string) *gorm.DB {
 		if eventType != "" {
 			query = query.Where(condition(eventType)+" = ANY(?)", botNames)
 		} else {
-			query = query.Where(generateConditions("="), botNames)
+			query = query.Where(generateConditions("="))
 		}
 	} else if isBot == "false" {
 		query = query.Where(condition(eventType)+" <> ALL(?)", botNames)
 	} else {
-		query = query.Where(generateConditions("<>"), botNames)
+		query = query.Where(generateConditions("<>"))
 	}
 
 	return query
