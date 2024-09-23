@@ -82,9 +82,11 @@ func applyBotFilter(query *gorm.DB, isBot string, eventType string) *gorm.DB {
 	generateConditions := func(operator string) string {
 		var suffix string
 		if operator == "=" {
-			suffix = fmt.Sprintf(" ANY(%s)", strings.Join(botNames, ","))
+			suffix = fmt.Sprintf(" ANY(%s)", fmt.Sprintf("{%s}",
+				strings.Join(botNames, ",")))
 		} else {
-			suffix = fmt.Sprintf(" ALL(%s)", strings.Join(botNames, ","))
+			suffix = fmt.Sprintf(" ALL(%s)", fmt.Sprintf("{%s}",
+				strings.Join(botNames, ",")))
 		}
 		conditions := []string{
 			condition("Issue") + " " + operator + suffix,
@@ -99,13 +101,15 @@ func applyBotFilter(query *gorm.DB, isBot string, eventType string) *gorm.DB {
 	}
 	if isBot == "true" {
 		if eventType != "" {
-			query = query.Where(condition(eventType)+" = ANY(?)", strings.Join(botNames, ","))
+			query = query.Where(condition(eventType)+" = ANY(?)", fmt.Sprintf("{%s}",
+				strings.Join(botNames, ",")))
 		} else {
 			query = query.Where(generateConditions("="))
 		}
 	} else if isBot == "false" {
 		if eventType != "" {
-			query = query.Where(condition(eventType)+" <> ALL(?)", strings.Join(botNames, ","))
+			query = query.Where(condition(eventType)+" <> ALL(?)", fmt.Sprintf("{%s}",
+				strings.Join(botNames, ",")))
 		} else {
 			query = query.Where(generateConditions("<>"))
 		}
