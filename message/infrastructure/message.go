@@ -73,7 +73,7 @@ func applyTimeFilter(query *gorm.DB, startTime string, endTime string) *gorm.DB 
 
 // 处理机器人过滤条件
 func applyBotFilter(query *gorm.DB, isBot string, eventType string) *gorm.DB {
-	botNames := []string{"ci-robot", "openeuler-ci-bot", "openeuler-sync-bot"}
+	botNames := "{ci-robot, openeuler-ci-bot, openeuler-sync-bot}"
 	condition := func(event string) string {
 		return fmt.Sprintf(`jsonb_extract_path_text(cloud_event_message.data_json,
 '%sEvent', 'Sender', 'Name')`, event)
