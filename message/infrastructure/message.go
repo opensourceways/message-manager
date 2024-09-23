@@ -71,18 +71,31 @@ func applyTimeFilter(query *gorm.DB, startTime string, endTime string) *gorm.DB 
 	return query
 }
 
-// 处理布尔值的过滤条件
+// 处理机器人过滤条件
 func applyBotFilter(query *gorm.DB, isBot string, eventType string) *gorm.DB {
+	botNames := []string{"ci-robot", "openeuler-ci-bot", "openeuler-sync-bot"}
+	condition := func(event string) string {
+		return fmt.Sprintf(`jsonb_extract_path_text(cloud_event_message.data_json,
+'%sEvent', 'Sender', 'Name')`, event)
+	}
 	if isBot == "true" {
-		botNames := "{ci-robot, openeuler-ci-bot, openeuler-sync-bot}"
-		condition := fmt.Sprintf(`jsonb_extract_path_text(cloud_event_message.data_json, 
-'%sEvent', 'Sender', 'Name')`, eventType)
-		query = query.Where(condition+" = ANY(?)", botNames)
+		if eventType != "" {
+			query = query.Where(condition(eventType)+" = ANY(?)", botNames)
+		} else {
+			// 处理多个事件类型
+			conditions := []string{
+				condition("Issue"), condition("PullRequest"), condition("Note")
+			}
+			query = query.Where(strings.Join(conditions, " OR ")+" = ANY(?)", botNames)
+		}
 	} else if isBot == "false" {
-		botNames := "{ci-robot, openeuler-ci-bot, openeuler-sync-bot}"
-		condition := fmt.Sprintf(`jsonb_extract_path_text(cloud_event_message.data_json, 
-'%sEvent', 'Sender', 'Name')`, eventType)
-		query = query.Where(condition+" <> ALL(?)", botNames)
+		query = query.Where(condition(eventType)+" <> ALL(?)", botNames)
+	} else {
+		// 处理非 bot 的情况
+		conditions := []string{
+			condition("Issue"), condition("PullRequest"), condition("Note"),
+		}
+		query = query.Where(strings.Join(conditions, " AND ")+" <> ALL(?)", botNames)
 	}
 	return query
 }
