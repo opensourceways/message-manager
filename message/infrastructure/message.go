@@ -91,11 +91,7 @@ func applyBotFilter(query *gorm.DB, isBot string, eventType string) *gorm.DB {
 			condition("PullRequest") + " " + operator + suffix,
 			condition("Note") + " " + operator + suffix,
 		}
-		if operator == "=" {
-			return strings.Join(conditions, " OR ")
-		} else {
-			return strings.Join(conditions, " AND ")
-		}
+		return strings.Join(conditions, " OR ")
 	}
 	defaultSuffix := fmt.Sprintf("{%s}", strings.Join(botNames, ","))
 	if isBot == "true" {
