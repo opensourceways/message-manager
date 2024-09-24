@@ -85,42 +85,47 @@ func (ctl *messageSubscribeAdapter) SaveFilter(cmd CmdToGetSubscribe, userName s
 		Scan(&existData); result.RowsAffected != 0 {
 		return xerrors.Errorf("保存配置失败")
 	}
+	lType := strings.Split(cmd.EventType, ",")
+	for _, et := range lType {
+		var modeFilter datatypes.JSON
+		modeFilter, _ = TransToDbFormat(cmd.Source, et, cmd)
+		if len(modeFilter) == 0 {
+			return xerrors.Errorf("no modeFilter exist")
+		}
+		isDefault := new(bool)
+		*isDefault = false
+		jsonFilter, err := json.Marshal(cmd)
+		if err != nil {
+			return xerrors.Errorf("marshal data failed, err:%v", err)
+		}
 
-	var modeFilter datatypes.JSON
-	modeFilter, _ = TransToDbFormat(cmd.Source, cmd.EventType, cmd)
-	isDefault := new(bool)
-	*isDefault = false
-	jsonFilter, err := json.Marshal(cmd)
-	if err != nil {
-		return xerrors.Errorf("marshal data failed, err:%v", err)
-	}
+		subs := MessageSubscribeDAO{
+			Source:      cmd.Source,
+			EventType:   et,
+			SpecVersion: cmd.SpecVersion,
+			ModeFilter:  modeFilter,
+			ModeName:    cmd.ModeName,
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
+			UserName:    userName,
+			IsDefault:   isDefault,
+			WebFilter:   jsonFilter,
+		}
 
-	subs := MessageSubscribeDAO{
-		Source:      cmd.Source,
-		EventType:   cmd.EventType,
-		SpecVersion: cmd.SpecVersion,
-		ModeFilter:  modeFilter,
-		ModeName:    cmd.ModeName,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
-		UserName:    userName,
-		IsDefault:   isDefault,
-		WebFilter:   jsonFilter,
-	}
+		result := postgresql.DB().Table("message_center.subscribe_config").
+			Create(&subs)
+		if result.Error != nil {
+			return xerrors.Errorf("保存配置失败")
+		}
 
-	result := postgresql.DB().Table("message_center.subscribe_config").
-		Create(&subs)
-	if result.Error != nil {
-		return xerrors.Errorf("保存配置失败")
-	}
-
-	recipientId := getRecipientId(userName)
-	if recipientId == nil {
-		return nil
-	}
-	err = addPushConfig(int(subs.Id), int64(*recipientId))
-	if err != nil {
-		return xerrors.Errorf("订阅失败,err:%v", err)
+		recipientId := getRecipientId(userName)
+		if recipientId == nil {
+			return nil
+		}
+		err = addPushConfig(int(subs.Id), int64(*recipientId))
+		if err != nil {
+			return xerrors.Errorf("订阅失败,err:%v", err)
+		}
 	}
 	return nil
 }
@@ -179,12 +184,10 @@ func (ctl *messageSubscribeAdapter) UpdateSubsConfig(cmd CmdToUpdateSubscribe,
 }
 
 func (ctl *messageSubscribeAdapter) RemoveSubsConfig(cmd CmdToDeleteSubscribe, userName string) error {
-	lType := strings.Split(cmd.EventType, ",")
-
 	if result := postgresql.DB().Table("message_center.subscribe_config").
 		Where(gorm.Expr("is_deleted = ?", false)).
-		Where("source = ? AND event_type IN ? AND mode_name = ?", cmd.Source,
-			lType, cmd.ModeName).
+		Where(gorm.Expr("is_default = ?", false)).
+		Where("source = ? AND mode_name = ?", cmd.Source, cmd.ModeName).
 		Where("user_name = ?", userName).
 		Update("is_deleted", true); result.Error != nil {
 		return xerrors.Errorf("删除配置失败")

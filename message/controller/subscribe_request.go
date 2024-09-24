@@ -84,14 +84,12 @@ func (req *updateSubscribeDTO) toCmd() (cmd app.CmdToUpdateSubscribe, err error)
 }
 
 type deleteSubscribeDTO struct {
-	Source    string `json:"source"`
-	EventType string `json:"event_type"`
-	ModeName  string `json:"mode_name"`
+	Source   string `json:"source"`
+	ModeName string `json:"mode_name"`
 }
 
 func (req *deleteSubscribeDTO) toCmd() (cmd app.CmdToDeleteSubscribe, err error) {
 	cmd.Source = req.Source
-	cmd.EventType = req.EventType
 	cmd.ModeName = req.ModeName
 	return
 }

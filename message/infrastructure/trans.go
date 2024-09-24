@@ -194,18 +194,6 @@ func getGiteeDbFormat(eventType string, modeFilter CmdToGetSubscribe, lRepoName,
 			OtherSig:        sOtherSig,
 			OtherManagement: sOtherManagement,
 		}
-	case "push":
-		return utils.GiteePushDbFormat{
-			RepoName:        sRepoName,
-			IsBot:           sIsBot,
-			Namespace:       sNamespace,
-			SigGroupName:    sSigGroupName,
-			EventTime:       eventTime,
-			MySig:           sMySig,
-			MyManagement:    sMyManagement,
-			OtherSig:        sOtherSig,
-			OtherManagement: sOtherManagement,
-		}
 	default:
 		return nil
 	}

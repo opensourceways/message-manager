@@ -76,16 +76,7 @@ type GiteePullRequestDbFormat struct {
 	OtherSig        string `json:"SigMaintainers,omitempty"`
 }
 
-type GiteePushDbFormat struct {
-	RepoName        string `json:"PushEvent.Repository.FullName,omitempty"`
-	IsBot           string `json:"PushEvent.Sender.Name,omitempty"`
-	Namespace       string `json:"PullRequestEvent.Repository.Namespace,omitempty"`
-	SigGroupName    string `json:"SigGroupName,omitempty"`
-	EventTime       string `json:"EventTime,omitempty"`
-	MyManagement    string `json:"RepoAdmins,omitempty"`
-	OtherManagement string `json:"RepoAdmins,omitempty"`
-	MySig           string `json:"SigMaintainers,omitempty"`
-	OtherSig        string `json:"SigMaintainers,omitempty"`
+type GiteeNoTypeDbFormat struct {
 }
 
 type MeetingDbFormat struct {
