@@ -75,6 +75,9 @@ func (ctl *messageSubscribeAdapter) SaveFilter(cmd CmdToGetSubscribe, userName s
 	if userName == "" {
 		return xerrors.Errorf("用户名为空")
 	}
+	if cmd.ModeName == "" {
+		return xerrors.Errorf("规则名为空")
+	}
 
 	var existData MessageSubscribeDAO
 
