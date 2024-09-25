@@ -198,7 +198,7 @@ func applyMeetingFilters(query *gorm.DB, meetingAction string, meetingSigGroup s
 		start := utils.ParseUnixTimestamp(meetingStartTime)
 		if start != nil {
 			logrus.Infof("the time is %v, the time is %v, the date is %v", meetingStartTime,
-				interface{}(start.Date()), start.Format(time.DateOnly))
+				start.Format(time.DateTime), start.Format(time.DateOnly))
 			query = query.Where("jsonb_extract_path_text(cloud_event_message.data_json,"+
 				" 'Msg', 'Date') = ?", start.Format(time.DateOnly))
 		}
