@@ -1,0 +1,920 @@
+definitions:
+  app.MessageListDTO:
+    properties:
+      data_content_type:
+        type: string
+      data_schema:
+        type: string
+      event_id:
+        type: string
+      is_read:
+        type: boolean
+      source:
+        type: string
+      source_group:
+        type: string
+      source_url:
+        type: string
+      spec_version:
+        type: string
+      summary:
+        type: string
+      time:
+        type: string
+      title:
+        type: string
+      type:
+        type: string
+      user:
+        type: string
+    type: object
+  app.MessagePushDTO:
+    properties:
+      need_inner_message:
+        type: boolean
+      need_mail:
+        type: boolean
+      need_message:
+        type: boolean
+      need_phone:
+        type: boolean
+      recipient_id:
+        type: integer
+      subscribe_id:
+        type: integer
+    type: object
+  app.MessageSubscribeDTO:
+    properties:
+      event_type:
+        type: string
+      id:
+        type: integer
+      is_default:
+        type: boolean
+      mode_name:
+        type: string
+      source:
+        type: string
+      spec_version:
+        type: string
+      user_name:
+        type: string
+    type: object
+  controller.deletePushConfigDTO:
+    properties:
+      recipient_id:
+        type: integer
+      subscribe_id:
+        type: integer
+    type: object
+  controller.deleteSubscribeDTO:
+    properties:
+      mode_name:
+        type: string
+      source:
+        type: string
+    type: object
+  controller.messageStatus:
+    properties:
+      event_id:
+        type: string
+      source:
+        type: string
+    type: object
+  controller.newPushConfigDTO:
+    properties:
+      need_inner_message:
+        type: boolean
+      need_mail:
+        type: boolean
+      need_message:
+        type: boolean
+      need_phone:
+        type: boolean
+      recipient_id:
+        type: integer
+      subscribe_id:
+        type: integer
+    type: object
+  controller.newRecipientDTO:
+    properties:
+      mail:
+        type: string
+      message:
+        type: string
+      phone:
+        type: string
+      recipient_id:
+        type: string
+      remark:
+        type: string
+    type: object
+  controller.newSubscribeDTO:
+    properties:
+      event_type:
+        type: string
+      mode_name:
+        type: string
+      source:
+        type: string
+      spec_version:
+        type: string
+    type: object
+  controller.subscribeDTO:
+    properties:
+      about:
+        description: '@我的'
+        type: string
+      build_creator:
+        description: eur我执行的
+        type: string
+      build_env:
+        description: eur构建环境
+        type: string
+      build_owner:
+        description: eur我的项目
+        type: string
+      build_status:
+        description: eur构建状态
+        type: string
+      count_per_page:
+        type: integer
+      cve_affected:
+        description: cve影响系统版本
+        type: string
+      cve_component:
+        description: cve组件仓库
+        type: string
+      cve_state:
+        description: cve漏洞状态
+        type: string
+      end_time:
+        description: 结束时间
+        type: string
+      event_type:
+        description: 事件类型
+        type: string
+      is_bot:
+        description: 是否机器人
+        type: string
+      is_read:
+        description: 是否已读
+        type: string
+      issue_assignee:
+        description: issue指派者
+        type: string
+      issue_creator:
+        description: issue提交者
+        type: string
+      issue_state:
+        description: issue事件状态
+        type: string
+      key_word:
+        description: 关键字模糊搜索
+        type: string
+      meeting_action:
+        description: 会议操作
+        type: string
+      meeting_end_time:
+        description: 会议结束时间
+        type: string
+      meeting_sig:
+        description: 会议所属sig
+        type: string
+      meeting_start_time:
+        description: 会议开始时间
+        type: string
+      mode_name:
+        type: string
+      my_management:
+        description: 我管理的仓库
+        type: string
+      my_sig:
+        description: 我的sig组
+        type: string
+      note_type:
+        description: 评论类型
+        type: string
+      page:
+        type: integer
+      pr_assignee:
+        description: pr指派者
+        type: string
+      pr_creator:
+        description: pr提交者
+        type: string
+      pr_state:
+        description: pr事件状态
+        type: string
+      repos:
+        description: 仓库筛选
+        type: string
+      sig:
+        description: sig组筛选
+        type: string
+      source:
+        description: 消息源
+        type: string
+      spec_version:
+        type: string
+      start_time:
+        description: 起始时间
+        type: string
+    type: object
+  controller.syncUserInfoDTO:
+    properties:
+      country_code:
+        type: string
+      gitee_user_name:
+        type: string
+      mail:
+        type: string
+      phone:
+        type: string
+      user_name:
+        type: string
+    type: object
+  controller.updatePushConfigDTO:
+    properties:
+      need_inner_message:
+        type: boolean
+      need_mail:
+        type: boolean
+      need_message:
+        type: boolean
+      need_phone:
+        type: boolean
+      recipient_id:
+        type: string
+      subscribe_id:
+        items:
+          type: string
+        type: array
+    type: object
+  controller.updateRecipientDTO:
+    properties:
+      id:
+        type: string
+      mail:
+        type: string
+      message:
+        type: string
+      phone:
+        type: string
+      recipient_id:
+        type: string
+      remark:
+        type: string
+    type: object
+  controller.updateSubscribeDTO:
+    properties:
+      new_name:
+        type: string
+      old_name:
+        type: string
+      source:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: This is a Message Manager Server.
+  title: Message Manager
+  version: "1.0"
+paths:
+  /message_center/config//recipient/sync:
+    post:
+      consumes:
+      - application/json
+      description: sync user info
+      parameters:
+      - description: syncUserInfoDTO
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controller.syncUserInfoDTO'
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: SyncUserInfo
+      tags:
+      - recipient
+  /message_center/config/push:
+    delete:
+      consumes:
+      - application/json
+      description: delete a push_config
+      parameters:
+      - description: deletePushConfigDTO
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controller.deletePushConfigDTO'
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: RemovePushConfig
+      tags:
+      - message_push
+    get:
+      consumes:
+      - application/json
+      description: get push config
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/app.MessagePushDTO'
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: GetPushConfig
+      tags:
+      - message_push
+    post:
+      consumes:
+      - application/json
+      description: add a new push_config
+      parameters:
+      - description: newPushConfigDTO
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controller.newPushConfigDTO'
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: AddPushConfig
+      tags:
+      - message_push
+    put:
+      consumes:
+      - application/json
+      description: update a push_config
+      parameters:
+      - description: updatePushConfigDTO
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controller.updatePushConfigDTO'
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: UpdatePushConfig
+      tags:
+      - message_push
+  /message_center/config/recipient:
+    delete:
+      consumes:
+      - application/json
+      description: remove recipient config
+      parameters:
+      - description: updateRecipientDTO
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controller.updateRecipientDTO'
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: RemoveRecipientConfig
+      tags:
+      - recipient
+    get:
+      consumes:
+      - application/json
+      description: get recipient config
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            type: int
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: GetRecipientConfig
+      tags:
+      - recipient
+    post:
+      consumes:
+      - application/json
+      description: add recipient config
+      parameters:
+      - description: newRecipientDTO
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controller.newRecipientDTO'
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: AddRecipientConfig
+      tags:
+      - recipient
+    put:
+      consumes:
+      - application/json
+      description: update recipient config
+      parameters:
+      - description: updateRecipientDTO
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controller.updateRecipientDTO'
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: UpdateRecipientConfig
+      tags:
+      - recipient
+  /message_center/config/subs:
+    delete:
+      consumes:
+      - application/json
+      description: delete a subscribe_config by source and type
+      parameters:
+      - description: deleteSubscribeDTO
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controller.deleteSubscribeDTO'
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: RemoveSubsConfig
+      tags:
+      - message_subscribe
+    get:
+      consumes:
+      - application/json
+      description: get subscribe_config
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/app.MessageSubscribeDTO'
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: GetSubsConfig
+      tags:
+      - message_subscribe
+    post:
+      consumes:
+      - application/json
+      description: add a subscribe_config
+      parameters:
+      - description: newSubscribeDTO
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controller.newSubscribeDTO'
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: AddSubsConfig
+      tags:
+      - message_subscribe
+    put:
+      consumes:
+      - application/json
+      description: update a subscribe_config
+      parameters:
+      - description: updateSubscribeDTO
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controller.updateSubscribeDTO'
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: UpdateSubsConfig
+      tags:
+      - message_subscribe
+  /message_center/config/subs/all:
+    get:
+      consumes:
+      - application/json
+      description: get all subscribe_config
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/app.MessageSubscribeDTO'
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: GetAllSubsConfig
+      tags:
+      - message_subscribe
+  /message_center/config/subs_new:
+    post:
+      consumes:
+      - application/json
+      description: save custom filter
+      parameters:
+      - description: subscribeDTO
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controller.subscribeDTO'
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: SaveFilter
+      tags:
+      - message_subscribe
+  /message_center/inner:
+    delete:
+      consumes:
+      - application/json
+      description: remove message
+      parameters:
+      - description: messageStatus
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controller.messageStatus'
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: RemoveMessage
+      tags:
+      - message_center
+    post:
+      consumes:
+      - application/json
+      description: get inner message
+      parameters:
+      - description: '@我的'
+        in: query
+        name: about
+        type: string
+      - description: eur我执行的
+        in: query
+        name: build_creator
+        type: string
+      - description: eur构建环境
+        in: query
+        name: build_env
+        type: string
+      - description: eur我的项目
+        in: query
+        name: build_owner
+        type: string
+      - description: eur构建状态
+        in: query
+        name: build_status
+        type: string
+      - in: query
+        name: count_per_page
+        type: integer
+      - description: cve影响系统版本
+        in: query
+        name: cve_affected
+        type: string
+      - description: cve组件仓库
+        in: query
+        name: cve_component
+        type: string
+      - description: cve漏洞状态
+        in: query
+        name: cve_state
+        type: string
+      - description: 结束时间
+        in: query
+        name: end_time
+        type: string
+      - description: 事件类型
+        in: query
+        name: event_type
+        type: string
+      - description: 是否机器人
+        in: query
+        name: is_bot
+        type: string
+      - description: 是否已读
+        in: query
+        name: is_read
+        type: string
+      - description: issue指派者
+        in: query
+        name: issue_assignee
+        type: string
+      - description: issue提交者
+        in: query
+        name: issue_creator
+        type: string
+      - description: issue事件状态
+        in: query
+        name: issue_state
+        type: string
+      - description: 关键字模糊搜索
+        in: query
+        name: key_word
+        type: string
+      - description: 会议操作
+        in: query
+        name: meeting_action
+        type: string
+      - description: 会议结束时间
+        in: query
+        name: meeting_end_time
+        type: string
+      - description: 会议所属sig
+        in: query
+        name: meeting_sig
+        type: string
+      - description: 会议开始时间
+        in: query
+        name: meeting_start_time
+        type: string
+      - description: 我管理的仓库
+        in: query
+        name: my_management
+        type: string
+      - description: 我的sig组
+        in: query
+        name: my_sig
+        type: string
+      - description: 评论类型
+        in: query
+        name: note_type
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - description: pr指派者
+        in: query
+        name: pr_assignee
+        type: string
+      - description: pr提交者
+        in: query
+        name: pr_creator
+        type: string
+      - description: pr事件状态
+        in: query
+        name: pr_state
+        type: string
+      - description: 仓库筛选
+        in: query
+        name: repos
+        type: string
+      - description: sig组筛选
+        in: query
+        name: sig
+        type: string
+      - description: 消息源
+        in: query
+        name: source
+        type: string
+      - description: 起始时间
+        in: query
+        name: start_time
+        type: string
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/app.MessageListDTO'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: GetInnerMessage
+      tags:
+      - message_center
+    put:
+      consumes:
+      - application/json
+      description: set message read
+      parameters:
+      - description: messageStatus
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controller.messageStatus'
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: SetMessageIsRead
+      tags:
+      - message_center
+  /message_center/inner/count:
+    get:
+      consumes:
+      - application/json
+      description: get unread inner message count
+      responses:
+        "202":
+          description: 成功响应
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: 未授权
+          schema:
+            type: string
+        "500":
+          description: 系统错误
+          schema:
+            type: string
+      summary: CountAllUnReadMessage
+      tags:
+      - message_center
+  /message_center/inner_quick:
+    get:
+      consumes:
+      - application/json
+      description: get inner message by filter
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/app.MessageListDTO'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: GetInnerMessageQuick
+      tags:
+      - message_center
+swagger: "2.0"
