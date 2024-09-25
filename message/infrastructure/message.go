@@ -272,9 +272,6 @@ func GenQueryQuick(query *gorm.DB, data MessageSubscribeDAO) *gorm.DB {
 	if data.Source != "" {
 		query = query.Where("inner_message.source = ?", data.Source)
 	}
-	if data.EventType != "" {
-		query = query.Where("cloud_event_message.type = ?", data.EventType)
-	}
 	for k, v := range modeFilterMap {
 		splitK := strings.Split(k, ".")
 		vString, ok := v.(string)
@@ -345,7 +342,7 @@ func generateJSONBExtractPath(fields []string) string {
 
 func (s *messageAdapter) GetInnerMessageQuick(cmd CmdToGetInnerMessageQuick,
 	userName string) ([]MessageListDAO, int64, error) {
-	var data MessageSubscribeDAO
+	var data []MessageSubscribeDAO
 	if result := postgresql.DB().Table("message_center.subscribe_config").
 		Where(gorm.Expr("is_deleted = ?", false)).
 		Where("user_name = ? OR user_name IS NULL", userName).
@@ -364,9 +361,15 @@ func (s *messageAdapter) GetInnerMessageQuick(cmd CmdToGetInnerMessageQuick,
 		Where("recipient_config.user_id = ?", userName)
 
 	offsetNum := (cmd.PageNum - 1) * cmd.CountPerPage
-
-	GenQueryQuick(query, data)
-
+	GenQueryQuick(query, data[0])
+	if len(data) != 1 {
+		var lType []string
+		for _, dt := range data {
+			lType = append(lType, dt.EventType)
+		}
+		query = query.Where("cloud_event_message.type = ANY(?)", fmt.Sprintf("{%s}",
+			strings.Join(lType, ",")))
+	}
 	var Count int64
 	query.Count(&Count)
 
