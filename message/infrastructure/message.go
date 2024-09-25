@@ -178,24 +178,17 @@ func applyBuildFilters(query *gorm.DB, buildStatus string, buildOwner string,
 
 // 会议相关过滤
 func applyMeetingFilters(query *gorm.DB, meetingAction string, meetingSigGroup string,
-	meetingStartTime string, meetingEndTime string) *gorm.DB {
+	meetingStartTime string) *gorm.DB {
 	query = applySingleValueFilter(query, "jsonb_extract_path_text(cloud_event_message.data_json,"+
 		" 'Action')", meetingAction)
 	query = applySingleValueFilter(query, "jsonb_extract_path_text(cloud_event_message.data_json,"+
 		" 'Msg', 'GroupName')", meetingSigGroup)
 
-	if meetingStartTime != "" && meetingEndTime != "" {
+	if meetingStartTime != "" {
 		start := utils.ParseUnixTimestamp(meetingStartTime)
-		end := utils.ParseUnixTimestamp(meetingEndTime)
-		if start != nil && end != nil {
+		if start != nil {
 			query = query.Where("jsonb_extract_path_text(cloud_event_message.data_json, "+
-				"'MeetingStartTime') BETWEEN ? AND ?", start.Format(time.DateTime), end.Format(time.DateTime))
-		} else if start != nil {
-			query = query.Where("jsonb_extract_path_text(cloud_event_message.data_json,"+
-				"'MeetingStartTime') >= ?", *start)
-		} else if end != nil {
-			query = query.Where("jsonb_extract_path_text(cloud_event_message.data_json,"+
-				"'MeetingStartTime') >= ?", *end)
+				"'MeetingStartTime') = ?", start.Format(time.DateTime))
 		}
 	}
 	return query
@@ -252,7 +245,7 @@ func GenQuery(query *gorm.DB, params CmdToGetInnerMessage) *gorm.DB {
 	query = applyBuildFilters(query, params.BuildStatus, params.BuildOwner, params.BuildCreator,
 		params.BuildEnv)
 	query = applyMeetingFilters(query, params.MeetingAction, params.MeetingSigGroup,
-		params.MeetingStartTime, params.MeetingEndTime)
+		params.MeetingStartTime)
 	query = applyCVEFilters(query, params.CVEComponent, params.CVEState, params.CVEAffected)
 	return query
 }
