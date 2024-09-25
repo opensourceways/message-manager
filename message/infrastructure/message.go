@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"golang.org/x/xerrors"
@@ -196,7 +197,8 @@ func applyMeetingFilters(query *gorm.DB, meetingAction string, meetingSigGroup s
 	if meetingStartTime != "" {
 		start := utils.ParseUnixTimestamp(meetingStartTime)
 		if start != nil {
-			query = query.Where("cloud_event_message.time = ?", start)
+			query = query.Where("jsonb_extract_path_text(cloud_event_message.data_json,"+
+				" 'Msg', 'Date')", start.Format(time.DateOnly))
 		}
 	}
 	return query
