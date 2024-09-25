@@ -94,16 +94,26 @@ func applyBotFilter(query *gorm.DB, isBot string, eventType string) *gorm.DB {
 		return strings.Join(conditions, " OR ")
 	}
 	defaultSuffix := fmt.Sprintf("{%s}", strings.Join(botNames, ","))
+
+	var event string
+	if eventType == "pr" {
+		event = "PullRequest"
+	} else if eventType == "issue" {
+		event = "Issue"
+	} else {
+		event = "Note"
+	}
+
 	if isBot == "true" {
 		if eventType != "" {
-			query = query.Where(condition(eventType)+" = ANY(?)", defaultSuffix)
+			query = query.Where(condition(event)+" = ANY(?)", defaultSuffix)
 		} else {
 			query = query.Where(generateConditions("="),
 				defaultSuffix, defaultSuffix, defaultSuffix)
 		}
 	} else if isBot == "false" {
 		if eventType != "" {
-			query = query.Where(condition(eventType)+" <> ALL(?)", defaultSuffix)
+			query = query.Where(condition(event)+" <> ALL(?)", defaultSuffix)
 		} else {
 			query = query.Where(generateConditions("<>"),
 				defaultSuffix, defaultSuffix, defaultSuffix)
