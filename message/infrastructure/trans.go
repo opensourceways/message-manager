@@ -222,9 +222,9 @@ func TransGiteeModeFilterToDbFormat(eventType string, modeFilter CmdToGetSubscri
 	return marshalToJson(dbModeFilter)
 }
 
-func buildMeetingTimeFilter(meetingTime *time.Time) string {
+func buildMeetingDateFilter(meetingTime *time.Time) string {
 	if meetingTime != nil {
-		return fmt.Sprintf("eq=%s", meetingTime.Format(time.DateTime))
+		return fmt.Sprintf("eq=%s", meetingTime.Format(time.DateOnly))
 	}
 	return ""
 }
@@ -234,11 +234,9 @@ func TransMeetingModeFilterToDbFormat(modeFilter CmdToGetSubscribe) (datatypes.J
 	dbModeFilter := utils.MeetingDbFormat{
 		Action:   buildStringFilter(strings.Split(modeFilter.MeetingAction, ",")),
 		SigGroup: buildStringFilter(strings.Split(modeFilter.MeetingSigGroup, ",")),
-		MeetingStartTime: buildTimeFilter(utils.ParseUnixTimestamp(modeFilter.StartTime),
-			utils.ParseUnixTimestamp(modeFilter.EndTime)),
-		EventTime: buildMeetingTimeFilter(utils.ParseUnixTimestamp(modeFilter.StartTime)),
-		MySig:     getOneOfFilter(modeFilter.MySig),
-		OtherSig:  getNotOneOfFilter(modeFilter.OtherSig),
+		Date:     buildMeetingDateFilter(utils.ParseUnixTimestamp(modeFilter.StartTime)),
+		MySig:    getOneOfFilter(modeFilter.MySig),
+		OtherSig: getNotOneOfFilter(modeFilter.OtherSig),
 	}
 	return marshalToJson(dbModeFilter)
 }

@@ -80,12 +80,11 @@ type GiteeNoTypeDbFormat struct {
 }
 
 type MeetingDbFormat struct {
-	Action           string `json:"Action,omitempty"`
-	SigGroup         string `json:"Msg.GroupName,omitempty"`
-	MeetingStartTime string `json:"MeetingStartTime,omitempty"`
-	EventTime        string `json:"EventTime,omitempty"`
-	MySig            string `json:"SigMaintainers,omitempty"`
-	OtherSig         string `json:"SigMaintainers,omitempty"`
+	Action   string `json:"Action,omitempty"`
+	SigGroup string `json:"Msg.GroupName,omitempty"`
+	Date     string `json:"Msg.Date,omitempty"`
+	MySig    string `json:"SigMaintainers,omitempty"`
+	OtherSig string `json:"SigMaintainers,omitempty"`
 }
 
 type CveDbFormat struct {
