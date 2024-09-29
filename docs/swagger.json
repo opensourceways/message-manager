@@ -7,49 +7,6 @@
         "version": "1.0"
     },
     "paths": {
-        "/message_center/config//recipient/sync": {
-            "post": {
-                "description": "sync user info",
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "recipient"
-                ],
-                "summary": "SyncUserInfo",
-                "parameters": [
-                    {
-                        "description": "syncUserInfoDTO",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/controller.syncUserInfoDTO"
-                        }
-                    }
-                ],
-                "responses": {
-                    "202": {
-                        "description": "Accepted",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
         "/message_center/config/push": {
             "get": {
                 "description": "get push config",
@@ -60,6 +17,7 @@
                     "message_push"
                 ],
                 "summary": "GetPushConfig",
+                "operationId": "getPushConfig",
                 "responses": {
                     "202": {
                         "description": "Accepted",
@@ -84,6 +42,7 @@
                     "message_push"
                 ],
                 "summary": "UpdatePushConfig",
+                "operationId": "updatePushConfig",
                 "parameters": [
                     {
                         "description": "updatePushConfigDTO",
@@ -125,6 +84,7 @@
                     "message_push"
                 ],
                 "summary": "AddPushConfig",
+                "operationId": "addPushConfig",
                 "parameters": [
                     {
                         "description": "newPushConfigDTO",
@@ -166,6 +126,7 @@
                     "message_push"
                 ],
                 "summary": "RemovePushConfig",
+                "operationId": "removePushConfig",
                 "parameters": [
                     {
                         "description": "deletePushConfigDTO",
@@ -209,11 +170,12 @@
                     "recipient"
                 ],
                 "summary": "GetRecipientConfig",
+                "operationId": "getRecipientConfig",
                 "responses": {
                     "202": {
                         "description": "Accepted",
                         "schema": {
-                            "type": "int"
+                            "type": "integer"
                         }
                     },
                     "500": {
@@ -233,6 +195,7 @@
                     "recipient"
                 ],
                 "summary": "UpdateRecipientConfig",
+                "operationId": "updateRecipientConfig",
                 "parameters": [
                     {
                         "description": "updateRecipientDTO",
@@ -274,6 +237,7 @@
                     "recipient"
                 ],
                 "summary": "AddRecipientConfig",
+                "operationId": "addRecipientConfig",
                 "parameters": [
                     {
                         "description": "newRecipientDTO",
@@ -315,6 +279,7 @@
                     "recipient"
                 ],
                 "summary": "RemoveRecipientConfig",
+                "operationId": "removeRecipientConfig",
                 "parameters": [
                     {
                         "description": "updateRecipientDTO",
@@ -323,6 +288,50 @@
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/controller.updateRecipientDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/message_center/config/recipient/sync": {
+            "post": {
+                "description": "sync user info",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "recipient"
+                ],
+                "summary": "SyncUserInfo",
+                "operationId": "syncUserInfo",
+                "parameters": [
+                    {
+                        "description": "syncUserInfoDTO",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.syncUserInfoDTO"
                         }
                     }
                 ],
@@ -358,6 +367,7 @@
                     "message_subscribe"
                 ],
                 "summary": "GetSubsConfig",
+                "operationId": "getSubsConfig",
                 "responses": {
                     "202": {
                         "description": "Accepted",
@@ -388,6 +398,7 @@
                     "message_subscribe"
                 ],
                 "summary": "UpdateSubsConfig",
+                "operationId": "updateSubsConfig",
                 "parameters": [
                     {
                         "description": "updateSubscribeDTO",
@@ -435,6 +446,7 @@
                     "message_subscribe"
                 ],
                 "summary": "AddSubsConfig",
+                "operationId": "addSubsConfig",
                 "parameters": [
                     {
                         "description": "newSubscribeDTO",
@@ -482,6 +494,7 @@
                     "message_subscribe"
                 ],
                 "summary": "RemoveSubsConfig",
+                "operationId": "removeSubsConfig",
                 "parameters": [
                     {
                         "description": "deleteSubscribeDTO",
@@ -531,6 +544,7 @@
                     "message_subscribe"
                 ],
                 "summary": "GetAllSubsConfig",
+                "operationId": "getAllSubsConfig",
                 "responses": {
                     "202": {
                         "description": "Accepted",
@@ -563,6 +577,7 @@
                     "message_subscribe"
                 ],
                 "summary": "SaveFilter",
+                "operationId": "saveFilter",
                 "parameters": [
                     {
                         "description": "subscribeDTO",
@@ -612,6 +627,7 @@
                     "message_center"
                 ],
                 "summary": "SetMessageIsRead",
+                "operationId": "setMessageIsRead",
                 "parameters": [
                     {
                         "description": "messageStatus",
@@ -653,6 +669,7 @@
                     "message_center"
                 ],
                 "summary": "GetInnerMessage",
+                "operationId": "getInnerMessage",
                 "parameters": [
                     {
                         "type": "string",
@@ -875,6 +892,7 @@
                     "message_center"
                 ],
                 "summary": "RemoveMessage",
+                "operationId": "removeMessage",
                 "parameters": [
                     {
                         "description": "messageStatus",
@@ -918,6 +936,7 @@
                     "message_center"
                 ],
                 "summary": "CountAllUnReadMessage",
+                "operationId": "countAllUnReadMessage",
                 "responses": {
                     "202": {
                         "description": "成功响应",
@@ -951,6 +970,7 @@
                     "message_center"
                 ],
                 "summary": "GetInnerMessageQuick",
+                "operationId": "getInnerMessageQuick",
                 "responses": {
                     "202": {
                         "description": "Accepted",

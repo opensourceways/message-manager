@@ -44,6 +44,7 @@ type messageListController struct {
 // @Failure			500	string system_error  查询失败
 // @Failure         400 string bad_request  请求参数错误
 // @Router			/message_center/inner_quick [get]
+// @Id		getInnerMessageQuick
 func (ctl *messageListController) GetInnerMessageQuick(ctx *gin.Context) {
 	var params queryInnerParamsQuick
 	if err := ctx.ShouldBindQuery(&params); err != nil {
@@ -79,6 +80,7 @@ func (ctl *messageListController) GetInnerMessageQuick(ctx *gin.Context) {
 // @Failure			500	string system_error  查询失败
 // @Failure         400 string bad_request  无法解析请求正文
 // @Router			/message_center/inner [post]
+// @Id		getInnerMessage
 func (ctl *messageListController) GetInnerMessage(ctx *gin.Context) {
 	var params queryInnerParams
 	if err := ctx.ShouldBindJSON(&params); err != nil {
@@ -112,6 +114,7 @@ func (ctl *messageListController) GetInnerMessage(ctx *gin.Context) {
 // @Failure			401 {object} string "未授权"
 // @Failure			500 {object} string "系统错误"
 // @Router			/message_center/inner/count [get]
+// @Id		countAllUnReadMessage
 func (ctl *messageListController) CountAllUnReadMessage(ctx *gin.Context) {
 	userName, err := user.GetEulerUserName(ctx)
 	if err != nil {
@@ -136,6 +139,7 @@ func (ctl *messageListController) CountAllUnReadMessage(ctx *gin.Context) {
 // @Failure         400 string bad_request 无法解析请求正文
 // @Failure			500	string system_error  设置已读失败
 // @Router			/message_center/inner [put]
+// @Id		setMessageIsRead
 func (ctl *messageListController) SetMessageIsRead(ctx *gin.Context) {
 	var messages []messageStatus
 	if err := ctx.BindJSON(&messages); err != nil {
@@ -167,6 +171,7 @@ func (ctl *messageListController) SetMessageIsRead(ctx *gin.Context) {
 // @Failure         400 string bad_request 无法解析请求正文
 // @Failure			500	string system_error  消息删除失败
 // @Router			/message_center/inner [delete]
+// @Id	    removeMessage
 func (ctl *messageListController) RemoveMessage(ctx *gin.Context) {
 	var messages []messageStatus
 

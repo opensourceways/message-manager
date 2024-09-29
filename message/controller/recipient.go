@@ -41,9 +41,10 @@ type messageRecipientController struct {
 // @Description		get recipient config
 // @Tags			recipient
 // @Accept			json
-// @Success			202	int count
+// @Success			202	integer count
 // @Failure			500	string system_error  查询失败
 // @Router			/message_center/config/recipient [get]
+// @Id		getRecipientConfig
 func (ctl *messageRecipientController) GetRecipientConfig(ctx *gin.Context) {
 	userName, err := user.GetEulerUserName(ctx)
 	if err != nil {
@@ -75,6 +76,7 @@ func (ctl *messageRecipientController) GetRecipientConfig(ctx *gin.Context) {
 // @Failure			400	string bad_request  无法解析请求正文
 // @Failure			500	string server_error  新增配置失败
 // @Router			/message_center/config/recipient [post]
+// @Id		addRecipientConfig
 func (ctl *messageRecipientController) AddRecipientConfig(ctx *gin.Context) {
 	var req newRecipientDTO
 	if err := ctx.BindJSON(&req); err != nil {
@@ -110,6 +112,7 @@ func (ctl *messageRecipientController) AddRecipientConfig(ctx *gin.Context) {
 // @Failure			400	string bad_request  无法解析请求正文
 // @Failure			500	string server_error  更新配置失败
 // @Router			/message_center/config/recipient [put]
+// @Id		updateRecipientConfig
 func (ctl *messageRecipientController) UpdateRecipientConfig(ctx *gin.Context) {
 	var req updateRecipientDTO
 	if err := ctx.BindJSON(&req); err != nil {
@@ -145,6 +148,7 @@ func (ctl *messageRecipientController) UpdateRecipientConfig(ctx *gin.Context) {
 // @Failure			400	string bad_request  无法解析请求正文
 // @Failure			500	string server_error  删除配置失败
 // @Router			/message_center/config/recipient [delete]
+// @Id		removeRecipientConfig
 func (ctl *messageRecipientController) RemoveRecipientConfig(ctx *gin.Context) {
 	var req updateRecipientDTO
 	if err := ctx.BindJSON(&req); err != nil {
@@ -179,7 +183,8 @@ func (ctl *messageRecipientController) RemoveRecipientConfig(ctx *gin.Context) {
 // @Success			202	string accepted 同步用户信息成功
 // @Failure			400	string bad_request  无法解析请求正文
 // @Failure			500	string server_error  同步用户信息失败
-// @Router			/message_center/config//recipient/sync [post]
+// @Router			/message_center/config/recipient/sync [post]
+// @Id		syncUserInfo
 func (ctl *messageRecipientController) SyncUserInfo(ctx *gin.Context) {
 	var req syncUserInfoDTO
 	if err := ctx.BindJSON(&req); err != nil {

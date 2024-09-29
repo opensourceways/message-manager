@@ -1,0 +1,115 @@
+pick 057d6fb init repo send message
+squash c80ae26 初始化配置
+squash 8971ad3 读取数据库推送配置
+squash c9d84c7 推送配置建表
+squash e29c42c 基于go-playground/validator做消息的模式过滤
+squash 4a7caaf 基于go-playground/validator做消息的模式过滤
+squash 27792e6 调整文件结构 合并清洗和推送功能
+squash 1504438 改成kafka-lib操作kafka
+squash 56485b9 改成kafka-lib操作kafka
+squash 966f4c5 改成kafka-lib操作kafka
+squash 769e039 改成kafka-lib操作kafka
+squash 5d0df04 优化消息落地db的逻辑
+squash b34e19c 优化消息落地db的逻辑
+squash 0ad0d0f 优化消息落地db的逻辑
+squash e43d65e 优化消息消息格式 符合CloudEvents规范
+squash 9b09be5 把通知记录插入到cassandra
+squash a98b56c 把通知记录插入到cassandra
+squash 0b98e6d 把通知记录插入到cassandra
+squash d6f3ef4 把通知记录插入到cassandra
+squash 2bfe076 清洗 gitee comment事件
+squash 9ae8fda 清洗 gitee comment事件
+squash 394b4c1 拆分清洗服务的推送服务
+squash 6aa9302 拆分清洗服务的推送服务
+squash 6fbd0f0 支持站内信
+squash 6566984 支持站内信
+squash 455cdea use config yaml
+squash 7055b30 支持站内信
+squash 740f868 支持站内信
+squash 60a81bb 支持站内信
+squash 0a0f483 connect kafka sasl
+squash 8e6064a send mail
+squash 9bf0adf support gitee
+squash 3b7c7d6 support gitee
+squash 650ff69 support message template
+squash 717b07e support message template
+squash 503087f support pr&push&note
+squash adaf0ee support gitee bot
+squash 24db9f2 support gitee bot
+squash 31c9618 support gitee bot
+squash 8fb229f support gitee bot
+squash 9f527b0 support gitee bot
+squash 907f923 support gitee bot
+squash 0b98e98 support gitee bot
+squash 1b5b28c support gitee bot
+squash 2f3f172 support gitee bot
+squash 8a4985d 清除敏感信息
+squash 4a56791 Revert "support gitee bot"
+squash 0740582 清除敏感信息
+squash 84388dd 清除敏感信息
+squash a983d1d 清除敏感信息
+squash 3db556b 清除敏感信息
+squash 0c7b71f 清除敏感信息
+squash de304bf 清除敏感信息
+squash 7a016f6 清理敏感信息
+squash 74c9e22 ssl发送邮件
+squash a801f06 发送ssl邮件
+squash bafba0b 发送ssl邮件
+squash 132d30f 发送ssl邮件
+squash 97dfbbc 支持会议消息
+squash c190799 清洗干系人
+squash 074f3e4 清洗干系人
+squash 1b9f957 清洗干系人
+squash 11b4360 清洗干系人
+squash 2526081 清洗干系人
+squash 7426d4c 清洗干系人
+squash dc67d04 清洗干系人
+squash cf5c4b3 清洗干系人
+squash 0b21f91 优化失败日志
+squash c83a880 优化失败日志
+squash 1bdcb32 debug
+squash bdf4a74 debug
+squash 436b769 debug
+squash a22362d debug
+squash 9446954 新增邮件标题正文字段
+squash 56ca41c 优化失败日志
+squash 3d141ab 接入cve
+squash 6c4913e 接入cve
+squash e5bae5e 优化邮件通知
+squash 5bdb5bd 优化邮件通知
+squash e6ef7d3 清楚敏感信息
+squash ebe846e 清楚敏感信息
+squash 97984a9 清楚敏感信息
+squash 782ddcd 修复cve问题
+squash 7569454 Update conf.yaml
+squash d12081e debug
+squash 5566784 debug
+squash f867425 debug
+squash e29d51d 删除debug
+squash a6c8051 debug
+squash 665d267 debug
+squash f0de8db debug
+squash c06179d debug
+squash 3b799a4 debug
+squash 6f3e4ab bugfix
+squash c85944e debug
+squash 864a302 debug
+squash 15d29e6 debug
+squash 5d18065 debug
+squash 08325c7 debug
+squash b2f33c6 debug
+squash 9ac1848 del debug
+squash be3b5ed debug
+squash 11481cf debug
+squash ac6a519 debug
+squash 79367df debug
+squash 997fd7b debug
+squash 483fc22 debug
+squash 37a86e4 del debug
+squash c3d369f bugfix
+squash 19948ea debug
+squash 56543ff debug
+squash 51e5fc9 debug
+squash fdac6e1 debug
+squash 2e25003 debug
+squash d156826 delete yaml

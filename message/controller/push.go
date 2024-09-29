@@ -44,6 +44,7 @@ type messagePushController struct {
 // @Success			202	 {object}  app.MessagePushDTO
 // @Failure			500	string system_error  查询失败
 // @Router			/message_center/config/push [get]
+// @Id		getPushConfig
 func (ctl *messagePushController) GetPushConfig(ctx *gin.Context) {
 	subsIdsStr := ctx.DefaultQuery("subscribe_id", "")
 	subsIds := strings.Split(subsIdsStr, ",")
@@ -80,6 +81,7 @@ func (ctl *messagePushController) GetPushConfig(ctx *gin.Context) {
 // @Failure			400	string bad_request  无法解析请求正文
 // @Failure			500	string system_error  新增配置失败
 // @Router			/message_center/config/push [post]
+// @Id		addPushConfig
 func (ctl *messagePushController) AddPushConfig(ctx *gin.Context) {
 	var req newPushConfigDTO
 	if err := ctx.BindJSON(&req); err != nil {
@@ -111,6 +113,7 @@ func (ctl *messagePushController) AddPushConfig(ctx *gin.Context) {
 // @Failure			400	string bad_request  无法解析请求正文
 // @Failure			500	string system_error  更新配置失败
 // @Router			/message_center/config/push [put]
+// @Id		updatePushConfig
 func (ctl *messagePushController) UpdatePushConfig(ctx *gin.Context) {
 	var req updatePushConfigDTO
 	if err := ctx.BindJSON(&req); err != nil {
@@ -141,6 +144,7 @@ func (ctl *messagePushController) UpdatePushConfig(ctx *gin.Context) {
 // @Failure         400 string bad_request  无法解析请求正文
 // @Failure			500	string system_error  删除配置失败
 // @Router			/message_center/config/push [delete]
+// @Id		removePushConfig
 func (ctl *messagePushController) RemovePushConfig(ctx *gin.Context) {
 	var req deletePushConfigDTO
 	if err := ctx.BindJSON(&req); err != nil {

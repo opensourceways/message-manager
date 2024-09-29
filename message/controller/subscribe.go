@@ -44,6 +44,7 @@ type messageSubscribeController struct {
 // @Failure			401	string unauthorized  用户未授权
 // @Failure			500	string system_error  查询失败
 // @Router			/message_center/config/subs/all [get]
+// @Id		getAllSubsConfig
 func (ctl *messageSubscribeController) GetAllSubsConfig(ctx *gin.Context) {
 	userName, err := user.GetEulerUserName(ctx)
 	if err != nil {
@@ -68,6 +69,7 @@ func (ctl *messageSubscribeController) GetAllSubsConfig(ctx *gin.Context) {
 // @Failure			401	string unauthorized  用户未授权
 // @Failure			500	string system_error  查询失败
 // @Router			/message_center/config/subs [get]
+// @Id		getSubsConfig
 func (ctl *messageSubscribeController) GetSubsConfig(ctx *gin.Context) {
 	userName, err := user.GetEulerUserName(ctx)
 	if err != nil {
@@ -93,6 +95,7 @@ func (ctl *messageSubscribeController) GetSubsConfig(ctx *gin.Context) {
 // @Failure			401	string unauthorized  用户未授权
 // @Failure			500	string system_error  保存失败
 // @Router			/message_center/config/subs_new [post]
+// @Id		saveFilter
 func (ctl *messageSubscribeController) SaveFilter(ctx *gin.Context) {
 	var req subscribeDTO
 	if err := ctx.BindJSON(&req); err != nil {
@@ -130,6 +133,7 @@ func (ctl *messageSubscribeController) SaveFilter(ctx *gin.Context) {
 // @Failure			401	string unauthorized  用户未授权
 // @Failure			500	string system_error  新增配置失败
 // @Router			/message_center/config/subs [post]
+// @Id		addSubsConfig
 func (ctl *messageSubscribeController) AddSubsConfig(ctx *gin.Context) {
 	var req newSubscribeDTO
 	if err := ctx.BindJSON(&req); err != nil {
@@ -168,6 +172,7 @@ func (ctl *messageSubscribeController) AddSubsConfig(ctx *gin.Context) {
 // @Failure			401	string unauthorized  用户未授权
 // @Failure			500	string system_error  更新配置成功
 // @Router			/message_center/config/subs [put]
+// @Id		updateSubsConfig
 func (ctl *messageSubscribeController) UpdateSubsConfig(ctx *gin.Context) {
 	var req updateSubscribeDTO
 	if err := ctx.BindJSON(&req); err != nil {
@@ -204,6 +209,7 @@ func (ctl *messageSubscribeController) UpdateSubsConfig(ctx *gin.Context) {
 // @Failure			401	string unauthorized  用户未授权
 // @Failure			500	string system_error  删除配置失败
 // @Router			/message_center/config/subs [delete]
+// @Id		removeSubsConfig
 func (ctl *messageSubscribeController) RemoveSubsConfig(ctx *gin.Context) {
 	var req deleteSubscribeDTO
 	if err := ctx.BindJSON(&req); err != nil {

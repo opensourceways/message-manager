@@ -15,49 +15,6 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/message_center/config//recipient/sync": {
-            "post": {
-                "description": "sync user info",
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "recipient"
-                ],
-                "summary": "SyncUserInfo",
-                "parameters": [
-                    {
-                        "description": "syncUserInfoDTO",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/controller.syncUserInfoDTO"
-                        }
-                    }
-                ],
-                "responses": {
-                    "202": {
-                        "description": "Accepted",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
         "/message_center/config/push": {
             "get": {
                 "description": "get push config",
@@ -68,6 +25,7 @@ const docTemplate = `{
                     "message_push"
                 ],
                 "summary": "GetPushConfig",
+                "operationId": "getPushConfig",
                 "responses": {
                     "202": {
                         "description": "Accepted",
@@ -92,6 +50,7 @@ const docTemplate = `{
                     "message_push"
                 ],
                 "summary": "UpdatePushConfig",
+                "operationId": "updatePushConfig",
                 "parameters": [
                     {
                         "description": "updatePushConfigDTO",
@@ -133,6 +92,7 @@ const docTemplate = `{
                     "message_push"
                 ],
                 "summary": "AddPushConfig",
+                "operationId": "addPushConfig",
                 "parameters": [
                     {
                         "description": "newPushConfigDTO",
@@ -174,6 +134,7 @@ const docTemplate = `{
                     "message_push"
                 ],
                 "summary": "RemovePushConfig",
+                "operationId": "removePushConfig",
                 "parameters": [
                     {
                         "description": "deletePushConfigDTO",
@@ -217,11 +178,12 @@ const docTemplate = `{
                     "recipient"
                 ],
                 "summary": "GetRecipientConfig",
+                "operationId": "getRecipientConfig",
                 "responses": {
                     "202": {
                         "description": "Accepted",
                         "schema": {
-                            "type": "int"
+                            "type": "integer"
                         }
                     },
                     "500": {
@@ -241,6 +203,7 @@ const docTemplate = `{
                     "recipient"
                 ],
                 "summary": "UpdateRecipientConfig",
+                "operationId": "updateRecipientConfig",
                 "parameters": [
                     {
                         "description": "updateRecipientDTO",
@@ -282,6 +245,7 @@ const docTemplate = `{
                     "recipient"
                 ],
                 "summary": "AddRecipientConfig",
+                "operationId": "addRecipientConfig",
                 "parameters": [
                     {
                         "description": "newRecipientDTO",
@@ -323,6 +287,7 @@ const docTemplate = `{
                     "recipient"
                 ],
                 "summary": "RemoveRecipientConfig",
+                "operationId": "removeRecipientConfig",
                 "parameters": [
                     {
                         "description": "updateRecipientDTO",
@@ -331,6 +296,50 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/controller.updateRecipientDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/message_center/config/recipient/sync": {
+            "post": {
+                "description": "sync user info",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "recipient"
+                ],
+                "summary": "SyncUserInfo",
+                "operationId": "syncUserInfo",
+                "parameters": [
+                    {
+                        "description": "syncUserInfoDTO",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.syncUserInfoDTO"
                         }
                     }
                 ],
@@ -366,6 +375,7 @@ const docTemplate = `{
                     "message_subscribe"
                 ],
                 "summary": "GetSubsConfig",
+                "operationId": "getSubsConfig",
                 "responses": {
                     "202": {
                         "description": "Accepted",
@@ -396,6 +406,7 @@ const docTemplate = `{
                     "message_subscribe"
                 ],
                 "summary": "UpdateSubsConfig",
+                "operationId": "updateSubsConfig",
                 "parameters": [
                     {
                         "description": "updateSubscribeDTO",
@@ -443,6 +454,7 @@ const docTemplate = `{
                     "message_subscribe"
                 ],
                 "summary": "AddSubsConfig",
+                "operationId": "addSubsConfig",
                 "parameters": [
                     {
                         "description": "newSubscribeDTO",
@@ -490,6 +502,7 @@ const docTemplate = `{
                     "message_subscribe"
                 ],
                 "summary": "RemoveSubsConfig",
+                "operationId": "removeSubsConfig",
                 "parameters": [
                     {
                         "description": "deleteSubscribeDTO",
@@ -539,6 +552,7 @@ const docTemplate = `{
                     "message_subscribe"
                 ],
                 "summary": "GetAllSubsConfig",
+                "operationId": "getAllSubsConfig",
                 "responses": {
                     "202": {
                         "description": "Accepted",
@@ -571,6 +585,7 @@ const docTemplate = `{
                     "message_subscribe"
                 ],
                 "summary": "SaveFilter",
+                "operationId": "saveFilter",
                 "parameters": [
                     {
                         "description": "subscribeDTO",
@@ -620,6 +635,7 @@ const docTemplate = `{
                     "message_center"
                 ],
                 "summary": "SetMessageIsRead",
+                "operationId": "setMessageIsRead",
                 "parameters": [
                     {
                         "description": "messageStatus",
@@ -661,6 +677,7 @@ const docTemplate = `{
                     "message_center"
                 ],
                 "summary": "GetInnerMessage",
+                "operationId": "getInnerMessage",
                 "parameters": [
                     {
                         "type": "string",
@@ -883,6 +900,7 @@ const docTemplate = `{
                     "message_center"
                 ],
                 "summary": "RemoveMessage",
+                "operationId": "removeMessage",
                 "parameters": [
                     {
                         "description": "messageStatus",
@@ -926,6 +944,7 @@ const docTemplate = `{
                     "message_center"
                 ],
                 "summary": "CountAllUnReadMessage",
+                "operationId": "countAllUnReadMessage",
                 "responses": {
                     "202": {
                         "description": "成功响应",
@@ -959,6 +978,7 @@ const docTemplate = `{
                     "message_center"
                 ],
                 "summary": "GetInnerMessageQuick",
+                "operationId": "getInnerMessageQuick",
                 "responses": {
                     "202": {
                         "description": "Accepted",

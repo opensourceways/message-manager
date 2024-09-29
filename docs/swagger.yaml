@@ -281,39 +281,12 @@ info:
   title: Message Manager
   version: "1.0"
 paths:
-  /message_center/config//recipient/sync:
-    post:
-      consumes:
-      - application/json
-      description: sync user info
-      parameters:
-      - description: syncUserInfoDTO
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/controller.syncUserInfoDTO'
-      responses:
-        "202":
-          description: Accepted
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      summary: SyncUserInfo
-      tags:
-      - recipient
   /message_center/config/push:
     delete:
       consumes:
       - application/json
       description: delete a push_config
+      operationId: removePushConfig
       parameters:
       - description: deletePushConfigDTO
         in: body
@@ -341,6 +314,7 @@ paths:
       consumes:
       - application/json
       description: get push config
+      operationId: getPushConfig
       responses:
         "202":
           description: Accepted
@@ -357,6 +331,7 @@ paths:
       consumes:
       - application/json
       description: add a new push_config
+      operationId: addPushConfig
       parameters:
       - description: newPushConfigDTO
         in: body
@@ -384,6 +359,7 @@ paths:
       consumes:
       - application/json
       description: update a push_config
+      operationId: updatePushConfig
       parameters:
       - description: updatePushConfigDTO
         in: body
@@ -412,6 +388,7 @@ paths:
       consumes:
       - application/json
       description: remove recipient config
+      operationId: removeRecipientConfig
       parameters:
       - description: updateRecipientDTO
         in: body
@@ -439,11 +416,12 @@ paths:
       consumes:
       - application/json
       description: get recipient config
+      operationId: getRecipientConfig
       responses:
         "202":
           description: Accepted
           schema:
-            type: int
+            type: integer
         "500":
           description: Internal Server Error
           schema:
@@ -455,6 +433,7 @@ paths:
       consumes:
       - application/json
       description: add recipient config
+      operationId: addRecipientConfig
       parameters:
       - description: newRecipientDTO
         in: body
@@ -482,6 +461,7 @@ paths:
       consumes:
       - application/json
       description: update recipient config
+      operationId: updateRecipientConfig
       parameters:
       - description: updateRecipientDTO
         in: body
@@ -505,11 +485,41 @@ paths:
       summary: UpdateRecipientConfig
       tags:
       - recipient
+  /message_center/config/recipient/sync:
+    post:
+      consumes:
+      - application/json
+      description: sync user info
+      operationId: syncUserInfo
+      parameters:
+      - description: syncUserInfoDTO
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controller.syncUserInfoDTO'
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: SyncUserInfo
+      tags:
+      - recipient
   /message_center/config/subs:
     delete:
       consumes:
       - application/json
       description: delete a subscribe_config by source and type
+      operationId: removeSubsConfig
       parameters:
       - description: deleteSubscribeDTO
         in: body
@@ -541,6 +551,7 @@ paths:
       consumes:
       - application/json
       description: get subscribe_config
+      operationId: getSubsConfig
       responses:
         "202":
           description: Accepted
@@ -561,6 +572,7 @@ paths:
       consumes:
       - application/json
       description: add a subscribe_config
+      operationId: addSubsConfig
       parameters:
       - description: newSubscribeDTO
         in: body
@@ -592,6 +604,7 @@ paths:
       consumes:
       - application/json
       description: update a subscribe_config
+      operationId: updateSubsConfig
       parameters:
       - description: updateSubscribeDTO
         in: body
@@ -624,6 +637,7 @@ paths:
       consumes:
       - application/json
       description: get all subscribe_config
+      operationId: getAllSubsConfig
       responses:
         "202":
           description: Accepted
@@ -645,6 +659,7 @@ paths:
       consumes:
       - application/json
       description: save custom filter
+      operationId: saveFilter
       parameters:
       - description: subscribeDTO
         in: body
@@ -677,6 +692,7 @@ paths:
       consumes:
       - application/json
       description: remove message
+      operationId: removeMessage
       parameters:
       - description: messageStatus
         in: body
@@ -704,6 +720,7 @@ paths:
       consumes:
       - application/json
       description: get inner message
+      operationId: getInnerMessage
       parameters:
       - description: '@我的'
         in: query
@@ -851,6 +868,7 @@ paths:
       consumes:
       - application/json
       description: set message read
+      operationId: setMessageIsRead
       parameters:
       - description: messageStatus
         in: body
@@ -879,6 +897,7 @@ paths:
       consumes:
       - application/json
       description: get unread inner message count
+      operationId: countAllUnReadMessage
       responses:
         "202":
           description: 成功响应
@@ -901,6 +920,7 @@ paths:
       consumes:
       - application/json
       description: get inner message by filter
+      operationId: getInnerMessageQuick
       responses:
         "202":
           description: Accepted
