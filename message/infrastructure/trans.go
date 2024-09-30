@@ -234,7 +234,7 @@ func TransMeetingModeFilterToDbFormat(modeFilter CmdToGetSubscribe) (datatypes.J
 	dbModeFilter := utils.MeetingDbFormat{
 		Action:   buildStringFilter(strings.Split(modeFilter.MeetingAction, ",")),
 		SigGroup: buildStringFilter(strings.Split(modeFilter.MeetingSigGroup, ",")),
-		Date:     buildMeetingDateFilter(utils.ParseUnixTimestamp(modeFilter.StartTime)),
+		Date:     buildMeetingDateFilter(utils.ParseUnixTimestamp(modeFilter.MeetingStartTime)),
 		MySig:    getOneOfFilter(modeFilter.MySig),
 		OtherSig: getNotOneOfFilter(modeFilter.OtherSig),
 	}
