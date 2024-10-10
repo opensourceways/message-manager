@@ -1,21 +1,72 @@
+/*
+Copyright (c) Huawei Technologies Co., Ltd. 2024. All rights reserved
+*/
+
 package main
 
 import (
-	"github.com/gin-gonic/gin"
-	"net/http"
+	"flag"
+	"fmt"
+	"os"
+
+	"github.com/sirupsen/logrus"
+
+	"github.com/opensourceways/message-manager/common/postgresql"
+	"github.com/opensourceways/message-manager/common/user"
+	"github.com/opensourceways/message-manager/config"
+	"github.com/opensourceways/message-manager/server"
 )
 
+func gatherOptions(fs *flag.FlagSet, args ...string) (Options, error) {
+	var o Options
+	o.AddFlags(fs)
+	err := fs.Parse(args)
+
+	return o, err
+}
+
+type Options struct {
+	Config string
+}
+
+func (o *Options) AddFlags(fs *flag.FlagSet) {
+	fs.StringVar(&o.Config, "config-file", "", "Path to config file.")
+}
+
+// @title           Message Manager
+// @version         1.0
+// @description     This is a Message Manager Server.
 func main() {
-	// 创建一个默认的Gin引擎
-	router := gin.Default()
+	o, err := gatherOptions(
+		flag.NewFlagSet(os.Args[0], flag.ExitOnError),
+		os.Args[1:]...,
+	)
+	if err != nil {
+		logrus.Fatalf("new Options failed, err:%s", err.Error())
+		return
+	}
 
-	// 定义路由和处理函数
-	router.GET("/hello", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Hello, Message Manager!",
-		})
-	})
+	// cfg
+	cfg := new(config.Config)
 
-	// 启动HTTP服务器，监听在本地的 8080 端口
-	router.Run(":8080")
+	if err = config.LoadConfig(o.Config, cfg); err != nil {
+		logrus.Errorf("load config, err:%s", err.Error())
+
+		return
+	}
+
+	// init postgresql
+	if err := postgresql.Init(&cfg.Postgresql); err != nil {
+		fmt.Println("Postgresql数据库初始化失败, err:", err)
+		return
+	}
+
+	//if err := cassandra.Init(&cfg.Cassandra); err != nil {
+	//	fmt.Println("Cassandra数据库初始化失败")
+	//}
+
+	// init user
+	user.Init(&cfg.User)
+
+	server.StartWebServer()
 }
