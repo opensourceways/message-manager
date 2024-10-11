@@ -193,6 +193,10 @@ func addPushConfig(subsId int, recipientId int64) error {
 }
 
 func subscribeDefault(recipientId uint, userName string, giteeUserName string) {
+	if userName == "" || giteeUserName == "" {
+		logrus.Errorf("username is empty or gitee username is empty")
+		return
+	}
 	defaultFilter, err := getDefaultFilter(giteeUserName)
 	if err != nil {
 		logrus.Errorf("get default filter failed, err:%v", err)
