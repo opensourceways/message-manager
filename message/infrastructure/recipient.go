@@ -154,7 +154,7 @@ func getDefaultFilter(giteeUserName string) ([]MessageSubscribeDAO, error) {
 		{Source: utils.GiteeSource, EventType: "note", SpecVersion: "1.0", ModeName: "我提的issue的评论",
 			ModeFilter: datatypes.JSON(
 				fmt.Sprintf(`{"NoteEvent.Issue.User.Login": "eq=%s"}`, giteeUserName)),
-			WebFilter: datatypes.JSON(fmt.Sprintf(`{"note_type": "issue", "event_type": "note"}`))},
+			WebFilter: datatypes.JSON(fmt.Sprintf(`{"note_type": "Issue", "event_type": "note"}`))},
 	}
 	return defaultFilter, nil
 }
