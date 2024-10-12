@@ -362,7 +362,7 @@ func (s *messageAdapter) GetInnerMessageQuick(cmd CmdToGetInnerMessageQuick,
 
 	offsetNum := (cmd.PageNum - 1) * cmd.CountPerPage
 	GenQueryQuick(query, data[0])
-	if len(data) != 1 {
+	if len(data) != 0 {
 		var lType []string
 		for _, dt := range data {
 			lType = append(lType, dt.EventType)
