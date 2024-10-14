@@ -148,7 +148,7 @@ func getDefaultFilter(giteeUserName string) ([]MessageSubscribeDAO, error) {
 				`{"issue_assignee": "%s", "event_type": "issue"}`, giteeUserName))},
 		{Source: utils.GiteeSource, EventType: "pr", SpecVersion: "1.0", ModeName: "待我处理的pr",
 			ModeFilter: datatypes.JSON(fmt.Sprintf(
-				`{"PullRequestEvent.PullRequest.Assignee.Login": "eq=%s"}`, giteeUserName)),
+				`{"Assignees: "contains=%s"}`, giteeUserName)),
 			WebFilter: datatypes.JSON(fmt.Sprintf(
 				`{"pr_assignee": "%s", "event_type": "pr"}`, giteeUserName))},
 		{Source: utils.GiteeSource, EventType: "note", SpecVersion: "1.0", ModeName: "我提的issue的评论",

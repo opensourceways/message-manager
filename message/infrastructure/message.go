@@ -147,6 +147,14 @@ func applySigGroupFilter(query *gorm.DB, mySig string, giteeSigs string) *gorm.D
 	return query
 }
 
+func applyPrAssigneeFilter(query *gorm.DB, assignee string) *gorm.DB {
+	if assignee != "" {
+		query = query.Where("jsonb_extract_path_text(cloud_event_message.data_json, "+
+			"'Assignees') ILIKE ?", "%"+assignee+"%")
+	}
+	return query
+}
+
 // 复合过滤，处理PullRequest和Issue
 func applyCompositeFilters(query *gorm.DB, eventType string, state string, creator string,
 	assignee string) *gorm.DB {
@@ -158,8 +166,7 @@ func applyCompositeFilters(query *gorm.DB, eventType string, state string, creat
 	} else if eventType == "PullRequestEvent" {
 		query = applySingleValueFilter(query, fmt.Sprintf("jsonb_extract_path_text("+
 			"cloud_event_message.data_json, '%s', 'State')", eventType), state)
-		query = applyKeyWordFilter(query, "jsonb_extract_path_text(cloud_event_message.data_json,"+
-			" '%s', 'PullRequest', 'Assignees')", assignee)
+		query = applyPrAssigneeFilter(query, assignee)
 	}
 	query = applySingleValueFilter(query, fmt.Sprintf("jsonb_extract_path_text("+
 		"cloud_event_message.data_json, '%s', 'User', 'Login')", eventType), creator)
@@ -314,6 +321,10 @@ func GenQueryQuick(query *gorm.DB, data MessageSubscribeDAO) *gorm.DB {
 			query = query.Where("jsonb_extract_path_text(cloud_event_message.data_json, "+
 				"'CVEAffectVersion') ILIKE ANY(?)",
 				fmt.Sprintf("{%s}", strings.Join(newLString, ",")))
+		} else if strings.Contains(k, "Assignees") {
+			vString = strings.ReplaceAll(vString, "contains=", "")
+			query = query.Where("jsonb_extract_path_text(cloud_event_message.data_json, "+
+				"'Assignees') ILIKE ?", "%"+vString+"%")
 		} else {
 			if vString != "" {
 				vString = strings.ReplaceAll(vString, "oneof=", "")
