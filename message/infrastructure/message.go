@@ -153,14 +153,17 @@ func applyCompositeFilters(query *gorm.DB, eventType string, state string, creat
 	if eventType == "IssueEvent" {
 		query = applySingleValueFilter(query, fmt.Sprintf("jsonb_extract_path_text("+
 			"cloud_event_message.data_json, '%s', 'Issue', 'State')", eventType), state)
+		query = applySingleValueFilter(query, fmt.Sprintf("jsonb_extract_path_text("+
+			"cloud_event_message.data_json, '%s', 'Assignee', 'Login')", eventType), assignee)
 	} else if eventType == "PullRequestEvent" {
 		query = applySingleValueFilter(query, fmt.Sprintf("jsonb_extract_path_text("+
 			"cloud_event_message.data_json, '%s', 'State')", eventType), state)
+		query = applyKeyWordFilter(query, "jsonb_extract_path_text(cloud_event_message.data_json,"+
+			" '%s', 'PullRequest', 'Assignees')", "%"+assignee+"%")
 	}
 	query = applySingleValueFilter(query, fmt.Sprintf("jsonb_extract_path_text("+
 		"cloud_event_message.data_json, '%s', 'User', 'Login')", eventType), creator)
-	query = applySingleValueFilter(query, fmt.Sprintf("jsonb_extract_path_text("+
-		"cloud_event_message.data_json, '%s', 'Assignee', 'Login')", eventType), assignee)
+
 	return query
 }
 
