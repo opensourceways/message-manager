@@ -159,7 +159,7 @@ func applyCompositeFilters(query *gorm.DB, eventType string, state string, creat
 		query = applySingleValueFilter(query, fmt.Sprintf("jsonb_extract_path_text("+
 			"cloud_event_message.data_json, '%s', 'State')", eventType), state)
 		query = applyKeyWordFilter(query, "jsonb_extract_path_text(cloud_event_message.data_json,"+
-			" '%s', 'PullRequest', 'Assignees')", "%"+assignee+"%")
+			" '%s', 'PullRequest', 'Assignees')", assignee)
 	}
 	query = applySingleValueFilter(query, fmt.Sprintf("jsonb_extract_path_text("+
 		"cloud_event_message.data_json, '%s', 'User', 'Login')", eventType), creator)
@@ -356,10 +356,9 @@ func (s *messageAdapter) GetInnerMessageQuick(cmd CmdToGetInnerMessageQuick,
 
 	query := postgresql.DB().Table("message_center.inner_message").
 		Joins("JOIN message_center.cloud_event_message ON "+
-			"inner_message.event_id = cloud_event_message.event_id AND"+
-			" inner_message.source = cloud_event_message.source").
+			"inner_message.event_id = cloud_event_message.event_id").
 		Joins("JOIN message_center.recipient_config ON "+
-			"cast(inner_message.recipient_id AS BIGINT) = recipient_config.id").
+			"inner_message.recipient_id = recipient_config.id").
 		Where("inner_message.is_deleted = ? AND recipient_config.is_deleted = ?", false, false).
 		Where("recipient_config.user_id = ?", userName)
 
@@ -390,10 +389,9 @@ func (s *messageAdapter) GetInnerMessage(cmd CmdToGetInnerMessage,
 	userName string) ([]MessageListDAO, int64, error) {
 	query := postgresql.DB().Table("message_center.inner_message").
 		Joins("JOIN message_center.cloud_event_message ON "+
-			"inner_message.event_id = cloud_event_message.event_id AND"+
-			" inner_message.source = cloud_event_message.source").
+			"inner_message.event_id = cloud_event_message.event_id").
 		Joins("JOIN message_center.recipient_config ON "+
-			"cast(inner_message.recipient_id AS BIGINT) = recipient_config.id").
+			"inner_message.recipient_id = recipient_config.id").
 		Where("inner_message.is_deleted = ? AND recipient_config.is_deleted = ?", false, false).
 		Where("recipient_config.user_id = ?", userName)
 
