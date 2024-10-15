@@ -49,7 +49,7 @@ func (ctl *messageSubscribeAdapter) GetSubsConfig(userName string) ([]MessageSub
 
 	var Count int64
 	query.Count(&Count)
-	if result := query.Order("subscribe_config.id").Find(&response); result.Error != nil {
+	if result := query.Debug().Order("subscribe_config.id").Find(&response); result.Error != nil {
 		return []MessageSubscribeDAOWithPushConfig{}, 0, xerrors.Errorf("查询失败")
 	}
 
