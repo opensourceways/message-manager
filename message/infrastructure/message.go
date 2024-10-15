@@ -147,20 +147,30 @@ func applySigGroupFilter(query *gorm.DB, mySig string, giteeSigs string) *gorm.D
 	return query
 }
 
+func applyPrAssigneeFilter(query *gorm.DB, assignee string) *gorm.DB {
+	if assignee != "" {
+		query = query.Where("jsonb_extract_path_text(cloud_event_message.data_json, "+
+			"'Assignees') ILIKE ?", "%"+assignee+"%")
+	}
+	return query
+}
+
 // 复合过滤，处理PullRequest和Issue
 func applyCompositeFilters(query *gorm.DB, eventType string, state string, creator string,
 	assignee string) *gorm.DB {
 	if eventType == "IssueEvent" {
 		query = applySingleValueFilter(query, fmt.Sprintf("jsonb_extract_path_text("+
 			"cloud_event_message.data_json, '%s', 'Issue', 'State')", eventType), state)
+		query = applySingleValueFilter(query, fmt.Sprintf("jsonb_extract_path_text("+
+			"cloud_event_message.data_json, '%s', 'Assignee', 'Login')", eventType), assignee)
 	} else if eventType == "PullRequestEvent" {
 		query = applySingleValueFilter(query, fmt.Sprintf("jsonb_extract_path_text("+
 			"cloud_event_message.data_json, '%s', 'State')", eventType), state)
+		query = applyPrAssigneeFilter(query, assignee)
 	}
 	query = applySingleValueFilter(query, fmt.Sprintf("jsonb_extract_path_text("+
 		"cloud_event_message.data_json, '%s', 'User', 'Login')", eventType), creator)
-	query = applySingleValueFilter(query, fmt.Sprintf("jsonb_extract_path_text("+
-		"cloud_event_message.data_json, '%s', 'Assignee', 'Login')", eventType), assignee)
+
 	return query
 }
 
@@ -311,6 +321,10 @@ func GenQueryQuick(query *gorm.DB, data MessageSubscribeDAO) *gorm.DB {
 			query = query.Where("jsonb_extract_path_text(cloud_event_message.data_json, "+
 				"'CVEAffectVersion') ILIKE ANY(?)",
 				fmt.Sprintf("{%s}", strings.Join(newLString, ",")))
+		} else if strings.Contains(k, "Assignees") {
+			vString = strings.ReplaceAll(vString, "contains=", "")
+			query = query.Where("jsonb_extract_path_text(cloud_event_message.data_json, "+
+				"'Assignees') ILIKE ?", "%"+vString+"%")
 		} else {
 			if vString != "" {
 				vString = strings.ReplaceAll(vString, "oneof=", "")
@@ -353,16 +367,15 @@ func (s *messageAdapter) GetInnerMessageQuick(cmd CmdToGetInnerMessageQuick,
 
 	query := postgresql.DB().Table("message_center.inner_message").
 		Joins("JOIN message_center.cloud_event_message ON "+
-			"inner_message.event_id = cloud_event_message.event_id AND"+
-			" inner_message.source = cloud_event_message.source").
+			"inner_message.event_id = cloud_event_message.event_id").
 		Joins("JOIN message_center.recipient_config ON "+
-			"cast(inner_message.recipient_id AS BIGINT) = recipient_config.id").
+			"inner_message.recipient_id = recipient_config.id").
 		Where("inner_message.is_deleted = ? AND recipient_config.is_deleted = ?", false, false).
 		Where("recipient_config.user_id = ?", userName)
 
 	offsetNum := (cmd.PageNum - 1) * cmd.CountPerPage
 	GenQueryQuick(query, data[0])
-	if len(data) != 1 {
+	if len(data) != 0 {
 		var lType []string
 		for _, dt := range data {
 			lType = append(lType, dt.EventType)
@@ -387,10 +400,9 @@ func (s *messageAdapter) GetInnerMessage(cmd CmdToGetInnerMessage,
 	userName string) ([]MessageListDAO, int64, error) {
 	query := postgresql.DB().Table("message_center.inner_message").
 		Joins("JOIN message_center.cloud_event_message ON "+
-			"inner_message.event_id = cloud_event_message.event_id AND"+
-			" inner_message.source = cloud_event_message.source").
+			"inner_message.event_id = cloud_event_message.event_id").
 		Joins("JOIN message_center.recipient_config ON "+
-			"cast(inner_message.recipient_id AS BIGINT) = recipient_config.id").
+			"inner_message.recipient_id = recipient_config.id").
 		Where("inner_message.is_deleted = ? AND recipient_config.is_deleted = ?", false, false).
 		Where("recipient_config.user_id = ?", userName)
 
