@@ -39,7 +39,7 @@ type GiteeIssueDbFormat struct {
 	SigGroupName    string `json:"SigGroupName,omitempty"`
 	IssueState      string `json:"IssueEvent.Issue.State,omitempty"`
 	IssueCreator    string `json:"IssueEvent.Issue.User.Login,omitempty"`
-	IssueAssignee   string `json:"IssueEvent.Issue.Assignee.Login,omitempty"`
+	IssueAssignee   string `json:"IssueEvent.Assignee.Login,omitempty"`
 	EventTime       string `json:"EventTime,omitempty"`
 	MyManagement    string `json:"RepoAdmins,omitempty"`
 	OtherManagement string `json:"RepoAdmins,omitempty"`

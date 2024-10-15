@@ -143,18 +143,18 @@ func getDefaultFilter(giteeUserName string) ([]MessageSubscribeDAO, error) {
 	defaultFilter := []MessageSubscribeDAO{
 		{Source: utils.GiteeSource, EventType: "issue", SpecVersion: "1.0", ModeName: "指派给我的issue",
 			ModeFilter: datatypes.JSON(
-				fmt.Sprintf(`{"IssueEvent.Issue.Assignee.Login": "eq=%s"}`, giteeUserName)),
+				fmt.Sprintf(`{"IssueEvent.Assignee.Login": "eq=%s"}`, giteeUserName)),
 			WebFilter: datatypes.JSON(fmt.Sprintf(
 				`{"issue_assignee": "%s", "event_type": "issue"}`, giteeUserName))},
 		{Source: utils.GiteeSource, EventType: "pr", SpecVersion: "1.0", ModeName: "待我处理的pr",
 			ModeFilter: datatypes.JSON(fmt.Sprintf(
-				`{"PullRequestEvent.PullRequest.Assignee.Login": "eq=%s"}`, giteeUserName)),
+				`{"Assignees: "contains=%s"}`, giteeUserName)),
 			WebFilter: datatypes.JSON(fmt.Sprintf(
 				`{"pr_assignee": "%s", "event_type": "pr"}`, giteeUserName))},
 		{Source: utils.GiteeSource, EventType: "note", SpecVersion: "1.0", ModeName: "我提的issue的评论",
 			ModeFilter: datatypes.JSON(
 				fmt.Sprintf(`{"NoteEvent.Issue.User.Login": "eq=%s"}`, giteeUserName)),
-			WebFilter: datatypes.JSON(fmt.Sprintf(`{"note_type": "issue", "event_type": "note"}`))},
+			WebFilter: datatypes.JSON(fmt.Sprintf(`{"note_type": "Issue", "event_type": "note"}`))},
 	}
 	return defaultFilter, nil
 }
@@ -193,6 +193,10 @@ func addPushConfig(subsId int, recipientId int64) error {
 }
 
 func subscribeDefault(recipientId uint, userName string, giteeUserName string) {
+	if userName == "" || giteeUserName == "" {
+		logrus.Errorf("username is empty or gitee username is empty")
+		return
+	}
 	defaultFilter, err := getDefaultFilter(giteeUserName)
 	if err != nil {
 		logrus.Errorf("get default filter failed, err:%v", err)

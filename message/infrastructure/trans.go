@@ -131,6 +131,13 @@ func getNotOneOfFilter(value string) string {
 	return ""
 }
 
+func getPrAssigneeFilter(value string) string {
+	if value != "" {
+		return "contains=" + value
+	}
+	return ""
+}
+
 // 获取 Gitee 数据库格式
 func getGiteeDbFormat(eventType string, modeFilter CmdToGetSubscribe, lRepoName,
 	lNameSpace []string) interface{} {
@@ -187,7 +194,7 @@ func getGiteeDbFormat(eventType string, modeFilter CmdToGetSubscribe, lRepoName,
 			PrAction:        sAction,
 			PrMergeStatus:   sMergeStatus,
 			PrCreator:       buildStringFilter(strings.Split(modeFilter.PrCreator, ",")),
-			PrAssignee:      buildStringFilter(strings.Split(modeFilter.PrAssignee, ",")),
+			PrAssignee:      getPrAssigneeFilter(modeFilter.PrAssignee),
 			EventTime:       eventTime,
 			MySig:           sMySig,
 			MyManagement:    sMyManagement,
