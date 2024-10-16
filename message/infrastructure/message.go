@@ -387,7 +387,7 @@ func (s *messageAdapter) GetInnerMessageQuick(cmd CmdToGetInnerMessageQuick,
 	query.Count(&Count)
 
 	var response []MessageListDAO
-	if result := query.Debug().Limit(cmd.CountPerPage).Offset(offsetNum).
+	if result := query.Limit(cmd.CountPerPage).Offset(offsetNum).
 		Order("cloud_event_message.time DESC").
 		Scan(&response); result.Error != nil {
 		return []MessageListDAO{}, 0, xerrors.Errorf("get inner message failed, err:%v",
