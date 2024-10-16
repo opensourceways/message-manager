@@ -42,10 +42,10 @@ func (ctl *messageSubscribeAdapter) GetSubsConfig(userName string) ([]MessageSub
 	var response []MessageSubscribeDAOWithPushConfig
 
 	query := postgresql.DB().Table("message_center.subscribe_config").
-		Select("subscribe_config.*, push_config.need_mail").
-		Joins("JOIN message_center.push_config ON subscribe_config.id = push_config.subscribe_id").
-		Where(gorm.Expr("subscribe_config.is_deleted = ?", false)).
-		Where("subscribe_config.user_name = ?", userName)
+		Select("subscribe_config.*, (SELECT push_config.need_mail FROM message_center."+
+			"push_config WHERE push_config.subscribe_id = subscribe_config.id LIMIT 1) AS need_mail").
+		Where("subscribe_config.is_deleted = ? AND subscribe_config.user_name = ?",
+			false, userName)
 
 	var Count int64
 	query.Count(&Count)
