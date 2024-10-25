@@ -15,6 +15,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"golang.org/x/xerrors"
 )
 
@@ -268,6 +269,7 @@ func getPulls(url, owner, repoName, token, username string) ([]PullRequest, erro
 
 		var members []PullRequest
 		err = json.Unmarshal(body, &members)
+		logrus.Infof("the data is %v", string(body))
 		if err != nil {
 			return []PullRequest{}, err
 		}
