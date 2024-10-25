@@ -241,6 +241,7 @@ func GetUserAdminReposByToken(accessToken string) ([]string, error) {
 }
 
 type PullRequest struct {
+	PullRequestUrl string `json:"url"`
 }
 
 func getPulls(url, owner, repoName, token, username string) ([]PullRequest, error) {
