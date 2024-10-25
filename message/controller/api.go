@@ -14,8 +14,7 @@ func AddWebRouter(r *gin.Engine) {
 }
 
 type RequestData struct {
-	UserName    string `json:"user_name"`
-	AccessToken string `json:"access_token"`
+	UserName string `json:"user_name"`
 }
 
 func GetTodoPullRequest(ctx *gin.Context) {
@@ -26,17 +25,21 @@ func GetTodoPullRequest(ctx *gin.Context) {
 		return
 	}
 
-	if req.UserName == "" || req.AccessToken == "" {
+	if req.UserName == "" {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "bad request"})
 		return
 	}
 
-	data, err := utils.GetTodoPulls(req.UserName, req.AccessToken)
+	data, err := utils.GetTodoPulls(req.UserName)
 	if err != nil {
 		logrus.Errorf("get to-do pulls failed, err:%v", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "get to-do pulls failed"})
 		return
 	}
+	var prs []string
+	for _, pr := range data {
+		prs = append(prs, pr.PullRequestUrl)
+	}
 
-	ctx.JSON(http.StatusAccepted, gin.H{"to_do_pulls": data})
+	ctx.JSON(http.StatusAccepted, gin.H{"to_do_pulls": prs})
 }

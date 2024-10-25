@@ -9,10 +9,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"golang.org/x/xerrors"
@@ -27,11 +27,8 @@ const (
 	eulerUserSigUrl   = "https://dsapi.osinfra.cn/query/user/ownertype?community=openeuler&user=%s"
 	giteeUserReposUrl = "https://gitee.com/api/v5/users/%s/repos?type=all&sort=full_name&page=%d" +
 		"&per_page=%d"
-	giteeAdminReposUrl = "https://gitee." +
-		"com/api/v5/user/repos?access_token=%s&visibility=all&affiliation=admin&sort=full_name" +
-		"&page=%d&per_page=%d"
-	giteeGetPullsUrl = "https://gitee.com/api/v5/repos/%s/%s/pulls?access_token=%s&state=open" +
-		"&sort=created&direction=desc&page=%d&per_page=%d&assignee=%s"
+	giteeGetPullsUrl = "https://gitee.com/api/v5/repos/%s/%s/pulls?&state=open" +
+		"&sort=created&direction=desc&page=%d&per_page=%d&assignee=%s&access_token=****"
 )
 
 func ParseUnixTimestamp(timestampStr string) *time.Time {
@@ -162,10 +159,9 @@ func getRepos(url string, param string) ([]GiteeRepo, error) {
 	perPage := 100
 
 	var totalCount int
-
 	for {
-		url := fmt.Sprintf(url, param, page, perPage)
-		req, err := http.NewRequest("GET", url, nil)
+		curUrl := fmt.Sprintf(url, param, page, perPage)
+		req, err := http.NewRequest("GET", curUrl, nil)
 		if err != nil {
 			return []GiteeRepo{}, err
 		}
@@ -224,25 +220,11 @@ func GetUserAdminReposByUsername(userName string) ([]string, error) {
 	return adminRepos, nil
 }
 
-func GetUserAdminReposByToken(accessToken string) ([]string, error) {
-	repos, err := getRepos(giteeAdminReposUrl, accessToken)
-	if err != nil {
-		return []string{}, err
-	}
-	var adminRepos []string
-	for _, repo := range repos {
-		adminRepos = append(adminRepos, repo.FullName)
-	}
-	if len(adminRepos) == 0 {
-		return []string{}, nil // 确保返回空切片而不是 nil
-	}
-	return adminRepos, nil
-}
-
 type PullRequest struct {
+	PullRequestUrl string `json:"url"`
 }
 
-func getPulls(url, owner, repoName, token, username string) ([]PullRequest, error) {
+func getPulls(url, owner, repoName, username string) ([]PullRequest, error) {
 	var pulls []PullRequest
 	page := 1
 	perPage := 100
@@ -250,8 +232,8 @@ func getPulls(url, owner, repoName, token, username string) ([]PullRequest, erro
 	var totalCount int
 
 	for {
-		url := fmt.Sprintf(url, owner, repoName, token, page, perPage, username)
-		req, err := http.NewRequest("GET", url, nil)
+		curUrl := fmt.Sprintf(url, owner, repoName, page, perPage, username)
+		req, err := http.NewRequest("GET", curUrl, nil)
 		if err != nil {
 			return []PullRequest{}, err
 		}
@@ -293,29 +275,27 @@ func getPulls(url, owner, repoName, token, username string) ([]PullRequest, erro
 	return pulls, nil
 }
 
-func GetTodoPulls(userName string, accessToken string) ([]PullRequest, error) {
-	repos, err := GetUserAdminReposByToken(accessToken)
+func GetTodoPulls(userName string) ([]PullRequest, error) {
+	repos, err := GetUserAdminReposByUsername(userName)
 	if err != nil {
 		return nil, err
 	}
 
 	// Step 2: 获取待评审的 PR 列表
 	var PullRequests []PullRequest
-	var wg sync.WaitGroup
 
 	for _, repo := range repos {
-		wg.Add(1)
-		go func(repo string) {
-			defer wg.Done()
-			lRepo := strings.Split(repo, "/")
-			owner, repoName := lRepo[0], lRepo[1]
-			pulls, err := getPulls(giteeGetPullsUrl, owner, repoName, accessToken, userName)
-			if err != nil {
-				return
-			}
-			PullRequests = append(PullRequests, pulls...)
-		}(repo)
+		lRepo := strings.Split(repo, "/")
+		owner, repoName := lRepo[0], lRepo[1]
+		if !slices.Contains([]string{"openEuler", "src-openeuler"}, owner) {
+			continue
+		}
+		pulls, err := getPulls(giteeGetPullsUrl, owner, repoName, userName)
+		if err != nil {
+			continue
+		}
+		PullRequests = append(PullRequests, pulls...)
 	}
-	wg.Wait()
+
 	return PullRequests, nil
 }
