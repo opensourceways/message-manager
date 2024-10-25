@@ -31,6 +31,8 @@ func initMessage(services *allServices) error {
 
 // setRouteOfMessage is registering controller of moderation in api
 func setRouteOfMessage(rg *gin.Engine, services *allServices) {
+	messagectl.AddWebRouter(rg)
+
 	messagectl.AddRouterForMessageListController(
 		rg,
 		services.MessageListAppService,

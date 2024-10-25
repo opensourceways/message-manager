@@ -45,7 +45,7 @@ func applyKeyWordFilter(query *gorm.DB, field string, keyWord string) *gorm.DB {
 func applyRepoFilter(query *gorm.DB, myManagement string, repos string) *gorm.DB {
 	var lRepo []string
 	if myManagement != "" {
-		lRepo, _ = utils.GetUserAdminRepos(myManagement)
+		lRepo, _ = utils.GetUserAdminReposByUsername(myManagement)
 	}
 	if repos != "" {
 		lRepo = append(lRepo, strings.Split(repos, ",")...)
@@ -428,9 +428,7 @@ func (s *messageAdapter) CountAllUnReadMessage(userName string) ([]CountDAO, err
 	var CountData []CountDAO
 	sqlCount := `SELECT inner_message.source, COUNT(*) FROM message_center.inner_message 
     JOIN message_center.cloud_event_message ON inner_message.event_id = cloud_event_message.event_id 
-         AND inner_message.source = cloud_event_message.source 
-	JOIN message_center.recipient_config ON 
-		cast(inner_message.recipient_id AS BIGINT) = recipient_config.id 
+	JOIN message_center.recipient_config ON inner_message.recipient_id = recipient_config.id 
 	WHERE is_read = ? AND recipient_config.user_id = ? 
 	AND inner_message.is_deleted = ? 
 	AND recipient_config.is_deleted = ?

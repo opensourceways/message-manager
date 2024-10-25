@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"golang.org/x/xerrors"
@@ -24,7 +25,13 @@ const (
 	CveSource     = "cve"
 
 	eulerUserSigUrl   = "https://dsapi.osinfra.cn/query/user/ownertype?community=openeuler&user=%s"
-	giteeUserReposUrl = "https://gitee.com/api/v5/users/%s/repos?type=all&sort=full_name&page=%d&per_page=%d"
+	giteeUserReposUrl = "https://gitee.com/api/v5/users/%s/repos?type=all&sort=full_name&page=%d" +
+		"&per_page=%d"
+	giteeAdminReposUrl = "https://gitee." +
+		"com/api/v5/user/repos?access_token=%s&visibility=all&affiliation=admin&sort=full_name" +
+		"&page=%d&per_page=%d"
+	giteeGetPullsUrl = "https://gitee.com/api/v5/repos/%s/%s/pulls?access_token=%s&state=open" +
+		"&sort=created&direction=desc&page=%d&per_page=%d&assignee=%s"
 )
 
 func ParseUnixTimestamp(timestampStr string) *time.Time {
@@ -149,7 +156,7 @@ func GetUserSigInfo(userName string) ([]string, error) {
 	return repoSig.Sig, nil
 }
 
-func GetUserAdminRepos(userName string) ([]string, error) {
+func getRepos(url string, param string) ([]GiteeRepo, error) {
 	var repos []GiteeRepo
 	page := 1
 	perPage := 100
@@ -157,26 +164,26 @@ func GetUserAdminRepos(userName string) ([]string, error) {
 	var totalCount int
 
 	for {
-		url := fmt.Sprintf(giteeUserReposUrl, userName, page, perPage)
+		url := fmt.Sprintf(url, param, page, perPage)
 		req, err := http.NewRequest("GET", url, nil)
 		if err != nil {
-			return []string{}, err
+			return []GiteeRepo{}, err
 		}
 
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
-			return []string{}, err
+			return []GiteeRepo{}, err
 		}
 
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return []string{}, err
+			return []GiteeRepo{}, err
 		}
 
 		var members []GiteeRepo
 		err = json.Unmarshal(body, &members)
 		if err != nil {
-			return []string{}, err
+			return []GiteeRepo{}, err
 		}
 
 		repos = append(repos, members...)
@@ -184,7 +191,7 @@ func GetUserAdminRepos(userName string) ([]string, error) {
 		if totalCount == 0 {
 			totalCount, err = strconv.Atoi(resp.Header.Get("total_count"))
 			if err != nil {
-				return []string{}, xerrors.Errorf("trans to int failed, err:%v", err)
+				return []GiteeRepo{}, xerrors.Errorf("trans to int failed, err:%v", err)
 			}
 		}
 
@@ -194,10 +201,17 @@ func GetUserAdminRepos(userName string) ([]string, error) {
 		page++
 		err = resp.Body.Close()
 		if err != nil {
-			return []string{}, xerrors.Errorf("close body failed, err :%v", err)
+			return []GiteeRepo{}, xerrors.Errorf("close body failed, err :%v", err)
 		}
 	}
+	return repos, nil
+}
 
+func GetUserAdminReposByUsername(userName string) ([]string, error) {
+	repos, err := getRepos(giteeUserReposUrl, userName)
+	if err != nil {
+		return []string{}, err
+	}
 	var adminRepos []string
 	for _, repo := range repos {
 		if repo.Admin {
@@ -208,4 +222,100 @@ func GetUserAdminRepos(userName string) ([]string, error) {
 		return []string{}, nil // 确保返回空切片而不是 nil
 	}
 	return adminRepos, nil
+}
+
+func GetUserAdminReposByToken(accessToken string) ([]string, error) {
+	repos, err := getRepos(giteeAdminReposUrl, accessToken)
+	if err != nil {
+		return []string{}, err
+	}
+	var adminRepos []string
+	for _, repo := range repos {
+		adminRepos = append(adminRepos, repo.FullName)
+	}
+	if len(adminRepos) == 0 {
+		return []string{}, nil // 确保返回空切片而不是 nil
+	}
+	return adminRepos, nil
+}
+
+type PullRequest struct {
+}
+
+func getPulls(url, owner, repoName, token, username string) ([]PullRequest, error) {
+	var pulls []PullRequest
+	page := 1
+	perPage := 100
+
+	var totalCount int
+
+	for {
+		url := fmt.Sprintf(url, owner, repoName, token, page, perPage, username)
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			return []PullRequest{}, err
+		}
+
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return []PullRequest{}, err
+		}
+
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return []PullRequest{}, err
+		}
+
+		var members []PullRequest
+		err = json.Unmarshal(body, &members)
+		if err != nil {
+			return []PullRequest{}, err
+		}
+
+		pulls = append(pulls, members...)
+
+		if totalCount == 0 {
+			totalCount, err = strconv.Atoi(resp.Header.Get("total_count"))
+			if err != nil {
+				return []PullRequest{}, xerrors.Errorf("trans to int failed, err:%v", err)
+			}
+		}
+
+		if len(members) < perPage {
+			break
+		}
+		page++
+		err = resp.Body.Close()
+		if err != nil {
+			return []PullRequest{}, xerrors.Errorf("close body failed, err :%v", err)
+		}
+	}
+	return pulls, nil
+}
+
+func GetTodoPulls(userName string, accessToken string) ([]PullRequest, error) {
+	repos, err := GetUserAdminReposByToken(accessToken)
+	if err != nil {
+		return nil, err
+	}
+
+	// Step 2: 获取待评审的 PR 列表
+	var PullRequests []PullRequest
+	var wg sync.WaitGroup
+
+	for _, repo := range repos {
+		wg.Add(1)
+		go func(repo string) {
+			defer wg.Done()
+			lRepo := strings.Split(repo, "/")
+			owner, repoName := lRepo[0], lRepo[1]
+			pulls, err := getPulls(giteeGetPullsUrl, owner, repoName, accessToken, userName)
+			if err != nil {
+				return
+			}
+			PullRequests = append(PullRequests, pulls...)
+		}(repo)
+	}
+	wg.Wait()
+	return PullRequests, nil
 }

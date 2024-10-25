@@ -152,7 +152,7 @@ func TestGetUserSigInfo(t *testing.T) {
 	assert.Equal(t, []string{}, sigs)
 }
 
-// 测试 GetUserAdminRepos
+// 测试 GetUserAdminReposByUsername
 func TestGetUserAdminRepos(t *testing.T) {
 	// 创建一个 HTTP 测试服务器
 	handler := func(w http.ResponseWriter, r *http.Request) {
@@ -176,7 +176,7 @@ func TestGetUserAdminRepos(t *testing.T) {
 	defer server.Close()
 
 	// 测试函数
-	adminRepos, err := GetUserAdminRepos("testuser")
+	adminRepos, err := GetUserAdminReposByUsername("testuser")
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"testuser/Git-Demo", "testuser/jhj", "testuser/testtest", "testuser/testtest2"}, adminRepos)
 }
