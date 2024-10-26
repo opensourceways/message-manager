@@ -13,10 +13,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"golang.org/x/xerrors"
 )
 
@@ -252,7 +250,6 @@ func getPulls(url, owner, repoName, username string) ([]PullRequest, error) {
 
 		var members []PullRequest
 		err = json.Unmarshal(body, &members)
-		logrus.Infof("the data is %v", string(body))
 		if err != nil {
 			return []PullRequest{}, err
 		}
@@ -286,24 +283,19 @@ func GetTodoPulls(userName string) ([]PullRequest, error) {
 
 	// Step 2: 获取待评审的 PR 列表
 	var PullRequests []PullRequest
-	var wg sync.WaitGroup
 
 	for _, repo := range repos {
-		wg.Add(1)
-		go func(repo string) {
-			defer wg.Done()
-			lRepo := strings.Split(repo, "/")
-			owner, repoName := lRepo[0], lRepo[1]
-			if !slices.Contains([]string{"openEuler", "src-openeuler"}, owner) {
-				return
-			}
-			pulls, err := getPulls(giteeGetPullsUrl, owner, repoName, userName)
-			if err != nil {
-				return
-			}
-			PullRequests = append(PullRequests, pulls...)
-		}(repo)
+		lRepo := strings.Split(repo, "/")
+		owner, repoName := lRepo[0], lRepo[1]
+		if !slices.Contains([]string{"openEuler", "src-openeuler"}, owner) {
+			continue
+		}
+		pulls, err := getPulls(giteeGetPullsUrl, owner, repoName, userName)
+		if err != nil {
+			continue
+		}
+		PullRequests = append(PullRequests, pulls...)
 	}
-	wg.Wait()
+
 	return PullRequests, nil
 }
