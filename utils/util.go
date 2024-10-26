@@ -12,23 +12,27 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"golang.org/x/xerrors"
 )
 
 const (
-	EurSource     = "https://eur.openeuler.openatom.cn"
-	GiteeSource   = "https://gitee.com"
-	MeetingSource = "https://www.openEuler.org/meeting"
-	CveSource     = "cve"
+	EurSource       = "https://eur.openeuler.openatom.cn"
+	GiteeSource     = "https://gitee.com"
+	MeetingSource   = "https://www.openEuler.org/meeting"
+	CveSource       = "cve"
+	eulerUserSigUrl = "https://dsapi.osinfra.cn/query/user/ownertype?community=openeuler&user=%s"
 
-	eulerUserSigUrl   = "https://dsapi.osinfra.cn/query/user/ownertype?community=openeuler&user=%s"
-	giteeUserReposUrl = "https://gitee.com/api/v5/users/%s/repos?type=all&sort=full_name&page=%d" +
-		"&per_page=%d"
-	giteeGetPullsUrl = "https://gitee.com/api/v5/repos/%s/%s/pulls?&state=open" +
-		"&sort=created&direction=desc&page=%d&per_page=%d&assignee=%s&access_token=****"
+	giteeV5Base       = "https://gitee.com/api/v5/"
+	giteeV8Base       = "https://api.gitee.com/"
+	giteeUserReposUrl = giteeV5Base +
+		"users/%s/repos?type=all&sort=full_name&page=%d&per_page=%d"
+
+	giteeGetUserIdUrl = giteeV5Base + "users/%s"
+	giteeGetPullsUrl  = giteeV8Base +
+		"enterprises/%s/pull_requests?access_token=%s&assignee_id=%d&page=%d&per_page=%d"
 )
 
 func ParseUnixTimestamp(timestampStr string) *time.Time {
@@ -220,19 +224,63 @@ func GetUserAdminReposByUsername(userName string) ([]string, error) {
 	return adminRepos, nil
 }
 
-type PullRequest struct {
-	PullRequestUrl string `json:"url"`
+type UserInfo struct {
+	ID int `json:"id"`
 }
 
-func getPulls(url, owner, repoName, username string) ([]PullRequest, error) {
+func GetUserId(userName string) int {
+	curUrl := fmt.Sprintf(giteeGetUserIdUrl, userName)
+	req, err := http.NewRequest("GET", curUrl, nil)
+	if err != nil {
+		return 0
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return 0
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return 0
+	}
+
+	var giteeId int
+	logrus.Infof("the url is %v", curUrl)
+	logrus.Infof("the data is %v", string(body))
+	err = json.Unmarshal(body, &giteeId)
+	if err != nil {
+		return 0
+	}
+
+	return giteeId
+}
+
+type PullsData struct {
+	TotalCount   int           `json:"total_count"`
+	PullRequests []PullRequest `json:"data"`
+}
+
+type PullRequest struct {
+	IId     int         `json:"iid"`
+	Title   string      `json:"title"`
+	Project PullProject `json:"project"`
+}
+
+type PullProject struct {
+	PathWithNamespace string `json:"path_with_namespace"`
+}
+
+func getPulls(giteeId int) ([]PullRequest, error) {
 	var pulls []PullRequest
 	page := 1
 	perPage := 100
-
-	var totalCount int
-
+	if giteeId == 0 {
+		return []PullRequest{}, xerrors.Errorf("the gitee id is empty")
+	}
 	for {
-		curUrl := fmt.Sprintf(url, owner, repoName, page, perPage, username)
+		curUrl := fmt.Sprintf(giteeGetPullsUrl, "5292411", "b3382901d99f1026de9dd537bf0473d6",
+			giteeId, page, perPage)
 		req, err := http.NewRequest("GET", curUrl, nil)
 		if err != nil {
 			return []PullRequest{}, err
@@ -248,22 +296,14 @@ func getPulls(url, owner, repoName, username string) ([]PullRequest, error) {
 			return []PullRequest{}, err
 		}
 
-		var members []PullRequest
-		err = json.Unmarshal(body, &members)
+		var data PullsData
+		err = json.Unmarshal(body, &data)
 		if err != nil {
 			return []PullRequest{}, err
 		}
 
-		pulls = append(pulls, members...)
-
-		if totalCount == 0 {
-			totalCount, err = strconv.Atoi(resp.Header.Get("total_count"))
-			if err != nil {
-				return []PullRequest{}, xerrors.Errorf("trans to int failed, err:%v", err)
-			}
-		}
-
-		if len(members) < perPage {
+		pulls = append(pulls, data.PullRequests...)
+		if len(data.PullRequests) < perPage {
 			break
 		}
 		page++
@@ -275,29 +315,16 @@ func getPulls(url, owner, repoName, username string) ([]PullRequest, error) {
 	return pulls, nil
 }
 
-func GetTodoPulls(userName string) ([]PullRequest, error) {
-	repos, err := GetUserAdminReposByUsername(userName)
+func GetTodoPulls(userName string) ([]string, error) {
+	giteeUserId := GetUserId(userName)
+	PullRequests, err := getPulls(giteeUserId)
 	if err != nil {
 		return nil, err
 	}
-
-	// Step 2: 获取待评审的 PR 列表
-	var PullRequests []PullRequest
-	var wg sync.WaitGroup
-
-	for _, repo := range repos {
-		wg.Add(1)
-		go func(repo string) {
-			defer wg.Done()
-			lRepo := strings.Split(repo, "/")
-			owner, repoName := lRepo[0], lRepo[1]
-			pulls, err := getPulls(giteeGetPullsUrl, owner, repoName, userName)
-			if err != nil {
-				return
-			}
-			PullRequests = append(PullRequests, pulls...)
-		}(repo)
+	var pullUrls []string
+	for _, pr := range PullRequests {
+		url := fmt.Sprintf("https://gitee.com/%s/pulls/%s", pr.Project.PathWithNamespace, pr.IId)
+		pullUrls = append(pullUrls, url)
 	}
-	wg.Wait()
-	return PullRequests, nil
+	return pullUrls, nil
 }

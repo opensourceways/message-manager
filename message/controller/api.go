@@ -36,10 +36,5 @@ func GetTodoPullRequest(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "get to-do pulls failed"})
 		return
 	}
-	var prs []string
-	for _, pr := range data {
-		prs = append(prs, pr.PullRequestUrl)
-	}
-
-	ctx.JSON(http.StatusAccepted, gin.H{"to_do_pulls": prs})
+	ctx.JSON(http.StatusAccepted, gin.H{"to_do_pulls": data})
 }
