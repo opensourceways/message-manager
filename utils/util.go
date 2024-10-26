@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -293,6 +294,9 @@ func GetTodoPulls(userName string) ([]PullRequest, error) {
 			defer wg.Done()
 			lRepo := strings.Split(repo, "/")
 			owner, repoName := lRepo[0], lRepo[1]
+			if !slices.Contains([]string{"openEuler", "src-openeuler"}, owner) {
+				return
+			}
 			pulls, err := getPulls(giteeGetPullsUrl, owner, repoName, userName)
 			if err != nil {
 				return
