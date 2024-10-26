@@ -9,10 +9,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"slices"
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"golang.org/x/xerrors"
@@ -283,19 +283,21 @@ func GetTodoPulls(userName string) ([]PullRequest, error) {
 
 	// Step 2: 获取待评审的 PR 列表
 	var PullRequests []PullRequest
+	var wg sync.WaitGroup
 
 	for _, repo := range repos {
-		lRepo := strings.Split(repo, "/")
-		owner, repoName := lRepo[0], lRepo[1]
-		if !slices.Contains([]string{"openEuler", "src-openeuler"}, owner) {
-			continue
-		}
-		pulls, err := getPulls(giteeGetPullsUrl, owner, repoName, userName)
-		if err != nil {
-			continue
-		}
-		PullRequests = append(PullRequests, pulls...)
+		wg.Add(1)
+		go func(repo string) {
+			defer wg.Done()
+			lRepo := strings.Split(repo, "/")
+			owner, repoName := lRepo[0], lRepo[1]
+			pulls, err := getPulls(giteeGetPullsUrl, owner, repoName, userName)
+			if err != nil {
+				return
+			}
+			PullRequests = append(PullRequests, pulls...)
+		}(repo)
 	}
-
+	wg.Wait()
 	return PullRequests, nil
 }
