@@ -28,7 +28,7 @@ const (
 	giteeUserReposUrl = "https://gitee.com/api/v5/users/%s/repos?type=all&sort=full_name&page=%d" +
 		"&per_page=%d"
 	giteeGetPullsUrl = "https://gitee.com/api/v5/repos/%s/%s/pulls?&state=open" +
-		"&sort=created&direction=desc&page=%d&per_page=%d&assignee=%s"
+		"&sort=created&direction=desc&page=%d&per_page=%d&assignee=%s&access_token=****"
 )
 
 func ParseUnixTimestamp(timestampStr string) *time.Time {
