@@ -232,8 +232,8 @@ func getPulls(url, owner, repoName, username string) ([]PullRequest, error) {
 	var totalCount int
 
 	for {
-		url := fmt.Sprintf(url, owner, repoName, page, perPage, username)
-		req, err := http.NewRequest("GET", url, nil)
+		curUrl := fmt.Sprintf(url, owner, repoName, page, perPage, username)
+		req, err := http.NewRequest("GET", curUrl, nil)
 		if err != nil {
 			return []PullRequest{}, err
 		}
