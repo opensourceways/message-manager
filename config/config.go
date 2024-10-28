@@ -14,12 +14,14 @@ import (
 	common "github.com/opensourceways/message-manager/common/config"
 	"github.com/opensourceways/message-manager/common/postgresql"
 	"github.com/opensourceways/message-manager/common/user"
+	"github.com/opensourceways/message-manager/utils"
 )
 
 type Config struct {
 	Postgresql postgresql.Config `yaml:"postgresql"`
 	Cassandra  cassandra.Config  `yaml:"cassandra"`
 	User       user.Config       `yaml:"user"`
+	Utils      utils.Config      `yaml:"utils"`
 }
 
 func LoadFromYaml(path string, cfg interface{}) error {

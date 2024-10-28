@@ -30,11 +30,11 @@ func GetTodoPullRequest(ctx *gin.Context) {
 		return
 	}
 
-	data, err := utils.GetTodoPulls(req.UserName)
+	data, count, err := utils.GetTodoPulls(req.UserName)
 	if err != nil {
 		logrus.Errorf("get to-do pulls failed, err:%v", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "get to-do pulls failed"})
 		return
 	}
-	ctx.JSON(http.StatusAccepted, gin.H{"to_do_pulls": data})
+	ctx.JSON(http.StatusAccepted, gin.H{"total_count": count, "to_do_pulls": data})
 }

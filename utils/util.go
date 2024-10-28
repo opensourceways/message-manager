@@ -19,20 +19,10 @@ import (
 )
 
 const (
-	EurSource       = "https://eur.openeuler.openatom.cn"
-	GiteeSource     = "https://gitee.com"
-	MeetingSource   = "https://www.openEuler.org/meeting"
-	CveSource       = "cve"
-	eulerUserSigUrl = "https://dsapi.osinfra.cn/query/user/ownertype?community=openeuler&user=%s"
-
-	giteeV5Base       = "https://gitee.com/api/v5/"
-	giteeV8Base       = "https://api.gitee.com/"
-	giteeUserReposUrl = giteeV5Base +
-		"users/%s/repos?type=all&sort=full_name&page=%d&per_page=%d"
-
-	giteeGetUserIdUrl = giteeV5Base + "users/%s"
-	giteeGetPullsUrl  = giteeV8Base +
-		"enterprises/%s/pull_requests?access_token=%s&assignee_id=%d&page=%d&per_page=%d"
+	EurSource     = "https://eur.openeuler.openatom.cn"
+	GiteeSource   = "https://gitee.com"
+	MeetingSource = "https://www.openEuler.org/meeting"
+	CveSource     = "cve"
 )
 
 func ParseUnixTimestamp(timestampStr string) *time.Time {
@@ -129,7 +119,7 @@ func RemoveEmptyStrings(input []string) []string {
 }
 
 func GetUserSigInfo(userName string) ([]string, error) {
-	url := fmt.Sprintf(eulerUserSigUrl, userName)
+	url := fmt.Sprintf(config.EulerUserSigUrl, userName)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return []string{}, err
@@ -208,7 +198,7 @@ func getRepos(url string, param string) ([]GiteeRepo, error) {
 }
 
 func GetUserAdminReposByUsername(userName string) ([]string, error) {
-	repos, err := getRepos(giteeUserReposUrl, userName)
+	repos, err := getRepos(config.GiteeUserReposUrl, userName)
 	if err != nil {
 		return []string{}, err
 	}
@@ -229,7 +219,7 @@ type UserInfo struct {
 }
 
 func GetUserId(userName string) int {
-	curUrl := fmt.Sprintf(giteeGetUserIdUrl, userName)
+	curUrl := fmt.Sprintf(config.GiteeGetUserIdUrl, userName, config.GiteeToken)
 	req, err := http.NewRequest("GET", curUrl, nil)
 	if err != nil {
 		return 0
@@ -245,15 +235,13 @@ func GetUserId(userName string) int {
 		return 0
 	}
 
-	var giteeId int
-	logrus.Infof("the url is %v", curUrl)
-	logrus.Infof("the data is %v", string(body))
-	err = json.Unmarshal(body, &giteeId)
+	var giteeUserInfo UserInfo
+	err = json.Unmarshal(body, &giteeUserInfo)
 	if err != nil {
 		return 0
 	}
 
-	return giteeId
+	return giteeUserInfo.ID
 }
 
 type PullsData struct {
@@ -271,60 +259,67 @@ type PullProject struct {
 	PathWithNamespace string `json:"path_with_namespace"`
 }
 
-func getPulls(giteeId int) ([]PullRequest, error) {
+func getPulls(giteeId int) ([]PullRequest, int, error) {
 	var pulls []PullRequest
 	page := 1
 	perPage := 100
 	if giteeId == 0 {
-		return []PullRequest{}, xerrors.Errorf("the gitee id is empty")
+		return []PullRequest{}, 0, xerrors.Errorf("the gitee id is empty")
 	}
+	var totalCount int
+	state := "opened"
 	for {
-		curUrl := fmt.Sprintf(giteeGetPullsUrl, "5292411", "b3382901d99f1026de9dd537bf0473d6",
-			giteeId, page, perPage)
+		curUrl := fmt.Sprintf(config.GiteeGetPullsUrl+"&state=%s", config.OpenEulerId,
+			config.OpenEulerToken, giteeId, page, perPage, state)
 		req, err := http.NewRequest("GET", curUrl, nil)
 		if err != nil {
-			return []PullRequest{}, err
+			return []PullRequest{}, 0, err
 		}
 
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
-			return []PullRequest{}, err
+			return []PullRequest{}, 0, err
 		}
 
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return []PullRequest{}, err
+			return []PullRequest{}, 0, err
 		}
 
 		var data PullsData
 		err = json.Unmarshal(body, &data)
 		if err != nil {
-			return []PullRequest{}, err
+			return []PullRequest{}, 0, err
 		}
 
+		totalCount = data.TotalCount
 		pulls = append(pulls, data.PullRequests...)
+		logrus.Infof("the url is %v, the length is %v", curUrl, len(data.PullRequests))
+
 		if len(data.PullRequests) < perPage {
 			break
 		}
 		page++
 		err = resp.Body.Close()
 		if err != nil {
-			return []PullRequest{}, xerrors.Errorf("close body failed, err :%v", err)
+			return []PullRequest{}, 0, xerrors.Errorf("close body failed, err :%v", err)
 		}
 	}
-	return pulls, nil
+	return pulls, totalCount, nil
 }
 
-func GetTodoPulls(userName string) ([]string, error) {
+func GetTodoPulls(userName string) ([]string, int, error) {
 	giteeUserId := GetUserId(userName)
-	PullRequests, err := getPulls(giteeUserId)
+	PullRequests, totalCount, err := getPulls(giteeUserId)
+
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	var pullUrls []string
 	for _, pr := range PullRequests {
-		url := fmt.Sprintf("https://gitee.com/%s/pulls/%s", pr.Project.PathWithNamespace, pr.IId)
+		url := fmt.Sprintf("https://gitee.com/%s/pulls/%d", pr.Project.PathWithNamespace, pr.IId)
 		pullUrls = append(pullUrls, url)
 	}
-	return pullUrls, nil
+
+	return pullUrls, totalCount, nil
 }

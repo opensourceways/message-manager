@@ -15,6 +15,7 @@ import (
 	"github.com/opensourceways/message-manager/common/user"
 	"github.com/opensourceways/message-manager/config"
 	"github.com/opensourceways/message-manager/server"
+	"github.com/opensourceways/message-manager/utils"
 )
 
 func gatherOptions(fs *flag.FlagSet, args ...string) (Options, error) {
@@ -67,6 +68,9 @@ func main() {
 
 	// init user
 	user.Init(&cfg.User)
+
+	// init user
+	utils.Init(&cfg.Utils)
 
 	server.StartWebServer()
 }
