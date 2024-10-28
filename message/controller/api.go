@@ -9,7 +9,7 @@ import (
 )
 
 func AddWebRouter(r *gin.Engine) {
-	v1 := r.Group("/message-center")
+	v1 := r.Group("/message_center")
 	v1.GET("/todo-pulls", GetTodoPullRequest)
 }
 
