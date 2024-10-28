@@ -10,16 +10,16 @@ import (
 
 func AddWebRouter(r *gin.Engine) {
 	v1 := r.Group("/message_center")
-	v1.POST("/get_to_do_pulls", GetTodoPullRequest)
+	v1.GET("/todo_pulls", GetTodoPullRequest)
 }
 
 type RequestData struct {
-	UserName string `json:"user_name"`
+	UserName string `form:"user_name"`
 }
 
 func GetTodoPullRequest(ctx *gin.Context) {
 	var req RequestData
-	if err := ctx.BindJSON(&req); err != nil {
+	if err := ctx.BindQuery(&req); err != nil {
 		logrus.Errorf("bad request data, err:%v", err)
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "bad request"})
 		return
