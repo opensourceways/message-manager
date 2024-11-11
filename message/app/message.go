@@ -19,6 +19,15 @@ type MessageListAppService interface {
 	RemoveMessage(cmd *CmdToSetIsRead) error
 	GetForumSystemMessage(userName string) ([]MessageListDTO, int64, error)
 	GetForumAboutMessage(userName string) ([]MessageListDTO, int64, error)
+	GetMeetingToDoMessage(userName string, giteeUsername string) ([]MessageListDTO, int64, error)
+	GetMeetingMessage(userName string, giteeUsername string) ([]MessageListDTO, int64, error)
+	GetCVEToDoMessage(userName string, giteeUsername string) ([]MessageListDTO, int64, error)
+	GetCVEMessage(userName string, giteeUsername string) ([]MessageListDTO, int64, error)
+	GetIssueToDoMessage(userName string, giteeUsername string) ([]MessageListDTO, int64, error)
+	GetPullRequestToDoMessage(userName string, giteeUsername string) ([]MessageListDTO, int64, error)
+	GetGiteeAboutMessage(userName string, giteeUsername string) ([]MessageListDTO, int64, error)
+	GetGiteeMessage(userName string, giteeUsername string) ([]MessageListDTO, int64, error)
+	GetEurMessage(userName string) ([]MessageListDTO, int64, error)
 }
 
 func NewMessageListAppService(
@@ -73,7 +82,8 @@ func (s *messageListAppService) RemoveMessage(cmd *CmdToSetIsRead) error {
 	return nil
 }
 
-func (s *messageListAppService) GetForumSystemMessage(userName string) ([]MessageListDTO, int64, error) {
+func (s *messageListAppService) GetForumSystemMessage(userName string) (
+	[]MessageListDTO, int64, error) {
 	response, count, err := s.messageListAdapter.GetForumSystemMessage(userName)
 	if err != nil {
 		return []MessageListDTO{}, 0, err
@@ -81,8 +91,89 @@ func (s *messageListAppService) GetForumSystemMessage(userName string) ([]Messag
 	return response, count, nil
 }
 
-func (s *messageListAppService) GetForumAboutMessage(userName string) ([]MessageListDTO, int64, error) {
+func (s *messageListAppService) GetForumAboutMessage(userName string) (
+	[]MessageListDTO, int64, error) {
 	response, count, err := s.messageListAdapter.GetForumAboutMessage(userName)
+	if err != nil {
+		return []MessageListDTO{}, 0, err
+	}
+	return response, count, nil
+}
+
+func (s *messageListAppService) GetMeetingToDoMessage(userName string, giteeUsername string) (
+	[]MessageListDTO, int64, error) {
+	response, count, err := s.messageListAdapter.GetMeetingToDoMessage(userName, giteeUsername)
+	if err != nil {
+		return []MessageListDTO{}, 0, err
+	}
+	return response, count, nil
+}
+
+func (s *messageListAppService) GetMeetingMessage(userName string, giteeUsername string) (
+	[]MessageListDTO, int64, error) {
+	response, count, err := s.messageListAdapter.GetMeetingMessage(userName, giteeUsername)
+	if err != nil {
+		return []MessageListDTO{}, 0, err
+	}
+	return response, count, nil
+}
+
+func (s *messageListAppService) GetCVEToDoMessage(userName string, giteeUsername string) (
+	[]MessageListDTO, int64, error) {
+	response, count, err := s.messageListAdapter.GetCVEToDoMessage(userName, giteeUsername)
+	if err != nil {
+		return []MessageListDTO{}, 0, err
+	}
+	return response, count, nil
+}
+
+func (s *messageListAppService) GetCVEMessage(userName string, giteeUsername string) (
+	[]MessageListDTO, int64, error) {
+	response, count, err := s.messageListAdapter.GetCVEMessage(userName, giteeUsername)
+	if err != nil {
+		return []MessageListDTO{}, 0, err
+	}
+	return response, count, nil
+}
+
+func (s *messageListAppService) GetIssueToDoMessage(userName string, giteeUsername string) (
+	[]MessageListDTO, int64, error) {
+	response, count, err := s.messageListAdapter.GetIssueToDoMessage(userName, giteeUsername)
+	if err != nil {
+		return []MessageListDTO{}, 0, err
+	}
+	return response, count, nil
+}
+
+func (s *messageListAppService) GetPullRequestToDoMessage(userName string, giteeUsername string) (
+	[]MessageListDTO, int64, error) {
+	response, count, err := s.messageListAdapter.GetPullRequestToDoMessage(userName, giteeUsername)
+	if err != nil {
+		return []MessageListDTO{}, 0, err
+	}
+	return response, count, nil
+}
+
+func (s *messageListAppService) GetGiteeAboutMessage(userName string, giteeUsername string) (
+	[]MessageListDTO, int64, error) {
+	response, count, err := s.messageListAdapter.GetGiteeAboutMessage(userName, giteeUsername)
+	if err != nil {
+		return []MessageListDTO{}, 0, err
+	}
+	return response, count, nil
+}
+
+func (s *messageListAppService) GetGiteeMessage(userName string, giteeUsername string) (
+	[]MessageListDTO, int64, error) {
+	response, count, err := s.messageListAdapter.GetGiteeMessage(userName, giteeUsername)
+	if err != nil {
+		return []MessageListDTO{}, 0, err
+	}
+	return response, count, nil
+}
+
+func (s *messageListAppService) GetEurMessage(userName string) ([]MessageListDTO, int64, error) {
+	response, count, err := s.messageListAdapter.GetEurMessage(userName)
 	if err != nil {
 		return []MessageListDTO{}, 0, err
 	}
