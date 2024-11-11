@@ -465,44 +465,213 @@ func (s *messageAdapter) RemoveMessage(source, eventId string) error {
 func (s *messageAdapter) GetForumSystemMessage(userName string) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 
-	query := postgresql.DB().Table("message_center.inner_message").
-		Joins("JOIN message_center.cloud_event_message ON "+
-			"inner_message.event_id = cloud_event_message.event_id").
-		Joins("JOIN message_center.recipient_config ON "+
-			"inner_message.recipient_id = recipient_config.id").
-		Where("inner_message.is_deleted = ? AND recipient_config.is_deleted = ?", false, false).
-		Where("recipient_config.user_id = ?", userName).Where("cloud_event_message.type IN ('12'," +
-		"'24','37') or jsonb_extract_path_text(cloud_event_message.data_json, 'Data', " +
-		"'OriginalUsername') = 'system'")
-
-	var Count int64
-	query.Count(&Count)
-
-	if result := query.Scan(&response); result.Error != nil {
-		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
-		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
-			result.Error)
-	}
-	return response, Count, nil
-}
-
-func (s *messageAdapter) GetForumAboutMessage(userName string) ([]MessageListDAO, int64, error) {
-	var response []MessageListDAO
-	query := `select * from message_center.inner_message im
-		join message_center.cloud_event_message cem on im.event_id = cem.event_id
+	query := `select * from message_center.cloud_event_message cem
+		join message_center.inner_message im on im.event_id = cem.event_id
 		join message_center.recipient_config rc on rc.id = im.recipient_id
 		where im.is_deleted = false and rc.is_deleted = false and cem.source = 'forum'
-		  and rc.user_id = 'hourunze97' and
-		    (cem.type NOT IN ('12','24','37') or jsonb_extract_path_text(cem.data_json::jsonb,
-		'Data', 'OriginalUsername') <> 'system')`
-
-	var Count int64
-	postgresql.DB().Raw(query, userName).Count(&Count)
+		  and rc.user_id = ? and
+		    (cem.type IN ('12','24','37') or jsonb_extract_path_text(cem.data_json::jsonb,
+		'Data', 'OriginalUsername') = 'system')`
 
 	if result := postgresql.DB().Raw(query, userName).Scan(&response); result.Error != nil {
 		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
 	}
-	return response, Count, nil
+	return response, int64(len(response)), nil
+}
+
+func (s *messageAdapter) GetForumAboutMessage(userName string) ([]MessageListDAO, int64, error) {
+	var response []MessageListDAO
+	query := `select * from message_center.cloud_event_message cem
+		join message_center.inner_message im on im.event_id = cem.event_id
+		join message_center.recipient_config rc on rc.id = im.recipient_id
+		where im.is_deleted = false and rc.is_deleted = false and cem.source = 'forum'
+		  and rc.user_id = ? and
+		    (cem.type NOT IN ('12','24','37') or jsonb_extract_path_text(cem.data_json::jsonb,
+		'Data', 'OriginalUsername') <> 'system')`
+
+	if result := postgresql.DB().Raw(query, userName).Scan(&response); result.Error != nil {
+		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
+		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
+			result.Error)
+	}
+	return response, int64(len(response)), nil
+}
+
+func (s *messageAdapter) GetMeetingToDoMessage(userName string, giteeUsername string) ([]MessageListDAO, int64, error) {
+	var response []MessageListDAO
+	query := `select *
+		from (select distinct on (cem.source_url) cem.*
+		      from cloud_event_message cem
+		               join message_center.inner_message im on cem.event_id = im.event_id
+		               join message_center.recipient_config rc on im.recipient_id = rc.id
+		      where cem.type = 'meeting'
+		        and cem.source = 'https://www.openEuler.org/meeting'
+		        and (rc.gitee_user_name = ? or rc.user_id = ?)
+		      order by cem.source_url, updated_at desc) a
+		order by updated_at`
+	if result := postgresql.DB().Raw(query, giteeUsername, userName).Scan(&response); result.Error != nil {
+		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
+		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
+			result.Error)
+	}
+	return response, int64(len(response)), nil
+}
+
+func (s *messageAdapter) GetMeetingMessage(userName string, giteeUsername string) ([]MessageListDAO, int64, error) {
+	return []MessageListDAO{}, 0, nil
+}
+
+func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string) (
+	[]MessageListDAO, int64, error) {
+	var response []MessageListDAO
+	query := `select *
+		from (select distinct on (cem.source_url) cem.*
+		      from cloud_event_message cem
+		               join message_center.inner_message im on cem.event_id = im.event_id
+		               join message_center.recipient_config rc on im.recipient_id = rc.id
+		      where cem.type = 'issue'
+		        and cem.source = 'cve'
+		        and (rc.gitee_user_name = ? or rc.user_id = ?)
+		        and (cem.data_json #>> '{IssueEvent,Issue,Assignee,UserName}') = ?
+		      order by cem.source_url, cem.updated_at desc) a
+		order by updated_at desc`
+	if result := postgresql.DB().Raw(query, giteeUsername, userName,
+		giteeUsername).Scan(&response); result.Error != nil {
+		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
+		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
+			result.Error)
+	}
+	return response, int64(len(response)), nil
+}
+
+func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string) (
+	[]MessageListDAO, int64, error) {
+	var response []MessageListDAO
+	query := `select cem.*
+		from cloud_event_message cem
+		         join message_center.inner_message im on cem.event_id = im.event_id
+		         join message_center.recipient_config rc on im.recipient_id = rc.id
+		where cem.type = 'issue'
+		  and cem.source = 'cve'
+		  and (rc.gitee_user_name = ? or rc.user_id = ?)
+		order by updated_at desc`
+	if result := postgresql.DB().Raw(query, giteeUsername, userName).Scan(&response); result.
+		Error != nil {
+		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
+		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
+			result.Error)
+	}
+	return response, int64(len(response)), nil
+}
+
+func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string) (
+	[]MessageListDAO, int64, error) {
+	var response []MessageListDAO
+	query := `select *
+		from (select distinct on (cem.source_url) cem.*
+		      from cloud_event_message cem
+		               join message_center.inner_message im on cem.event_id = im.event_id
+		               join message_center.recipient_config rc on im.recipient_id = rc.id
+		      where cem.type = 'issue'
+		        and cem.source = 'https://gitee.com'
+		        and (rc.gitee_user_name = ? or rc.user_id = ?)
+		        and (cem.data_json #>> '{IssueEvent,Issue,Assignee,UserName}') = ?
+		      order by cem.source_url, cem.updated_at desc) a
+		order by updated_at desc`
+	if result := postgresql.DB().Raw(query, giteeUsername, userName,
+		giteeUsername).Scan(&response); result.Error != nil {
+		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
+		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
+			result.Error)
+	}
+	return response, int64(len(response)), nil
+}
+
+func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername string) (
+	[]MessageListDAO, int64, error) {
+	var response []MessageListDAO
+	query := `select *
+		from (select distinct on (cem.source_url) cem.*
+		      from cloud_event_message cem
+		               join message_center.inner_message im on cem.event_id = im.event_id
+		               join message_center.recipient_config rc on im.recipient_id = rc.id
+		          and cem.type = 'pr'
+		          and cem.source = 'https://gitee.com'
+		          and (rc.gitee_user_name = ? or rc.user_id = ?)
+		          and (cem.data_json ->> 'Assignees') :: text like ?
+		      order by cem.source_url, cem.updated_at desc) a
+		order by updated_at desc`
+	if result := postgresql.DB().Raw(query, giteeUsername, userName,
+		"%"+giteeUsername+"%").Scan(&response); result.Error != nil {
+		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
+		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
+			result.Error)
+	}
+	return response, int64(len(response)), nil
+}
+
+func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string) (
+	[]MessageListDAO, int64, error) {
+	var response []MessageListDAO
+	query := `select cem.*
+		from cloud_event_message cem
+		         join message_center.inner_message im on cem.event_id = im.event_id
+		         join message_center.recipient_config rc on im.recipient_id = rc.id
+		    and cem.type = 'note'
+		    and cem.source = 'https://gitee.com'
+		    and (rc.gitee_user_name = ? or rc.user_id = ?)
+		    and (cem.data_json #>> '{NoteEvent,Issue,User,UserName}' = ?
+		        or cem.data_json #>> '{NoteEvent,PullRequest,User,UserName}' = ?
+		        or cem.data_json #>> '{NoteEvent,Comment,Body}' like ?)
+		and cem."user" NOT IN ('openeuler-ci-bot','ci-robot','openeuler-sync-bot')
+		order by cem.updated_at desc`
+	if result := postgresql.DB().Raw(query, giteeUsername, userName,
+		giteeUsername, giteeUsername, "%"+giteeUsername+"%").Scan(&response); result.Error != nil {
+		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
+		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
+			result.Error)
+	}
+	return response, int64(len(response)), nil
+}
+
+func (s *messageAdapter) GetGiteeMessage(userName, giteeUsername string) (
+	[]MessageListDAO, int64, error) {
+	var response []MessageListDAO
+	query := `select cem.*
+		from cloud_event_message cem
+		         join message_center.inner_message im on cem.event_id = im.event_id
+		         join message_center.recipient_config rc on im.recipient_id = rc.id
+		    and cem.source = 'https://gitee.com'
+		    and (rc.gitee_user_name = ? or rc.user_id = ?)
+		and cem."user" NOT IN ('openeuler-ci-bot','ci-robot','openeuler-sync-bot')
+		order by cem.updated_at desc`
+	if result := postgresql.DB().Raw(query, giteeUsername, userName).Scan(&response); result.
+		Error != nil {
+		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
+		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
+			result.Error)
+	}
+	return response, int64(len(response)), nil
+}
+
+func (s *messageAdapter) GetEurMessage(userName string) ([]MessageListDAO, int64, error) {
+	var response []MessageListDAO
+	query := `select cem.*
+		from cloud_event_message cem
+		         join message_center.inner_message im on cem.event_id = im.event_id
+		         join message_center.recipient_config rc on im.recipient_id = rc.id
+		    and cem.source = 'https://eur.openeuler.openatom.cn'
+		    and rc.user_id = ?
+		and (cem.data_json #>> '{Body,User}' = ?
+		         or cem.data_json #>> '{Body,Owner}' = ?)
+		order by cem.updated_at desc`
+	if result := postgresql.DB().Raw(query, userName, userName, userName).Scan(&response); result.
+		Error != nil {
+		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
+		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
+			result.Error)
+	}
+	return response, int64(len(response)), nil
 }

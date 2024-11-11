@@ -30,8 +30,18 @@ func AddRouterForMessageListController(
 	v1.PUT("/inner", ctl.SetMessageIsRead)
 	v1.DELETE("/inner", ctl.RemoveMessage)
 
+	//release-openeuler-summit
 	v1.GET("/inner/forum/system", ctl.GetForumSystemMessage)
 	v1.GET("/inner/forum/about", ctl.GetForumAboutMessage)
+	v1.GET("/inner/meeting/todo", ctl.GetMeetingToDoMessage)
+	v1.GET("/inner/meeting", ctl.GetMeetingMessage)
+	v1.GET("/inner/cve/todo", ctl.GetCVEToDoMessage)
+	v1.GET("/inner/cve", ctl.GetCVEMessage)
+	v1.GET("/inner/gitee/issue/todo", ctl.GetIssueToDoMessage)
+	v1.GET("/inner/gitee/pr/todo", ctl.GetPullRequestToDoMessage)
+	v1.GET("/inner/gitee/about", ctl.GetGiteeAboutMessage)
+	v1.GET("/inner/gitee", ctl.GetGiteeMessage)
+	v1.GET("/inner/eur", ctl.GetEurMessage)
 }
 
 type messageListController struct {
@@ -220,6 +230,146 @@ func (ctl *messageListController) GetForumAboutMessage(ctx *gin.Context) {
 		return
 	}
 	if data, count, err := ctl.appService.GetForumAboutMessage(userName); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
+	} else {
+		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
+	}
+}
+
+// GetMeetingToDoMessage get meeting to do message
+func (ctl *messageListController) GetMeetingToDoMessage(ctx *gin.Context) {
+	userName, err := user.GetEulerUserName(ctx)
+	if err != nil {
+		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
+		return
+	}
+	giteeUserName := ctx.Param("gitee_user_name")
+	if data, count, err := ctl.appService.GetMeetingToDoMessage(userName, giteeUserName); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
+	} else {
+		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
+	}
+}
+
+// GetMeetingMessage get meeting message
+func (ctl *messageListController) GetMeetingMessage(ctx *gin.Context) {
+	userName, err := user.GetEulerUserName(ctx)
+	if err != nil {
+		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
+		return
+	}
+	giteeUserName := ctx.Param("gitee_user_name")
+	if data, count, err := ctl.appService.GetMeetingMessage(userName, giteeUserName); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
+	} else {
+		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
+	}
+}
+
+// GetCVEToDoMessage get cve to do message
+func (ctl *messageListController) GetCVEToDoMessage(ctx *gin.Context) {
+	userName, err := user.GetEulerUserName(ctx)
+	if err != nil {
+		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
+		return
+	}
+	giteeUserName := ctx.Param("gitee_user_name")
+
+	if data, count, err := ctl.appService.GetCVEToDoMessage(userName, giteeUserName); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
+	} else {
+		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
+	}
+}
+
+// GetCVEMessage get cve message
+func (ctl *messageListController) GetCVEMessage(ctx *gin.Context) {
+	userName, err := user.GetEulerUserName(ctx)
+	if err != nil {
+		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
+		return
+	}
+	giteeUserName := ctx.Param("gitee_user_name")
+
+	if data, count, err := ctl.appService.GetCVEMessage(userName, giteeUserName); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
+	} else {
+		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
+	}
+}
+
+// GetIssueToDoMessage get issue to do message
+func (ctl *messageListController) GetIssueToDoMessage(ctx *gin.Context) {
+	userName, err := user.GetEulerUserName(ctx)
+	if err != nil {
+		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
+		return
+	}
+	giteeUserName := ctx.Param("gitee_user_name")
+
+	if data, count, err := ctl.appService.GetIssueToDoMessage(userName, giteeUserName); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
+	} else {
+		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
+	}
+}
+
+// GetPullRequestToDoMessage get pull request to do message
+func (ctl *messageListController) GetPullRequestToDoMessage(ctx *gin.Context) {
+	userName, err := user.GetEulerUserName(ctx)
+	if err != nil {
+		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
+		return
+	}
+	giteeUserName := ctx.Param("gitee_user_name")
+
+	if data, count, err := ctl.appService.GetPullRequestToDoMessage(userName, giteeUserName); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
+	} else {
+		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
+	}
+}
+
+// GetGiteeAboutMessage get gitee about message
+func (ctl *messageListController) GetGiteeAboutMessage(ctx *gin.Context) {
+	userName, err := user.GetEulerUserName(ctx)
+	if err != nil {
+		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
+		return
+	}
+	giteeUserName := ctx.Param("gitee_user_name")
+
+	if data, count, err := ctl.appService.GetGiteeAboutMessage(userName, giteeUserName); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
+	} else {
+		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
+	}
+}
+
+// GetGiteeMessage get gitee message
+func (ctl *messageListController) GetGiteeMessage(ctx *gin.Context) {
+	userName, err := user.GetEulerUserName(ctx)
+	if err != nil {
+		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
+		return
+	}
+	giteeUserName := ctx.Param("gitee_user_name")
+
+	if data, count, err := ctl.appService.GetGiteeMessage(userName, giteeUserName); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
+	} else {
+		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
+	}
+}
+
+// GetEurMessage get eur message
+func (ctl *messageListController) GetEurMessage(ctx *gin.Context) {
+	userName, err := user.GetEulerUserName(ctx)
+	if err != nil {
+		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
+		return
+	}
+	if data, count, err := ctl.appService.GetEurMessage(userName); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
