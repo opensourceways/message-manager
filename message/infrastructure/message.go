@@ -473,7 +473,7 @@ func (s *messageAdapter) GetForumSystemMessage(userName string) ([]MessageListDA
 		Where("inner_message.is_deleted = ? AND recipient_config.is_deleted = ?", false, false).
 		Where("recipient_config.user_id = ?", userName).Where("cloud_event_message.type IN ('12'," +
 		"'24','37') or jsonb_extract_path_text(cloud_event_message.data_json, 'Data', " +
-		"'OriginalUsername') = 'system")
+		"'OriginalUsername') = 'system'")
 
 	var Count int64
 	query.Count(&Count)
