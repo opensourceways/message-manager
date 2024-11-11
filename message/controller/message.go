@@ -242,7 +242,7 @@ func (ctl *messageListController) GetMeetingToDoMessage(ctx *gin.Context) {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
 	}
-	giteeUserName := ctx.Param("gitee_user_name")
+	giteeUserName := ctx.Query("gitee_user_name")
 	if data, count, err := ctl.appService.GetMeetingToDoMessage(userName, giteeUserName); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
@@ -257,7 +257,7 @@ func (ctl *messageListController) GetCVEToDoMessage(ctx *gin.Context) {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
 	}
-	giteeUserName := ctx.Param("gitee_user_name")
+	giteeUserName := ctx.Query("gitee_user_name")
 
 	if data, count, err := ctl.appService.GetCVEToDoMessage(userName, giteeUserName); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
@@ -273,7 +273,7 @@ func (ctl *messageListController) GetCVEMessage(ctx *gin.Context) {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
 	}
-	giteeUserName := ctx.Param("gitee_user_name")
+	giteeUserName := ctx.Query("gitee_user_name")
 
 	if data, count, err := ctl.appService.GetCVEMessage(userName, giteeUserName); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
@@ -289,7 +289,7 @@ func (ctl *messageListController) GetIssueToDoMessage(ctx *gin.Context) {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
 	}
-	giteeUserName := ctx.Param("gitee_user_name")
+	giteeUserName := ctx.Query("gitee_user_name")
 
 	if data, count, err := ctl.appService.GetIssueToDoMessage(userName, giteeUserName); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
@@ -305,7 +305,7 @@ func (ctl *messageListController) GetPullRequestToDoMessage(ctx *gin.Context) {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
 	}
-	giteeUserName := ctx.Param("gitee_user_name")
+	giteeUserName := ctx.Query("gitee_user_name")
 
 	if data, count, err := ctl.appService.GetPullRequestToDoMessage(userName, giteeUserName); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
@@ -321,7 +321,7 @@ func (ctl *messageListController) GetGiteeAboutMessage(ctx *gin.Context) {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
 	}
-	giteeUserName := ctx.Param("gitee_user_name")
+	giteeUserName := ctx.Query("gitee_user_name")
 
 	if data, count, err := ctl.appService.GetGiteeAboutMessage(userName, giteeUserName); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
@@ -337,7 +337,7 @@ func (ctl *messageListController) GetGiteeMessage(ctx *gin.Context) {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
 	}
-	giteeUserName := ctx.Param("gitee_user_name")
+	giteeUserName := ctx.Query("gitee_user_name")
 
 	if data, count, err := ctl.appService.GetGiteeMessage(userName, giteeUserName); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
