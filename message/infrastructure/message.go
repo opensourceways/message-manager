@@ -413,7 +413,7 @@ func (s *messageAdapter) GetInnerMessage(cmd CmdToGetInnerMessage,
 
 	var response []MessageListDAO
 	offsetNum := (cmd.PageNum - 1) * cmd.CountPerPage
-	if result := query.Debug().Limit(cmd.CountPerPage).Offset(offsetNum).
+	if result := query.Limit(cmd.CountPerPage).Offset(offsetNum).
 		Order("cloud_event_message.time DESC").
 		Scan(&response); result.Error != nil {
 		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
@@ -599,7 +599,7 @@ func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername strin
 		          and (cem.data_json ->> 'Assignees') :: text like ?
 		      order by cem.source_url, cem.updated_at desc) a
 		order by updated_at desc`
-	if result := postgresql.DB().Raw(query, giteeUsername, userName,
+	if result := postgresql.DB().Debug().Raw(query, giteeUsername, userName,
 		"%"+giteeUsername+"%").Scan(&response); result.Error != nil {
 		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
