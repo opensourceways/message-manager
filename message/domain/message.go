@@ -11,4 +11,6 @@ type MessageListAdapter interface {
 	CountAllUnReadMessage(userName string) ([]CountDO, error)
 	SetMessageIsRead(source, eventId string) error
 	RemoveMessage(source, eventId string) error
+	GetForumSystemMessage(userName string) ([]MessageListDO, int64, error)
+	GetForumAboutMessage(userName string) ([]MessageListDO, int64, error)
 }
