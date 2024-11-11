@@ -29,6 +29,9 @@ func AddRouterForMessageListController(
 	v1.GET("/inner/count", ctl.CountAllUnReadMessage)
 	v1.PUT("/inner", ctl.SetMessageIsRead)
 	v1.DELETE("/inner", ctl.RemoveMessage)
+
+	v1.GET("/inner/forum/system", ctl.GetForumSystemMessage)
+	v1.GET("/inner/forum/about", ctl.GetForumAboutMessage)
 }
 
 type messageListController struct {
@@ -193,4 +196,32 @@ func (ctl *messageListController) RemoveMessage(ctx *gin.Context) {
 		}
 	}
 	ctx.JSON(http.StatusAccepted, gin.H{"message": "消息删除成功"})
+}
+
+// GetForumSystemMessage get form system message
+func (ctl *messageListController) GetForumSystemMessage(ctx *gin.Context) {
+	userName, err := user.GetEulerUserName(ctx)
+	if err != nil {
+		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
+		return
+	}
+	if data, count, err := ctl.appService.GetForumSystemMessage(userName); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
+	} else {
+		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
+	}
+}
+
+// GetForumAboutMessage get form about message
+func (ctl *messageListController) GetForumAboutMessage(ctx *gin.Context) {
+	userName, err := user.GetEulerUserName(ctx)
+	if err != nil {
+		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
+		return
+	}
+	if data, count, err := ctl.appService.GetForumAboutMessage(userName); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
+	} else {
+		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
+	}
 }

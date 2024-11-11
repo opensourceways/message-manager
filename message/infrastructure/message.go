@@ -461,3 +461,45 @@ func (s *messageAdapter) RemoveMessage(source, eventId string) error {
 	}
 	return nil
 }
+
+func (s *messageAdapter) GetForumSystemMessage(userName string) ([]MessageListDAO, int64, error) {
+	var response []MessageListDAO
+	query := `select * from message_center.inner_message im
+		join message_center.cloud_event_message cem on im.event_id = cem.event_id
+		join message_center.recipient_config rc on rc.id = im.recipient_id
+		where im.is_deleted = false and rc.is_deleted = false and cem.source = 'forum' 
+		  and rc.user_id = ? and
+		    (cem.type IN ('12','24','37') or jsonb_extract_path_text(cem.data_json, 'Data', 
+'OriginalUsername') = 'system')`
+
+	var Count int64
+	postgresql.DB().Raw(query, userName).Count(&Count)
+
+	if result := postgresql.DB().Raw(query, userName).Scan(&response); result.Error != nil {
+		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
+		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
+			result.Error)
+	}
+	return response, Count, nil
+}
+
+func (s *messageAdapter) GetForumAboutMessage(userName string) ([]MessageListDAO, int64, error) {
+	var response []MessageListDAO
+	query := `select * from message_center.inner_message im
+		join message_center.cloud_event_message cem on im.event_id = cem.event_id
+		join message_center.recipient_config rc on rc.id = im.recipient_id
+		where im.is_deleted = false and rc.is_deleted = false and cem.source = 'forum'
+		  and rc.user_id = 'hourunze97' and
+		    (cem.type NOT IN ('12','24','37') or jsonb_extract_path_text(cem.data_json::jsonb,
+		'Data', 'OriginalUsername') <> 'system')`
+
+	var Count int64
+	postgresql.DB().Raw(query, userName).Count(&Count)
+
+	if result := postgresql.DB().Raw(query, userName).Scan(&response); result.Error != nil {
+		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
+		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
+			result.Error)
+	}
+	return response, Count, nil
+}

@@ -17,6 +17,8 @@ type MessageListAppService interface {
 	CountAllUnReadMessage(userName string) ([]CountDTO, error)
 	SetMessageIsRead(cmd *CmdToSetIsRead) error
 	RemoveMessage(cmd *CmdToSetIsRead) error
+	GetForumSystemMessage(userName string) ([]MessageListDTO, int64, error)
+	GetForumAboutMessage(userName string) ([]MessageListDTO, int64, error)
 }
 
 func NewMessageListAppService(
@@ -69,4 +71,20 @@ func (s *messageListAppService) RemoveMessage(cmd *CmdToSetIsRead) error {
 		return xerrors.Errorf("set message is_read failed, err:%v", err.Error())
 	}
 	return nil
+}
+
+func (s *messageListAppService) GetForumSystemMessage(userName string) ([]MessageListDTO, int64, error) {
+	response, count, err := s.messageListAdapter.GetForumSystemMessage(userName)
+	if err != nil {
+		return []MessageListDTO{}, 0, err
+	}
+	return response, count, nil
+}
+
+func (s *messageListAppService) GetForumAboutMessage(userName string) ([]MessageListDTO, int64, error) {
+	response, count, err := s.messageListAdapter.GetForumAboutMessage(userName)
+	if err != nil {
+		return []MessageListDTO{}, 0, err
+	}
+	return response, count, nil
 }
