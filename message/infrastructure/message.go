@@ -464,18 +464,21 @@ func (s *messageAdapter) RemoveMessage(source, eventId string) error {
 
 func (s *messageAdapter) GetForumSystemMessage(userName string) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
-	query := `select * from message_center.inner_message im
-		join message_center.cloud_event_message cem on im.event_id = cem.event_id
-		join message_center.recipient_config rc on rc.id = im.recipient_id
-		where im.is_deleted = false and rc.is_deleted = false and cem.source = 'forum' 
-		  and rc.user_id = ? and
-		    (cem.type IN ('12','24','37') or jsonb_extract_path_text(cem.data_json, 'Data', 
-'OriginalUsername') = 'system')`
+
+	query := postgresql.DB().Table("message_center.inner_message").
+		Joins("JOIN message_center.cloud_event_message ON "+
+			"inner_message.event_id = cloud_event_message.event_id").
+		Joins("JOIN message_center.recipient_config ON "+
+			"inner_message.recipient_id = recipient_config.id").
+		Where("inner_message.is_deleted = ? AND recipient_config.is_deleted = ?", false, false).
+		Where("recipient_config.user_id = ?", userName).Where("cloud_event_message.type IN ('12'," +
+		"'24','37') or jsonb_extract_path_text(cloud_event_message.data_json, 'Data', " +
+		"'OriginalUsername') = 'system")
 
 	var Count int64
-	postgresql.DB().Raw(query, userName).Count(&Count)
+	query.Count(&Count)
 
-	if result := postgresql.DB().Raw(query, userName).Scan(&response); result.Error != nil {
+	if result := query.Scan(&response); result.Error != nil {
 		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
