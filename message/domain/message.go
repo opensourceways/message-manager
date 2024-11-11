@@ -14,7 +14,6 @@ type MessageListAdapter interface {
 	GetForumSystemMessage(userName string) ([]MessageListDO, int64, error)
 	GetForumAboutMessage(userName string) ([]MessageListDO, int64, error)
 	GetMeetingToDoMessage(userName string, giteeUsername string) ([]MessageListDO, int64, error)
-	GetMeetingMessage(userName string, giteeUsername string) ([]MessageListDO, int64, error)
 	GetCVEToDoMessage(userName, giteeUsername string) ([]MessageListDO, int64, error)
 	GetCVEMessage(userName, giteeUsername string) ([]MessageListDO, int64, error)
 	GetIssueToDoMessage(userName, giteeUsername string) ([]MessageListDO, int64, error)
