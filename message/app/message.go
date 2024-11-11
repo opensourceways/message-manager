@@ -20,7 +20,6 @@ type MessageListAppService interface {
 	GetForumSystemMessage(userName string) ([]MessageListDTO, int64, error)
 	GetForumAboutMessage(userName string) ([]MessageListDTO, int64, error)
 	GetMeetingToDoMessage(userName string, giteeUsername string) ([]MessageListDTO, int64, error)
-	GetMeetingMessage(userName string, giteeUsername string) ([]MessageListDTO, int64, error)
 	GetCVEToDoMessage(userName string, giteeUsername string) ([]MessageListDTO, int64, error)
 	GetCVEMessage(userName string, giteeUsername string) ([]MessageListDTO, int64, error)
 	GetIssueToDoMessage(userName string, giteeUsername string) ([]MessageListDTO, int64, error)
@@ -103,15 +102,6 @@ func (s *messageListAppService) GetForumAboutMessage(userName string) (
 func (s *messageListAppService) GetMeetingToDoMessage(userName string, giteeUsername string) (
 	[]MessageListDTO, int64, error) {
 	response, count, err := s.messageListAdapter.GetMeetingToDoMessage(userName, giteeUsername)
-	if err != nil {
-		return []MessageListDTO{}, 0, err
-	}
-	return response, count, nil
-}
-
-func (s *messageListAppService) GetMeetingMessage(userName string, giteeUsername string) (
-	[]MessageListDTO, int64, error) {
-	response, count, err := s.messageListAdapter.GetMeetingMessage(userName, giteeUsername)
 	if err != nil {
 		return []MessageListDTO{}, 0, err
 	}

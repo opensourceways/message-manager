@@ -34,7 +34,6 @@ func AddRouterForMessageListController(
 	v1.GET("/inner/forum/system", ctl.GetForumSystemMessage)
 	v1.GET("/inner/forum/about", ctl.GetForumAboutMessage)
 	v1.GET("/inner/meeting/todo", ctl.GetMeetingToDoMessage)
-	v1.GET("/inner/meeting", ctl.GetMeetingMessage)
 	v1.GET("/inner/cve/todo", ctl.GetCVEToDoMessage)
 	v1.GET("/inner/cve", ctl.GetCVEMessage)
 	v1.GET("/inner/gitee/issue/todo", ctl.GetIssueToDoMessage)
@@ -245,21 +244,6 @@ func (ctl *messageListController) GetMeetingToDoMessage(ctx *gin.Context) {
 	}
 	giteeUserName := ctx.Param("gitee_user_name")
 	if data, count, err := ctl.appService.GetMeetingToDoMessage(userName, giteeUserName); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
-	} else {
-		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
-	}
-}
-
-// GetMeetingMessage get meeting message
-func (ctl *messageListController) GetMeetingMessage(ctx *gin.Context) {
-	userName, err := user.GetEulerUserName(ctx)
-	if err != nil {
-		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
-		return
-	}
-	giteeUserName := ctx.Param("gitee_user_name")
-	if data, count, err := ctl.appService.GetMeetingMessage(userName, giteeUserName); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})

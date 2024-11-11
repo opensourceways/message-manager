@@ -519,10 +519,6 @@ func (s *messageAdapter) GetMeetingToDoMessage(userName string, giteeUsername st
 	return response, int64(len(response)), nil
 }
 
-func (s *messageAdapter) GetMeetingMessage(userName string, giteeUsername string) ([]MessageListDAO, int64, error) {
-	return []MessageListDAO{}, 0, nil
-}
-
 func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string) (
 	[]MessageListDAO, int64, error) {
 	var response []MessageListDAO
@@ -549,7 +545,7 @@ func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string) (
 func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string) (
 	[]MessageListDAO, int64, error) {
 	var response []MessageListDAO
-	query := `select cem.*
+	query := `select *
 		from cloud_event_message cem
 		         join message_center.inner_message im on cem.event_id = im.event_id
 		         join message_center.recipient_config rc on im.recipient_id = rc.id
@@ -615,7 +611,7 @@ func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername strin
 func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string) (
 	[]MessageListDAO, int64, error) {
 	var response []MessageListDAO
-	query := `select cem.*
+	query := `select *
 		from cloud_event_message cem
 		         join message_center.inner_message im on cem.event_id = im.event_id
 		         join message_center.recipient_config rc on im.recipient_id = rc.id
@@ -639,7 +635,7 @@ func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string) (
 func (s *messageAdapter) GetGiteeMessage(userName, giteeUsername string) (
 	[]MessageListDAO, int64, error) {
 	var response []MessageListDAO
-	query := `select cem.*
+	query := `select *
 		from cloud_event_message cem
 		         join message_center.inner_message im on cem.event_id = im.event_id
 		         join message_center.recipient_config rc on im.recipient_id = rc.id
@@ -658,7 +654,7 @@ func (s *messageAdapter) GetGiteeMessage(userName, giteeUsername string) (
 
 func (s *messageAdapter) GetEurMessage(userName string) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
-	query := `select cem.*
+	query := `select *
 		from cloud_event_message cem
 		         join message_center.inner_message im on cem.event_id = im.event_id
 		         join message_center.recipient_config rc on im.recipient_id = rc.id
