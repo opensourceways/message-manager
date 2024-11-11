@@ -68,7 +68,7 @@ func (s *messagePushAdapter) AddPushConfig(cmd CmdToAddPushConfig) error {
 }
 
 func (s *messagePushAdapter) UpdatePushConfig(cmd CmdToUpdatePushConfig) error {
-	if result := postgresql.DB().Table("message_center.push_config").Debug().
+	if result := postgresql.DB().Table("message_center.push_config").
 		Where("is_deleted = ?", false).
 		Where("subscribe_id IN ? AND recipient_id = ?", cmd.SubscribeId, cmd.RecipientId).
 		Updates(&MessagePushDAO{
