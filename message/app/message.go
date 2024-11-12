@@ -18,13 +18,15 @@ type MessageListAppService interface {
 	SetMessageIsRead(cmd *CmdToSetIsRead) error
 	RemoveMessage(cmd *CmdToSetIsRead) error
 	GetForumSystemMessage(userName string) ([]MessageListDTO, int64, error)
-	GetForumAboutMessage(userName string) ([]MessageListDTO, int64, error)
-	GetMeetingToDoMessage(userName string, giteeUsername string) ([]MessageListDTO, int64, error)
+	GetForumAboutMessage(userName string, isBot bool) ([]MessageListDTO, int64, error)
+	GetMeetingToDoMessage(userName string, giteeUsername string, filter int) ([]MessageListDTO,
+		int64, error)
 	GetCVEToDoMessage(userName string, giteeUsername string) ([]MessageListDTO, int64, error)
 	GetCVEMessage(userName string, giteeUsername string) ([]MessageListDTO, int64, error)
 	GetIssueToDoMessage(userName string, giteeUsername string) ([]MessageListDTO, int64, error)
 	GetPullRequestToDoMessage(userName string, giteeUsername string) ([]MessageListDTO, int64, error)
-	GetGiteeAboutMessage(userName string, giteeUsername string) ([]MessageListDTO, int64, error)
+	GetGiteeAboutMessage(userName string, giteeUsername string, isBot bool) ([]MessageListDTO,
+		int64, error)
 	GetGiteeMessage(userName string, giteeUsername string) ([]MessageListDTO, int64, error)
 	GetEurMessage(userName string) ([]MessageListDTO, int64, error)
 }
@@ -90,18 +92,19 @@ func (s *messageListAppService) GetForumSystemMessage(userName string) (
 	return response, count, nil
 }
 
-func (s *messageListAppService) GetForumAboutMessage(userName string) (
+func (s *messageListAppService) GetForumAboutMessage(userName string, isBot bool) (
 	[]MessageListDTO, int64, error) {
-	response, count, err := s.messageListAdapter.GetForumAboutMessage(userName)
+	response, count, err := s.messageListAdapter.GetForumAboutMessage(userName, isBot)
 	if err != nil {
 		return []MessageListDTO{}, 0, err
 	}
 	return response, count, nil
 }
 
-func (s *messageListAppService) GetMeetingToDoMessage(userName string, giteeUsername string) (
+func (s *messageListAppService) GetMeetingToDoMessage(userName string, giteeUsername string,
+	filter int) (
 	[]MessageListDTO, int64, error) {
-	response, count, err := s.messageListAdapter.GetMeetingToDoMessage(userName, giteeUsername)
+	response, count, err := s.messageListAdapter.GetMeetingToDoMessage(userName, giteeUsername, filter)
 	if err != nil {
 		return []MessageListDTO{}, 0, err
 	}
@@ -144,9 +147,10 @@ func (s *messageListAppService) GetPullRequestToDoMessage(userName string, gitee
 	return response, count, nil
 }
 
-func (s *messageListAppService) GetGiteeAboutMessage(userName string, giteeUsername string) (
+func (s *messageListAppService) GetGiteeAboutMessage(userName string, giteeUsername string,
+	isBot bool) (
 	[]MessageListDTO, int64, error) {
-	response, count, err := s.messageListAdapter.GetGiteeAboutMessage(userName, giteeUsername)
+	response, count, err := s.messageListAdapter.GetGiteeAboutMessage(userName, giteeUsername, isBot)
 	if err != nil {
 		return []MessageListDTO{}, 0, err
 	}
