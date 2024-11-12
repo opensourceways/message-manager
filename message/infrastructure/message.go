@@ -462,6 +462,65 @@ func (s *messageAdapter) RemoveMessage(source, eventId string) error {
 	return nil
 }
 
+func (s *messageAdapter) GetAllToDoMessage(userName string, giteeUsername string) (
+	[]MessageListDAO, int64, error) {
+	var response []MessageListDAO
+
+	issueTodo, issueCount, err := s.GetIssueToDoMessage(userName, giteeUsername)
+	if err != nil {
+		return []MessageListDAO{}, 0, err
+	}
+	prTodo, prCount, err := s.GetPullRequestToDoMessage(userName, giteeUsername)
+	if err != nil {
+		return []MessageListDAO{}, 0, err
+	}
+	cveTodo, cveCount, err := s.GetCVEToDoMessage(userName, giteeUsername)
+	response = append(response, issueTodo...)
+	response = append(response, prTodo...)
+	response = append(response, cveTodo...)
+	return response, issueCount + prCount + cveCount, nil
+}
+
+func (s *messageAdapter) GetAllAboutMessage(userName string, giteeUsername string, isBot bool) ([]MessageListDAO, int64, error) {
+	var response []MessageListDAO
+	giteeAbout, giteeCount, err := s.GetGiteeAboutMessage(userName, giteeUsername, isBot)
+	if err != nil {
+		return []MessageListDAO{}, 0, err
+	}
+	forumAbout, forumCount, err := s.GetForumAboutMessage(userName, isBot)
+	if err != nil {
+		return []MessageListDAO{}, 0, err
+	}
+	response = append(response, giteeAbout...)
+	response = append(response, forumAbout...)
+	return response, giteeCount + forumCount, nil
+}
+
+func (s *messageAdapter) GetAllWatchMessage(userName string, giteeUsername string) ([]MessageListDAO, int64, error) {
+	var response []MessageListDAO
+	forumMsg, forumCount, err := s.GetForumSystemMessage(userName)
+	if err != nil {
+		return []MessageListDAO{}, 0, err
+	}
+	cveMsg, cveCount, err := s.GetCVEMessage(userName, giteeUsername)
+	if err != nil {
+		return []MessageListDAO{}, 0, err
+	}
+	giteeMsg, giteeCount, err := s.GetGiteeMessage(userName, giteeUsername)
+	if err != nil {
+		return []MessageListDAO{}, 0, err
+	}
+	eurMsg, eurCount, err := s.GetEurMessage(userName)
+	if err != nil {
+		return []MessageListDAO{}, 0, err
+	}
+	response = append(response, forumMsg...)
+	response = append(response, cveMsg...)
+	response = append(response, giteeMsg...)
+	response = append(response, eurMsg...)
+	return response, forumCount + cveCount + giteeCount + eurCount, nil
+}
+
 func (s *messageAdapter) GetForumSystemMessage(userName string) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 
@@ -489,10 +548,10 @@ func (s *messageAdapter) GetForumAboutMessage(userName string, isBot bool) ([]Me
 		  and rc.user_id = ? and
 		    (cem.type NOT IN ('12','24','37') `
 	if isBot {
-		query += `or jsonb_extract_path_text(cem.data_json::jsonb,
+		query += `and jsonb_extract_path_text(cem.data_json::jsonb,
 		'Data', 'OriginalUsername') = 'system')`
 	} else {
-		query += `or jsonb_extract_path_text(cem.data_json::jsonb,
+		query += `and jsonb_extract_path_text(cem.data_json::jsonb,
 		'Data', 'OriginalUsername') <> 'system')`
 	}
 

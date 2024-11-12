@@ -17,6 +17,13 @@ type MessageListAppService interface {
 	CountAllUnReadMessage(userName string) ([]CountDTO, error)
 	SetMessageIsRead(cmd *CmdToSetIsRead) error
 	RemoveMessage(cmd *CmdToSetIsRead) error
+
+	GetAllToDoMessage(userName string, giteeUsername string) ([]MessageListDTO, int64, error)
+	GetAllAboutMessage(userName string, giteeUsername string, isBot bool) ([]MessageListDTO,
+		int64, error)
+	GetAllWatchMessage(userName string, giteeUsername string) ([]MessageListDTO,
+		int64, error)
+
 	GetForumSystemMessage(userName string) ([]MessageListDTO, int64, error)
 	GetForumAboutMessage(userName string, isBot bool) ([]MessageListDTO, int64, error)
 	GetMeetingToDoMessage(userName string, giteeUsername string, filter int) ([]MessageListDTO,
@@ -81,6 +88,34 @@ func (s *messageListAppService) RemoveMessage(cmd *CmdToSetIsRead) error {
 		return xerrors.Errorf("set message is_read failed, err:%v", err.Error())
 	}
 	return nil
+}
+
+func (s *messageListAppService) GetAllToDoMessage(userName string, giteeUsername string) (
+	[]MessageListDTO, int64, error) {
+	response, count, err := s.messageListAdapter.GetAllToDoMessage(userName, giteeUsername)
+	if err != nil {
+		return []MessageListDTO{}, 0, err
+	}
+	return response, count, nil
+}
+
+func (s *messageListAppService) GetAllAboutMessage(userName string, giteeUsername string,
+	isBot bool) ([]MessageListDTO, int64, error) {
+	response, count, err := s.messageListAdapter.GetAllAboutMessage(userName, giteeUsername,
+		isBot)
+	if err != nil {
+		return []MessageListDTO{}, 0, err
+	}
+	return response, count, nil
+}
+
+func (s *messageListAppService) GetAllWatchMessage(userName string, giteeUsername string) (
+	[]MessageListDTO, int64, error) {
+	response, count, err := s.messageListAdapter.GetAllWatchMessage(userName, giteeUsername)
+	if err != nil {
+		return []MessageListDTO{}, 0, err
+	}
+	return response, count, nil
 }
 
 func (s *messageListAppService) GetForumSystemMessage(userName string) (
