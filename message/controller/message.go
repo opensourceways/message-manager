@@ -226,7 +226,7 @@ func (ctl *messageListController) GetForumSystemMessage(ctx *gin.Context) {
 		return
 	}
 	if data, count, err := ctl.appService.GetForumSystemMessage(userName, params.PageNum,
-		params.CountPerPage, params.StartTime); err != nil {
+		params.CountPerPage, params.StartTime, params.IsRead); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
@@ -246,7 +246,7 @@ func (ctl *messageListController) GetForumAboutMessage(ctx *gin.Context) {
 		return
 	}
 	if data, count, err := ctl.appService.GetForumAboutMessage(userName, params.IsBot,
-		params.PageNum, params.CountPerPage, params.StartTime); err != nil {
+		params.PageNum, params.CountPerPage, params.StartTime, params.IsRead); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
@@ -266,7 +266,7 @@ func (ctl *messageListController) GetMeetingToDoMessage(ctx *gin.Context) {
 		return
 	}
 	if data, count, err := ctl.appService.GetMeetingToDoMessage(userName, params.GiteeUserName,
-		params.Filter, params.PageNum, params.CountPerPage, params.StartTime); err != nil {
+		params.Filter, params.PageNum, params.CountPerPage, params.IsRead); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
@@ -308,7 +308,7 @@ func (ctl *messageListController) GetCVEMessage(ctx *gin.Context) {
 	}
 
 	if data, count, err := ctl.appService.GetCVEMessage(userName, params.GiteeUserName,
-		params.PageNum, params.CountPerPage, params.StartTime); err != nil {
+		params.PageNum, params.CountPerPage, params.StartTime, params.IsRead); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
@@ -329,7 +329,7 @@ func (ctl *messageListController) GetIssueToDoMessage(ctx *gin.Context) {
 	}
 
 	if data, count, err := ctl.appService.GetIssueToDoMessage(userName, params.GiteeUserName,
-		params.IsDone, params.PageNum, params.CountPerPage, params.StartTime); err != nil {
+		params.IsDone, params.PageNum, params.CountPerPage, params.StartTime, params.IsRead); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
@@ -351,7 +351,7 @@ func (ctl *messageListController) GetPullRequestToDoMessage(ctx *gin.Context) {
 
 	if data, count, err := ctl.appService.GetPullRequestToDoMessage(userName,
 		params.GiteeUserName, params.IsDone, params.PageNum, params.CountPerPage,
-		params.StartTime); err != nil {
+		params.StartTime, params.IsRead); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
@@ -371,7 +371,7 @@ func (ctl *messageListController) GetGiteeAboutMessage(ctx *gin.Context) {
 		return
 	}
 	if data, count, err := ctl.appService.GetGiteeAboutMessage(userName, params.GiteeUserName,
-		params.IsBot, params.PageNum, params.CountPerPage, params.StartTime); err != nil {
+		params.IsBot, params.PageNum, params.CountPerPage, params.StartTime, params.IsRead); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
@@ -392,7 +392,7 @@ func (ctl *messageListController) GetGiteeMessage(ctx *gin.Context) {
 	}
 
 	if data, count, err := ctl.appService.GetGiteeMessage(userName, params.GiteeUserName,
-		params.PageNum, params.CountPerPage, params.StartTime); err != nil {
+		params.PageNum, params.CountPerPage, params.StartTime, params.IsRead); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
@@ -432,7 +432,7 @@ func (ctl *messageListController) GetAllTodoMessage(ctx *gin.Context) {
 		return
 	}
 	if data, count, err := ctl.appService.GetAllToDoMessage(userName, params.GiteeUserName,
-		params.IsDone, params.PageNum, params.CountPerPage, params.StartTime); err != nil {
+		params.IsDone, params.PageNum, params.CountPerPage, params.StartTime, params.IsRead); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
@@ -452,7 +452,7 @@ func (ctl *messageListController) GetAllAboutMessage(ctx *gin.Context) {
 		return
 	}
 	if data, count, err := ctl.appService.GetAllAboutMessage(userName, params.GiteeUserName,
-		params.IsBot, params.PageNum, params.CountPerPage, params.StartTime); err != nil {
+		params.IsBot, params.PageNum, params.CountPerPage, params.StartTime, params.IsRead); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
@@ -472,7 +472,7 @@ func (ctl *messageListController) GetAllWatchMessage(ctx *gin.Context) {
 		return
 	}
 	if data, count, err := ctl.appService.GetAllWatchMessage(userName,
-		params.GiteeUserName, params.PageNum, params.CountPerPage, params.StartTime); err != nil {
+		params.GiteeUserName, params.PageNum, params.CountPerPage, params.StartTime, params.IsRead); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})

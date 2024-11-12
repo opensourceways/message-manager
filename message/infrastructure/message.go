@@ -478,21 +478,21 @@ func pagination(messages []MessageListDAO, pageNum, countPerPage int) []MessageL
 }
 
 func (s *messageAdapter) GetAllToDoMessage(userName string, giteeUsername string, isDone bool,
-	pageNum, countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
+	pageNum, countPerPage int, startTime string, isRead bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 
 	issueTodo, issueCount, err := s.GetIssueToDoMessage(userName, giteeUsername, isDone,
-		0, 0, startTime)
+		0, 0, startTime, isRead)
 	if err != nil {
 		return []MessageListDAO{}, 0, err
 	}
 	prTodo, prCount, err := s.GetPullRequestToDoMessage(userName, giteeUsername, isDone,
-		0, 0, startTime)
+		0, 0, startTime, isRead)
 	if err != nil {
 		return []MessageListDAO{}, 0, err
 	}
 	cveTodo, cveCount, err := s.GetCVEToDoMessage(userName, giteeUsername, isDone,
-		0, 0, startTime)
+		0, 0, startTime, isRead)
 	response = append(response, issueTodo...)
 	response = append(response, prTodo...)
 	response = append(response, cveTodo...)
@@ -500,15 +500,15 @@ func (s *messageAdapter) GetAllToDoMessage(userName string, giteeUsername string
 }
 
 func (s *messageAdapter) GetAllAboutMessage(userName string, giteeUsername string, isBot bool,
-	pageNum, countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
+	pageNum, countPerPage int, startTime string, isRead bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	giteeAbout, giteeCount, err := s.GetGiteeAboutMessage(userName, giteeUsername, isBot,
-		0, 0, startTime)
+		0, 0, startTime, isRead)
 	if err != nil {
 		return []MessageListDAO{}, 0, err
 	}
 	forumAbout, forumCount, err := s.GetForumAboutMessage(userName, isBot,
-		0, 0, startTime)
+		0, 0, startTime, isRead)
 	if err != nil {
 		return []MessageListDAO{}, 0, err
 	}
@@ -519,24 +519,24 @@ func (s *messageAdapter) GetAllAboutMessage(userName string, giteeUsername strin
 }
 
 func (s *messageAdapter) GetAllWatchMessage(userName string, giteeUsername string, pageNum,
-	countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
+	countPerPage int, startTime string, isRead bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	forumMsg, forumCount, err := s.GetForumSystemMessage(userName,
-		0, 0, startTime)
+		0, 0, startTime, isRead)
 	if err != nil {
 		return []MessageListDAO{}, 0, err
 	}
 	cveMsg, cveCount, err := s.GetCVEMessage(userName, giteeUsername,
-		0, 0, startTime)
+		0, 0, startTime, isRead)
 	if err != nil {
 		return []MessageListDAO{}, 0, err
 	}
 	giteeMsg, giteeCount, err := s.GetGiteeMessage(userName, giteeUsername,
-		0, 0, startTime)
+		0, 0, startTime, isRead)
 	if err != nil {
 		return []MessageListDAO{}, 0, err
 	}
-	eurMsg, eurCount, err := s.GetEurMessage(userName, 0, 0, startTime)
+	eurMsg, eurCount, err := s.GetEurMessage(userName, 0, 0, startTime, isRead)
 	if err != nil {
 		return []MessageListDAO{}, 0, err
 	}
@@ -548,7 +548,7 @@ func (s *messageAdapter) GetAllWatchMessage(userName string, giteeUsername strin
 }
 
 func (s *messageAdapter) GetForumSystemMessage(userName string, pageNum,
-	countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
+	countPerPage int, startTime string, isRead bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 
 	query := `select * from message_center.cloud_event_message cem
@@ -557,8 +557,16 @@ func (s *messageAdapter) GetForumSystemMessage(userName string, pageNum,
 		where im.is_deleted = false and rc.is_deleted = false and cem.source = 'forum'
 		  and rc.user_id = ? and cem.type IN ('12','24','37')`
 
+	if startTime != "" {
+		query += fmt.Sprintf(` and cem.time >= %s`, startTime)
+	}
+	if isRead {
+		query += ` and im.is_read = true`
+	} else {
+		query += ` and im.is_read = false`
+	}
+
 	if result := postgresql.DB().Raw(query, userName).Scan(&response); result.Error != nil {
-		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
 	}
@@ -566,20 +574,27 @@ func (s *messageAdapter) GetForumSystemMessage(userName string, pageNum,
 }
 
 func (s *messageAdapter) GetForumAboutMessage(userName string, isBot bool, pageNum,
-	countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
+	countPerPage int, startTime string, isRead bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	query := `select * from message_center.cloud_event_message cem
 		join message_center.inner_message im on im.event_id = cem.event_id
 		join message_center.recipient_config rc on rc.id = im.recipient_id
 		where im.is_deleted = false and rc.is_deleted = false and cem.source = 'forum'
-		  and rc.user_id = ? and
-		    (cem.type NOT IN ('12','24','37') `
+		  and rc.user_id = ? and cem.type NOT IN ('12','24','37') `
 	if isBot {
 		query += `and jsonb_extract_path_text(cem.data_json::jsonb,
-		'Data', 'OriginalUsername') = 'system')`
+		'Data', 'OriginalUsername') = 'system'`
 	} else {
 		query += `and jsonb_extract_path_text(cem.data_json::jsonb,
-		'Data', 'OriginalUsername') <> 'system')`
+		'Data', 'OriginalUsername') <> 'system'`
+	}
+	if startTime != "" {
+		query += fmt.Sprintf(` and cem.time >= %s`, startTime)
+	}
+	if isRead {
+		query += ` and im.is_read = true`
+	} else {
+		query += ` and im.is_read = false`
 	}
 
 	if result := postgresql.DB().Debug().Raw(query, userName).Scan(&response); result.Error != nil {
@@ -591,7 +606,7 @@ func (s *messageAdapter) GetForumAboutMessage(userName string, isBot bool, pageN
 }
 
 func (s *messageAdapter) GetMeetingToDoMessage(userName string, giteeUsername string, filter int,
-	pageNum, countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
+	pageNum, countPerPage int, isRead bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	query := `select *
 		from (select distinct on (cem.source_url) cem.*
@@ -608,6 +623,11 @@ func (s *messageAdapter) GetMeetingToDoMessage(userName string, giteeUsername st
 	} else if filter == 2 {
 		query += `and NOW() > to_timestamp(data_json ->> 'MeetingEndTime', 'YYYY-MM-DDHH24:MI') `
 	}
+	if isRead {
+		query += ` and im.is_read = true `
+	} else {
+		query += ` and im.is_read = false `
+	}
 	query += `order by cem.source_url, updated_at desc) a
 		order by updated_at`
 	if result := postgresql.DB().Raw(query, giteeUsername, userName).Scan(&response); result.Error != nil {
@@ -619,12 +639,9 @@ func (s *messageAdapter) GetMeetingToDoMessage(userName string, giteeUsername st
 }
 
 func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDone bool, pageNum,
-	countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
+	countPerPage int, startTime string, isRead bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
-	var doneSql string
-	if isDone {
-		doneSql = `and (cem.data_json #>> '{IssueEvent,Issue,State}') == 'closed'`
-	}
+
 	query := `select *
 		from (select distinct on (cem.source_url) cem.*
 		      from cloud_event_message cem
@@ -633,12 +650,23 @@ func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDon
 		      where cem.type = 'issue'
 		        and cem.source = 'cve'
 		        and (rc.gitee_user_name = ? or rc.user_id = ?)
-		        and (cem.data_json #>> '{IssueEvent,Issue,Assignee,UserName}') = ?
-		        ?
-		      order by cem.source_url, cem.updated_at desc) a
+		        and (cem.data_json #>> '{IssueEvent,Issue,Assignee,UserName}') = ?`
+	if isDone {
+		query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') == 'closed'`
+	}
+	if startTime != "" {
+		query += fmt.Sprintf(` and cem.time >= %s`, startTime)
+	}
+	if isRead {
+		query += ` and im.is_read = true`
+	} else {
+		query += ` and im.is_read = false`
+	}
+	query += ` order by cem.source_url, cem.updated_at desc) a
 		order by updated_at desc`
+
 	if result := postgresql.DB().Raw(query, giteeUsername, userName,
-		giteeUsername, doneSql).Scan(&response); result.Error != nil {
+		giteeUsername).Scan(&response); result.Error != nil {
 		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
@@ -647,7 +675,7 @@ func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDon
 }
 
 func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string, pageNum, countPerPage int,
-	startTime string) ([]MessageListDAO, int64, error) {
+	startTime string, isRead bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	query := `select *
 		from cloud_event_message cem
@@ -655,8 +683,16 @@ func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string, pageNum, 
 		         join message_center.recipient_config rc on im.recipient_id = rc.id
 		where cem.type = 'issue'
 		  and cem.source = 'cve'
-		  and (rc.gitee_user_name = ? or rc.user_id = ?)
-		order by updated_at desc`
+		  and (rc.gitee_user_name = ? or rc.user_id = ?)`
+	if startTime != "" {
+		query += fmt.Sprintf(` and cem.time >= %s`, startTime)
+	}
+	if isRead {
+		query += ` and im.is_read = true`
+	} else {
+		query += ` and im.is_read = false`
+	}
+	query += ` order by updated_at desc`
 	if result := postgresql.DB().Raw(query, giteeUsername, userName).Scan(&response); result.
 		Error != nil {
 		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
@@ -667,12 +703,9 @@ func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string, pageNum, 
 }
 
 func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isDone bool,
-	pageNum, countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
+	pageNum, countPerPage int, startTime string, isRead bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
-	var doneSql string
-	if isDone {
-		doneSql = `and (cem.data_json #>> '{IssueEvent,Issue,State}') == 'closed'`
-	}
+
 	query := `select *
 		from (select distinct on (cem.source_url) cem.*
 		      from cloud_event_message cem
@@ -681,12 +714,22 @@ func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isD
 		      where cem.type = 'issue'
 		        and cem.source = 'https://gitee.com'
 		        and (rc.gitee_user_name = ? or rc.user_id = ?)
-		        and (cem.data_json #>> '{IssueEvent,Issue,Assignee,UserName}') = ?
-		        ?
-		      order by cem.source_url, cem.updated_at desc) a
+		        and (cem.data_json #>> '{IssueEvent,Issue,Assignee,UserName}') = ?`
+	if isDone {
+		query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') == 'closed'`
+	}
+	if startTime != "" {
+		query += fmt.Sprintf(` and cem.time >= %s`, startTime)
+	}
+	if isRead {
+		query += ` and im.is_read = true`
+	} else {
+		query += ` and im.is_read = false`
+	}
+	query += ` order by cem.source_url, cem.updated_at desc) a
 		order by updated_at desc`
 	if result := postgresql.DB().Raw(query, giteeUsername, userName,
-		giteeUsername, doneSql).Scan(&response); result.Error != nil {
+		giteeUsername).Scan(&response); result.Error != nil {
 		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
@@ -695,12 +738,9 @@ func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isD
 }
 
 func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername string, isDone bool,
-	pageNum, countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
+	pageNum, countPerPage int, startTime string, isRead bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
-	var doneSql string
-	if isDone {
-		doneSql = `and (cem.data_json #>> '{PullRequestEvent,State}') IN ('closed', 'merged')`
-	}
+
 	query := `select *
 		from (select distinct on (cem.source_url) cem.*
 		      from cloud_event_message cem
@@ -709,12 +749,22 @@ func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername strin
 		          and cem.type = 'pr'
 		          and cem.source = 'https://gitee.com'
 		          and (rc.gitee_user_name = ? or rc.user_id = ?)
-		          and (cem.data_json ->> 'Assignees') :: text like ?
-		          ?                                          
-		      order by cem.source_url, cem.updated_at desc) a
+		          and (cem.data_json ->> 'Assignees') :: text like ?`
+	if isDone {
+		query += ` and (cem.data_json #>> '{PullRequestEvent,State}') IN ('closed', 'merged')`
+	}
+	if startTime != "" {
+		query += fmt.Sprintf(` and cem.time >= %s`, startTime)
+	}
+	if isRead {
+		query += ` and im.is_read = true`
+	} else {
+		query += ` and im.is_read = false`
+	}
+	query += ` order by cem.source_url, cem.updated_at desc) a
 		order by updated_at desc`
 	if result := postgresql.DB().Debug().Raw(query, giteeUsername, userName,
-		"%"+giteeUsername+"%", doneSql).Scan(&response); result.Error != nil {
+		"%"+giteeUsername+"%").Scan(&response); result.Error != nil {
 		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
@@ -723,7 +773,7 @@ func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername strin
 }
 
 func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, isBot bool,
-	pageNum, countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
+	pageNum, countPerPage int, startTime string, isRead bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	query := `select *
 		from cloud_event_message cem
@@ -736,9 +786,17 @@ func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, is
 		        or cem.data_json #>> '{NoteEvent,PullRequest,User,UserName}' = ?
 		        or cem.data_json #>> '{NoteEvent,Comment,Body}' like ?)`
 	if isBot {
-		query += `and cem."user" IN ('openeuler-ci-bot','ci-robot','openeuler-sync-bot') `
+		query += ` and cem."user" IN ('openeuler-ci-bot','ci-robot','openeuler-sync-bot') `
 	} else {
-		query += `and cem."user" NOT IN ('openeuler-ci-bot','ci-robot','openeuler-sync-bot') `
+		query += ` and cem."user" NOT IN ('openeuler-ci-bot','ci-robot','openeuler-sync-bot') `
+	}
+	if startTime != "" {
+		query += fmt.Sprintf(` and cem.time >= %s`, startTime)
+	}
+	if isRead {
+		query += ` and im.is_read = true`
+	} else {
+		query += ` and im.is_read = false`
 	}
 	query += `order by cem.updated_at desc`
 	if result := postgresql.DB().Raw(query, giteeUsername, userName,
@@ -751,7 +809,7 @@ func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, is
 }
 
 func (s *messageAdapter) GetGiteeMessage(userName, giteeUsername string, pageNum,
-	countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
+	countPerPage int, startTime string, isRead bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	query := `select *
 		from cloud_event_message cem
@@ -759,8 +817,16 @@ func (s *messageAdapter) GetGiteeMessage(userName, giteeUsername string, pageNum
 		         join message_center.recipient_config rc on im.recipient_id = rc.id
 		    and cem.source = 'https://gitee.com'
 		    and (rc.gitee_user_name = ? or rc.user_id = ?)
-		and cem."user" NOT IN ('openeuler-ci-bot','ci-robot','openeuler-sync-bot')
-		order by cem.updated_at desc`
+		and cem."user" NOT IN ('openeuler-ci-bot','ci-robot','openeuler-sync-bot')`
+	if startTime != "" {
+		query += fmt.Sprintf(` and cem.time >= %s`, startTime)
+	}
+	if isRead {
+		query += ` and im.is_read = true`
+	} else {
+		query += ` and im.is_read = false`
+	}
+	query += ` order by cem.updated_at desc`
 	if result := postgresql.DB().Raw(query, giteeUsername, userName).Scan(&response); result.
 		Error != nil {
 		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
@@ -771,7 +837,7 @@ func (s *messageAdapter) GetGiteeMessage(userName, giteeUsername string, pageNum
 }
 
 func (s *messageAdapter) GetEurMessage(userName string, pageNum,
-	countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
+	countPerPage int, startTime string, isRead bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	query := `select *
 		from cloud_event_message cem
@@ -779,9 +845,17 @@ func (s *messageAdapter) GetEurMessage(userName string, pageNum,
 		         join message_center.recipient_config rc on im.recipient_id = rc.id
 		    and cem.source = 'https://eur.openeuler.openatom.cn'
 		    and rc.user_id = ?
-		and (cem.data_json #>> '{Body,User}' = ?
-		         or cem.data_json #>> '{Body,Owner}' = ?)
-		order by cem.updated_at desc`
+			and (cem.data_json #>> '{Body,User}' = ?
+		         or cem.data_json #>> '{Body,Owner}' = ?)`
+	if startTime != "" {
+		query += fmt.Sprintf(` and cem.time >= %s`, startTime)
+	}
+	if isRead {
+		query += ` and im.is_read = true`
+	} else {
+		query += ` and im.is_read = false`
+	}
+	query += ` order by cem.updated_at desc`
 	if result := postgresql.DB().Raw(query, userName, userName, userName).Scan(&response); result.
 		Error != nil {
 		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
