@@ -482,17 +482,17 @@ func (s *messageAdapter) GetAllToDoMessage(userName string, giteeUsername string
 	var response []MessageListDAO
 
 	issueTodo, issueCount, err := s.GetIssueToDoMessage(userName, giteeUsername, isDone,
-		0, 0, startTime, isRead)
+		0, 0, startTime)
 	if err != nil {
 		return []MessageListDAO{}, 0, err
 	}
 	prTodo, prCount, err := s.GetPullRequestToDoMessage(userName, giteeUsername, isDone,
-		0, 0, startTime, isRead)
+		0, 0, startTime)
 	if err != nil {
 		return []MessageListDAO{}, 0, err
 	}
 	cveTodo, cveCount, err := s.GetCVEToDoMessage(userName, giteeUsername, isDone,
-		0, 0, startTime, isRead)
+		0, 0, startTime)
 	response = append(response, issueTodo...)
 	response = append(response, prTodo...)
 	response = append(response, cveTodo...)
@@ -606,7 +606,7 @@ func (s *messageAdapter) GetForumAboutMessage(userName string, isBot bool, pageN
 }
 
 func (s *messageAdapter) GetMeetingToDoMessage(userName string, giteeUsername string, filter int,
-	pageNum, countPerPage int, isRead bool) ([]MessageListDAO, int64, error) {
+	pageNum, countPerPage int) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	query := `select *
 		from (select distinct on (cem.source_url) cem.*
@@ -623,11 +623,6 @@ func (s *messageAdapter) GetMeetingToDoMessage(userName string, giteeUsername st
 	} else if filter == 2 {
 		query += ` and NOW() > to_timestamp(data_json ->> 'MeetingEndTime', 'YYYY-MM-DDHH24:MI')`
 	}
-	if isRead {
-		query += ` and im.is_read = true`
-	} else {
-		query += ` and im.is_read = false`
-	}
 	query += ` order by cem.source_url, updated_at desc) a
 		order by updated_at`
 	if result := postgresql.DB().Raw(query, giteeUsername, userName).Scan(&response); result.Error != nil {
@@ -639,7 +634,7 @@ func (s *messageAdapter) GetMeetingToDoMessage(userName string, giteeUsername st
 }
 
 func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDone bool, pageNum,
-	countPerPage int, startTime string, isRead bool) ([]MessageListDAO, int64, error) {
+	countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 
 	query := `select *
@@ -654,15 +649,10 @@ func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDon
 	if isDone {
 		query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') = 'closed'`
 	} else {
-		query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') <> 'closed'`
+		query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') = 'open'`
 	}
 	if startTime != "" {
 		query += fmt.Sprintf(` and cem.time >= %s`, startTime)
-	}
-	if isRead {
-		query += ` and im.is_read = true`
-	} else {
-		query += ` and im.is_read = false`
 	}
 	query += ` order by cem.source_url, cem.updated_at desc) a
 		order by updated_at desc`
@@ -705,7 +695,7 @@ func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string, pageNum, 
 }
 
 func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isDone bool,
-	pageNum, countPerPage int, startTime string, isRead bool) ([]MessageListDAO, int64, error) {
+	pageNum, countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 
 	query := `select *
@@ -720,15 +710,10 @@ func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isD
 	if isDone {
 		query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') = 'closed'`
 	} else {
-		query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') <> 'closed'`
+		query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') = 'open'`
 	}
 	if startTime != "" {
 		query += fmt.Sprintf(` and cem.time >= %s`, startTime)
-	}
-	if isRead {
-		query += ` and im.is_read = true`
-	} else {
-		query += ` and im.is_read = false`
 	}
 	query += ` order by cem.source_url, cem.updated_at desc) a
 		order by updated_at desc`
@@ -742,7 +727,7 @@ func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isD
 }
 
 func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername string, isDone bool,
-	pageNum, countPerPage int, startTime string, isRead bool) ([]MessageListDAO, int64, error) {
+	pageNum, countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 
 	query := `select *
@@ -762,11 +747,6 @@ func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername strin
 	}
 	if startTime != "" {
 		query += fmt.Sprintf(` and cem.time >= %s`, startTime)
-	}
-	if isRead {
-		query += ` and im.is_read = true`
-	} else {
-		query += ` and im.is_read = false`
 	}
 	query += ` order by cem.source_url, cem.updated_at desc) a
 		order by updated_at desc`
@@ -880,7 +860,7 @@ func (s *messageAdapter) CountAllMessage(userName, giteeUserName string) (CountD
 
 	_, watchCount, _ := s.GetAllWatchMessage(userName, giteeUserName, 1, 0, "", false)
 
-	_, meetingCount, _ := s.GetMeetingToDoMessage(userName, giteeUserName, 1, 1, 0, false)
+	_, meetingCount, _ := s.GetMeetingToDoMessage(userName, giteeUserName, 1, 1, 0)
 	return CountDataDAO{
 		TodoCount:    todoCountNotDone,
 		AboutCount:   aboutCountBot + aboutCountNotBot,
