@@ -287,7 +287,7 @@ func (ctl *messageListController) GetCVEToDoMessage(ctx *gin.Context) {
 	}
 
 	if data, count, err := ctl.appService.GetCVEToDoMessage(userName, params.GiteeUserName,
-		params.IsDone, params.PageNum, params.CountPerPage, params.StartTime); err != nil {
+		params.IsDone, params.PageNum, params.CountPerPage, params.StartTime, params.IsRead); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
@@ -412,7 +412,7 @@ func (ctl *messageListController) GetEurMessage(ctx *gin.Context) {
 		return
 	}
 	if data, count, err := ctl.appService.GetEurMessage(userName, params.PageNum,
-		params.CountPerPage, params.StartTime); err != nil {
+		params.CountPerPage, params.StartTime, params.IsRead); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
