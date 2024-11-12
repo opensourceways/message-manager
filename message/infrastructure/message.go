@@ -462,19 +462,19 @@ func (s *messageAdapter) RemoveMessage(source, eventId string) error {
 	return nil
 }
 
-func (s *messageAdapter) GetAllToDoMessage(userName string, giteeUsername string) (
+func (s *messageAdapter) GetAllToDoMessage(userName string, giteeUsername string, isDone bool) (
 	[]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 
-	issueTodo, issueCount, err := s.GetIssueToDoMessage(userName, giteeUsername)
+	issueTodo, issueCount, err := s.GetIssueToDoMessage(userName, giteeUsername, isDone)
 	if err != nil {
 		return []MessageListDAO{}, 0, err
 	}
-	prTodo, prCount, err := s.GetPullRequestToDoMessage(userName, giteeUsername)
+	prTodo, prCount, err := s.GetPullRequestToDoMessage(userName, giteeUsername, isDone)
 	if err != nil {
 		return []MessageListDAO{}, 0, err
 	}
-	cveTodo, cveCount, err := s.GetCVEToDoMessage(userName, giteeUsername)
+	cveTodo, cveCount, err := s.GetCVEToDoMessage(userName, giteeUsername, isDone)
 	response = append(response, issueTodo...)
 	response = append(response, prTodo...)
 	response = append(response, cveTodo...)
@@ -591,7 +591,7 @@ func (s *messageAdapter) GetMeetingToDoMessage(userName string, giteeUsername st
 	return response, int64(len(response)), nil
 }
 
-func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string) (
+func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDone bool) (
 	[]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	query := `select *
@@ -634,7 +634,7 @@ func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string) (
 	return response, int64(len(response)), nil
 }
 
-func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string) (
+func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isDone bool) (
 	[]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	query := `select *
@@ -657,7 +657,7 @@ func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string) (
 	return response, int64(len(response)), nil
 }
 
-func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername string) (
+func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername string, isDone bool) (
 	[]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	query := `select *
