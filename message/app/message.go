@@ -19,14 +19,13 @@ type MessageListAppService interface {
 	RemoveMessage(cmd *CmdToSetIsRead) error
 
 	GetAllToDoMessage(userName string, giteeUsername string, isDone bool,
-		pageNum, countPerPage int, startTime string, isRead bool) ([]MessageListDTO, int64,
-		error)
+		pageNum, countPerPage int, startTime string, isRead bool) ([]MessageListDTO, int64, error)
 	GetAllAboutMessage(userName string, giteeUsername string, isBot bool,
-		pageNum, countPerPage int, startTime string, isRead bool) ([]MessageListDTO,
-		int64, error)
+		pageNum, countPerPage int, startTime string, isRead bool) ([]MessageListDTO, int64, error)
 	GetAllWatchMessage(userName string, giteeUsername string,
-		pageNum, countPerPage int, startTime string, isRead bool) ([]MessageListDTO,
-		int64, error)
+		pageNum, countPerPage int, startTime string, isRead bool) ([]MessageListDTO, int64, error)
+
+	CountAllMessage(userName string, giteeUsername string) (CountDataDTO, error)
 
 	GetForumSystemMessage(userName string, pageNum, countPerPage int,
 		startTime string, isRead bool) ([]MessageListDTO, int64, error)
@@ -231,4 +230,12 @@ func (s *messageListAppService) GetEurMessage(userName string, pageNum, countPer
 		return []MessageListDTO{}, 0, err
 	}
 	return response, count, nil
+}
+
+func (s *messageListAppService) CountAllMessage(userName string, giteeUsername string) (CountDataDTO, error) {
+	data, err := s.messageListAdapter.CountAllMessage(userName, giteeUsername)
+	if err != nil {
+		return CountDataDTO{}, err
+	}
+	return data, nil
 }
