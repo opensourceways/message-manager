@@ -478,7 +478,7 @@ func pagination(messages []MessageListDAO, pageNum, countPerPage int) []MessageL
 }
 
 func (s *messageAdapter) GetAllToDoMessage(userName string, giteeUsername string, isDone bool,
-	pageNum, countPerPage int, startTime string, isRead bool) ([]MessageListDAO, int64, error) {
+	pageNum, countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 
 	issueTodo, issueCount, err := s.GetIssueToDoMessage(userName, giteeUsername, isDone,
