@@ -12,22 +12,31 @@ type MessageListAdapter interface {
 	SetMessageIsRead(source, eventId string) error
 	RemoveMessage(source, eventId string) error
 
-	GetAllToDoMessage(userName, giteeUsername string, isDone bool) ([]MessageListDO,
+	GetAllToDoMessage(userName, giteeUsername string, isDone bool, pageNum,
+		countPerPage int) ([]MessageListDO,
 		int64, error)
-	GetAllAboutMessage(userName, giteeUsername string, isBot bool) ([]MessageListDO,
+	GetAllAboutMessage(userName, giteeUsername string, isBot bool, pageNum,
+		countPerPage int) ([]MessageListDO,
 		int64, error)
-	GetAllWatchMessage(userName, giteeUsername string) ([]MessageListDO,
+	GetAllWatchMessage(userName, giteeUsername string, pageNum, countPerPage int) ([]MessageListDO,
 		int64, error)
 
-	GetForumSystemMessage(userName string) ([]MessageListDO, int64, error)
-	GetForumAboutMessage(userName string, isBot bool) ([]MessageListDO, int64, error)
-	GetMeetingToDoMessage(userName string, giteeUsername string, filter int) ([]MessageListDO,
+	GetForumSystemMessage(userName string, pageNum, countPerPage int) ([]MessageListDO, int64, error)
+	GetForumAboutMessage(userName string, isBot bool, pageNum,
+		countPerPage int) ([]MessageListDO, int64, error)
+	GetMeetingToDoMessage(userName string, giteeUsername string, filter int, pageNum,
+		countPerPage int) ([]MessageListDO, int64, error)
+	GetCVEToDoMessage(userName, giteeUsername string, isDone bool, pageNum,
+		countPerPage int) ([]MessageListDO, int64, error)
+	GetCVEMessage(userName, giteeUsername string, pageNum, countPerPage int) ([]MessageListDO,
 		int64, error)
-	GetCVEToDoMessage(userName, giteeUsername string, isDone bool) ([]MessageListDO, int64, error)
-	GetCVEMessage(userName, giteeUsername string) ([]MessageListDO, int64, error)
-	GetIssueToDoMessage(userName, giteeUsername string, isDone bool) ([]MessageListDO, int64, error)
-	GetPullRequestToDoMessage(userName, giteeUsername string, isDone bool) ([]MessageListDO, int64, error)
-	GetGiteeAboutMessage(userName, giteeUsername string, isBot bool) ([]MessageListDO, int64, error)
-	GetGiteeMessage(userName, giteeUsername string) ([]MessageListDO, int64, error)
-	GetEurMessage(userName string) ([]MessageListDO, int64, error)
+	GetIssueToDoMessage(userName, giteeUsername string, isDone bool, pageNum,
+		countPerPage int) ([]MessageListDO, int64, error)
+	GetPullRequestToDoMessage(userName, giteeUsername string, isDone bool, pageNum,
+		countPerPage int) ([]MessageListDO, int64, error)
+	GetGiteeAboutMessage(userName, giteeUsername string, isBot bool,
+		pageNum, countPerPage int) ([]MessageListDO, int64, error)
+	GetGiteeMessage(userName, giteeUsername string, pageNum, countPerPage int) ([]MessageListDO,
+		int64, error)
+	GetEurMessage(userName string, pageNum, countPerPage int) ([]MessageListDO, int64, error)
 }

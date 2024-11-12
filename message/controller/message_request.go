@@ -109,4 +109,6 @@ type QueryParams struct {
 	IsBot         bool   `form:"is_bot"`
 	Filter        int    `form:"filter"`
 	IsDone        bool   `form:"is_done"`
+	PageNum       int    `form:"page_num"`
+	CountPerPage  int    `form:"count_per_page"`
 }

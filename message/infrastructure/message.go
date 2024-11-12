@@ -462,55 +462,74 @@ func (s *messageAdapter) RemoveMessage(source, eventId string) error {
 	return nil
 }
 
-func (s *messageAdapter) GetAllToDoMessage(userName string, giteeUsername string, isDone bool) (
+func pagination(messages []MessageListDAO, pageNum, countPerPage int) []MessageListDAO {
+	if countPerPage == 0 {
+		return messages
+	}
+	start := (pageNum - 1) * countPerPage
+	end := start + countPerPage
+	if start > len(messages) {
+		return []MessageListDAO{}
+	}
+	if end > len(messages) {
+		return messages[start:]
+	}
+	return messages[start:end]
+}
+
+func (s *messageAdapter) GetAllToDoMessage(userName string, giteeUsername string, isDone bool,
+	pageNum, countPerPage int) (
 	[]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 
-	issueTodo, issueCount, err := s.GetIssueToDoMessage(userName, giteeUsername, isDone)
+	issueTodo, issueCount, err := s.GetIssueToDoMessage(userName, giteeUsername, isDone, 0, 0)
 	if err != nil {
 		return []MessageListDAO{}, 0, err
 	}
-	prTodo, prCount, err := s.GetPullRequestToDoMessage(userName, giteeUsername, isDone)
+	prTodo, prCount, err := s.GetPullRequestToDoMessage(userName, giteeUsername, isDone, 0, 0)
 	if err != nil {
 		return []MessageListDAO{}, 0, err
 	}
-	cveTodo, cveCount, err := s.GetCVEToDoMessage(userName, giteeUsername, isDone)
+	cveTodo, cveCount, err := s.GetCVEToDoMessage(userName, giteeUsername, isDone, 0, 0)
 	response = append(response, issueTodo...)
 	response = append(response, prTodo...)
 	response = append(response, cveTodo...)
-	return response, issueCount + prCount + cveCount, nil
+	return pagination(response, pageNum, countPerPage), issueCount + prCount + cveCount, nil
 }
 
-func (s *messageAdapter) GetAllAboutMessage(userName string, giteeUsername string, isBot bool) ([]MessageListDAO, int64, error) {
+func (s *messageAdapter) GetAllAboutMessage(userName string, giteeUsername string, isBot bool,
+	pageNum, countPerPage int) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
-	giteeAbout, giteeCount, err := s.GetGiteeAboutMessage(userName, giteeUsername, isBot)
+	giteeAbout, giteeCount, err := s.GetGiteeAboutMessage(userName, giteeUsername, isBot, 0, 0)
 	if err != nil {
 		return []MessageListDAO{}, 0, err
 	}
-	forumAbout, forumCount, err := s.GetForumAboutMessage(userName, isBot)
+	forumAbout, forumCount, err := s.GetForumAboutMessage(userName, isBot, 0, 0)
 	if err != nil {
 		return []MessageListDAO{}, 0, err
 	}
 	response = append(response, giteeAbout...)
 	response = append(response, forumAbout...)
-	return response, giteeCount + forumCount, nil
+
+	return pagination(response, pageNum, countPerPage), giteeCount + forumCount, nil
 }
 
-func (s *messageAdapter) GetAllWatchMessage(userName string, giteeUsername string) ([]MessageListDAO, int64, error) {
+func (s *messageAdapter) GetAllWatchMessage(userName string, giteeUsername string, pageNum,
+	countPerPage int) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
-	forumMsg, forumCount, err := s.GetForumSystemMessage(userName)
+	forumMsg, forumCount, err := s.GetForumSystemMessage(userName, 0, 0)
 	if err != nil {
 		return []MessageListDAO{}, 0, err
 	}
-	cveMsg, cveCount, err := s.GetCVEMessage(userName, giteeUsername)
+	cveMsg, cveCount, err := s.GetCVEMessage(userName, giteeUsername, 0, 0)
 	if err != nil {
 		return []MessageListDAO{}, 0, err
 	}
-	giteeMsg, giteeCount, err := s.GetGiteeMessage(userName, giteeUsername)
+	giteeMsg, giteeCount, err := s.GetGiteeMessage(userName, giteeUsername, 0, 0)
 	if err != nil {
 		return []MessageListDAO{}, 0, err
 	}
-	eurMsg, eurCount, err := s.GetEurMessage(userName)
+	eurMsg, eurCount, err := s.GetEurMessage(userName, 0, 0)
 	if err != nil {
 		return []MessageListDAO{}, 0, err
 	}
@@ -518,10 +537,11 @@ func (s *messageAdapter) GetAllWatchMessage(userName string, giteeUsername strin
 	response = append(response, cveMsg...)
 	response = append(response, giteeMsg...)
 	response = append(response, eurMsg...)
-	return response, forumCount + cveCount + giteeCount + eurCount, nil
+	return pagination(response, pageNum, countPerPage), forumCount + cveCount + giteeCount + eurCount, nil
 }
 
-func (s *messageAdapter) GetForumSystemMessage(userName string) ([]MessageListDAO, int64, error) {
+func (s *messageAdapter) GetForumSystemMessage(userName string, pageNum,
+	countPerPage int) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 
 	query := `select * from message_center.cloud_event_message cem
@@ -535,10 +555,11 @@ func (s *messageAdapter) GetForumSystemMessage(userName string) ([]MessageListDA
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
 	}
-	return response, int64(len(response)), nil
+	return pagination(response, pageNum, countPerPage), int64(len(response)), nil
 }
 
-func (s *messageAdapter) GetForumAboutMessage(userName string, isBot bool) ([]MessageListDAO,
+func (s *messageAdapter) GetForumAboutMessage(userName string, isBot bool, pageNum,
+	countPerPage int) ([]MessageListDAO,
 	int64, error) {
 	var response []MessageListDAO
 	query := `select * from message_center.cloud_event_message cem
@@ -560,10 +581,11 @@ func (s *messageAdapter) GetForumAboutMessage(userName string, isBot bool) ([]Me
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
 	}
-	return response, int64(len(response)), nil
+	return pagination(response, pageNum, countPerPage), int64(len(response)), nil
 }
 
-func (s *messageAdapter) GetMeetingToDoMessage(userName string, giteeUsername string, filter int) (
+func (s *messageAdapter) GetMeetingToDoMessage(userName string, giteeUsername string, filter int,
+	pageNum, countPerPage int) (
 	[]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	query := `select *
@@ -588,10 +610,11 @@ func (s *messageAdapter) GetMeetingToDoMessage(userName string, giteeUsername st
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
 	}
-	return response, int64(len(response)), nil
+	return pagination(response, pageNum, countPerPage), int64(len(response)), nil
 }
 
-func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDone bool) (
+func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDone bool, pageNum,
+	countPerPage int) (
 	[]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	var doneSql string
@@ -616,10 +639,10 @@ func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDon
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
 	}
-	return response, int64(len(response)), nil
+	return pagination(response, pageNum, countPerPage), int64(len(response)), nil
 }
 
-func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string) (
+func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string, pageNum, countPerPage int) (
 	[]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	query := `select *
@@ -636,10 +659,11 @@ func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string) (
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
 	}
-	return response, int64(len(response)), nil
+	return pagination(response, pageNum, countPerPage), int64(len(response)), nil
 }
 
-func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isDone bool) (
+func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isDone bool,
+	pageNum, countPerPage int) (
 	[]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	var doneSql string
@@ -664,10 +688,11 @@ func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isD
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
 	}
-	return response, int64(len(response)), nil
+	return pagination(response, pageNum, countPerPage), int64(len(response)), nil
 }
 
-func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername string, isDone bool) (
+func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername string, isDone bool,
+	pageNum, countPerPage int) (
 	[]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	var doneSql string
@@ -692,10 +717,11 @@ func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername strin
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
 	}
-	return response, int64(len(response)), nil
+	return pagination(response, pageNum, countPerPage), int64(len(response)), nil
 }
 
-func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, isBot bool) (
+func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, isBot bool,
+	pageNum, countPerPage int) (
 	[]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	query := `select *
@@ -720,10 +746,11 @@ func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, is
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
 	}
-	return response, int64(len(response)), nil
+	return pagination(response, pageNum, countPerPage), int64(len(response)), nil
 }
 
-func (s *messageAdapter) GetGiteeMessage(userName, giteeUsername string) (
+func (s *messageAdapter) GetGiteeMessage(userName, giteeUsername string, pageNum,
+	countPerPage int) (
 	[]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	query := `select *
@@ -740,10 +767,11 @@ func (s *messageAdapter) GetGiteeMessage(userName, giteeUsername string) (
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
 	}
-	return response, int64(len(response)), nil
+	return pagination(response, pageNum, countPerPage), int64(len(response)), nil
 }
 
-func (s *messageAdapter) GetEurMessage(userName string) ([]MessageListDAO, int64, error) {
+func (s *messageAdapter) GetEurMessage(userName string, pageNum,
+	countPerPage int) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	query := `select *
 		from cloud_event_message cem
@@ -760,5 +788,5 @@ func (s *messageAdapter) GetEurMessage(userName string) ([]MessageListDAO, int64
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
 	}
-	return response, int64(len(response)), nil
+	return pagination(response, pageNum, countPerPage), int64(len(response)), nil
 }
