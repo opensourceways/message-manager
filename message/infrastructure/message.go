@@ -478,19 +478,21 @@ func pagination(messages []MessageListDAO, pageNum, countPerPage int) []MessageL
 }
 
 func (s *messageAdapter) GetAllToDoMessage(userName string, giteeUsername string, isDone bool,
-	pageNum, countPerPage int) (
-	[]MessageListDAO, int64, error) {
+	pageNum, countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 
-	issueTodo, issueCount, err := s.GetIssueToDoMessage(userName, giteeUsername, isDone, 0, 0)
+	issueTodo, issueCount, err := s.GetIssueToDoMessage(userName, giteeUsername, isDone,
+		0, 0, startTime)
 	if err != nil {
 		return []MessageListDAO{}, 0, err
 	}
-	prTodo, prCount, err := s.GetPullRequestToDoMessage(userName, giteeUsername, isDone, 0, 0)
+	prTodo, prCount, err := s.GetPullRequestToDoMessage(userName, giteeUsername, isDone,
+		0, 0, startTime)
 	if err != nil {
 		return []MessageListDAO{}, 0, err
 	}
-	cveTodo, cveCount, err := s.GetCVEToDoMessage(userName, giteeUsername, isDone, 0, 0)
+	cveTodo, cveCount, err := s.GetCVEToDoMessage(userName, giteeUsername, isDone,
+		0, 0, startTime)
 	response = append(response, issueTodo...)
 	response = append(response, prTodo...)
 	response = append(response, cveTodo...)
@@ -498,13 +500,15 @@ func (s *messageAdapter) GetAllToDoMessage(userName string, giteeUsername string
 }
 
 func (s *messageAdapter) GetAllAboutMessage(userName string, giteeUsername string, isBot bool,
-	pageNum, countPerPage int) ([]MessageListDAO, int64, error) {
+	pageNum, countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
-	giteeAbout, giteeCount, err := s.GetGiteeAboutMessage(userName, giteeUsername, isBot, 0, 0)
+	giteeAbout, giteeCount, err := s.GetGiteeAboutMessage(userName, giteeUsername, isBot,
+		0, 0, startTime)
 	if err != nil {
 		return []MessageListDAO{}, 0, err
 	}
-	forumAbout, forumCount, err := s.GetForumAboutMessage(userName, isBot, 0, 0)
+	forumAbout, forumCount, err := s.GetForumAboutMessage(userName, isBot,
+		0, 0, startTime)
 	if err != nil {
 		return []MessageListDAO{}, 0, err
 	}
@@ -515,21 +519,24 @@ func (s *messageAdapter) GetAllAboutMessage(userName string, giteeUsername strin
 }
 
 func (s *messageAdapter) GetAllWatchMessage(userName string, giteeUsername string, pageNum,
-	countPerPage int) ([]MessageListDAO, int64, error) {
+	countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
-	forumMsg, forumCount, err := s.GetForumSystemMessage(userName, 0, 0)
+	forumMsg, forumCount, err := s.GetForumSystemMessage(userName,
+		0, 0, startTime)
 	if err != nil {
 		return []MessageListDAO{}, 0, err
 	}
-	cveMsg, cveCount, err := s.GetCVEMessage(userName, giteeUsername, 0, 0)
+	cveMsg, cveCount, err := s.GetCVEMessage(userName, giteeUsername,
+		0, 0, startTime)
 	if err != nil {
 		return []MessageListDAO{}, 0, err
 	}
-	giteeMsg, giteeCount, err := s.GetGiteeMessage(userName, giteeUsername, 0, 0)
+	giteeMsg, giteeCount, err := s.GetGiteeMessage(userName, giteeUsername,
+		0, 0, startTime)
 	if err != nil {
 		return []MessageListDAO{}, 0, err
 	}
-	eurMsg, eurCount, err := s.GetEurMessage(userName, 0, 0)
+	eurMsg, eurCount, err := s.GetEurMessage(userName, 0, 0, startTime)
 	if err != nil {
 		return []MessageListDAO{}, 0, err
 	}
@@ -541,7 +548,7 @@ func (s *messageAdapter) GetAllWatchMessage(userName string, giteeUsername strin
 }
 
 func (s *messageAdapter) GetForumSystemMessage(userName string, pageNum,
-	countPerPage int) ([]MessageListDAO, int64, error) {
+	countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 
 	query := `select * from message_center.cloud_event_message cem
@@ -559,8 +566,7 @@ func (s *messageAdapter) GetForumSystemMessage(userName string, pageNum,
 }
 
 func (s *messageAdapter) GetForumAboutMessage(userName string, isBot bool, pageNum,
-	countPerPage int) ([]MessageListDAO,
-	int64, error) {
+	countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	query := `select * from message_center.cloud_event_message cem
 		join message_center.inner_message im on im.event_id = cem.event_id
@@ -585,8 +591,7 @@ func (s *messageAdapter) GetForumAboutMessage(userName string, isBot bool, pageN
 }
 
 func (s *messageAdapter) GetMeetingToDoMessage(userName string, giteeUsername string, filter int,
-	pageNum, countPerPage int) (
-	[]MessageListDAO, int64, error) {
+	pageNum, countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	query := `select *
 		from (select distinct on (cem.source_url) cem.*
@@ -614,8 +619,7 @@ func (s *messageAdapter) GetMeetingToDoMessage(userName string, giteeUsername st
 }
 
 func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDone bool, pageNum,
-	countPerPage int) (
-	[]MessageListDAO, int64, error) {
+	countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	var doneSql string
 	if isDone {
@@ -642,8 +646,8 @@ func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDon
 	return pagination(response, pageNum, countPerPage), int64(len(response)), nil
 }
 
-func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string, pageNum, countPerPage int) (
-	[]MessageListDAO, int64, error) {
+func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string, pageNum, countPerPage int,
+	startTime string) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	query := `select *
 		from cloud_event_message cem
@@ -663,8 +667,7 @@ func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string, pageNum, 
 }
 
 func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isDone bool,
-	pageNum, countPerPage int) (
-	[]MessageListDAO, int64, error) {
+	pageNum, countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	var doneSql string
 	if isDone {
@@ -692,8 +695,7 @@ func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isD
 }
 
 func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername string, isDone bool,
-	pageNum, countPerPage int) (
-	[]MessageListDAO, int64, error) {
+	pageNum, countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	var doneSql string
 	if isDone {
@@ -721,8 +723,7 @@ func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername strin
 }
 
 func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, isBot bool,
-	pageNum, countPerPage int) (
-	[]MessageListDAO, int64, error) {
+	pageNum, countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	query := `select *
 		from cloud_event_message cem
@@ -750,8 +751,7 @@ func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, is
 }
 
 func (s *messageAdapter) GetGiteeMessage(userName, giteeUsername string, pageNum,
-	countPerPage int) (
-	[]MessageListDAO, int64, error) {
+	countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	query := `select *
 		from cloud_event_message cem
@@ -771,7 +771,7 @@ func (s *messageAdapter) GetGiteeMessage(userName, giteeUsername string, pageNum
 }
 
 func (s *messageAdapter) GetEurMessage(userName string, pageNum,
-	countPerPage int) ([]MessageListDAO, int64, error) {
+	countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	query := `select *
 		from cloud_event_message cem

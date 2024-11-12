@@ -19,37 +19,35 @@ type MessageListAppService interface {
 	RemoveMessage(cmd *CmdToSetIsRead) error
 
 	GetAllToDoMessage(userName string, giteeUsername string, isDone bool,
-		pageNum, countPerPage int) ([]MessageListDTO, int64,
+		pageNum, countPerPage int, startTime string) ([]MessageListDTO, int64,
 		error)
 	GetAllAboutMessage(userName string, giteeUsername string, isBot bool,
-		pageNum, countPerPage int) ([]MessageListDTO,
+		pageNum, countPerPage int, startTime string) ([]MessageListDTO,
 		int64, error)
 	GetAllWatchMessage(userName string, giteeUsername string,
-		pageNum, countPerPage int) ([]MessageListDTO,
+		pageNum, countPerPage int, startTime string) ([]MessageListDTO,
 		int64, error)
 
-	GetForumSystemMessage(userName string, pageNum, countPerPage int) ([]MessageListDTO, int64,
-		error)
+	GetForumSystemMessage(userName string, pageNum, countPerPage int,
+		startTime string) ([]MessageListDTO, int64, error)
 	GetForumAboutMessage(userName string, isBot bool, pageNum,
-		countPerPage int) ([]MessageListDTO, int64, error)
+		countPerPage int, startTime string) ([]MessageListDTO, int64, error)
 	GetMeetingToDoMessage(userName string, giteeUsername string, filter int,
-		pageNum, countPerPage int) ([]MessageListDTO,
-		int64, error)
+		pageNum, countPerPage int, startTime string) ([]MessageListDTO, int64, error)
 	GetCVEToDoMessage(userName string, giteeUsername string, isDone bool,
-		pageNum, countPerPage int) ([]MessageListDTO, int64, error)
+		pageNum, countPerPage int, startTime string) ([]MessageListDTO, int64, error)
 	GetCVEMessage(userName string, giteeUsername string,
-		pageNum, countPerPage int) ([]MessageListDTO, int64, error)
+		pageNum, countPerPage int, startTime string) ([]MessageListDTO, int64, error)
 	GetIssueToDoMessage(userName string, giteeUsername string, isDone bool,
-		pageNum, countPerPage int) ([]MessageListDTO, int64, error)
+		pageNum, countPerPage int, startTime string) ([]MessageListDTO, int64, error)
 	GetPullRequestToDoMessage(userName string, giteeUsername string, isDone bool,
-		pageNum, countPerPage int) ([]MessageListDTO, int64,
-		error)
+		pageNum, countPerPage int, startTime string) ([]MessageListDTO, int64, error)
 	GetGiteeAboutMessage(userName string, giteeUsername string, isBot bool,
-		pageNum, countPerPage int) ([]MessageListDTO,
-		int64, error)
+		pageNum, countPerPage int, startTime string) ([]MessageListDTO, int64, error)
 	GetGiteeMessage(userName string, giteeUsername string, pageNum,
-		countPerPage int) ([]MessageListDTO, int64, error)
-	GetEurMessage(userName string, pageNum, countPerPage int) ([]MessageListDTO, int64, error)
+		countPerPage int, startTime string) ([]MessageListDTO, int64, error)
+	GetEurMessage(userName string, pageNum, countPerPage int,
+		startTime string) ([]MessageListDTO, int64, error)
 }
 
 func NewMessageListAppService(
@@ -105,10 +103,10 @@ func (s *messageListAppService) RemoveMessage(cmd *CmdToSetIsRead) error {
 }
 
 func (s *messageListAppService) GetAllToDoMessage(userName string, giteeUsername string,
-	isDone bool, pageNum, countPerPage int) (
+	isDone bool, pageNum, countPerPage int, startTime string) (
 	[]MessageListDTO, int64, error) {
 	response, count, err := s.messageListAdapter.GetAllToDoMessage(userName, giteeUsername,
-		isDone, pageNum, countPerPage)
+		isDone, pageNum, countPerPage, startTime)
 	if err != nil {
 		return []MessageListDTO{}, 0, err
 	}
@@ -116,9 +114,9 @@ func (s *messageListAppService) GetAllToDoMessage(userName string, giteeUsername
 }
 
 func (s *messageListAppService) GetAllAboutMessage(userName string, giteeUsername string,
-	isBot bool, pageNum, countPerPage int) ([]MessageListDTO, int64, error) {
+	isBot bool, pageNum, countPerPage int, startTime string) ([]MessageListDTO, int64, error) {
 	response, count, err := s.messageListAdapter.GetAllAboutMessage(userName, giteeUsername,
-		isBot, pageNum, countPerPage)
+		isBot, pageNum, countPerPage, startTime)
 	if err != nil {
 		return []MessageListDTO{}, 0, err
 	}
@@ -126,19 +124,19 @@ func (s *messageListAppService) GetAllAboutMessage(userName string, giteeUsernam
 }
 
 func (s *messageListAppService) GetAllWatchMessage(userName string, giteeUsername string,
-	pageNum, countPerPage int) ([]MessageListDTO, int64, error) {
+	pageNum, countPerPage int, startTime string) ([]MessageListDTO, int64, error) {
 	response, count, err := s.messageListAdapter.GetAllWatchMessage(userName, giteeUsername,
-		pageNum, countPerPage)
+		pageNum, countPerPage, startTime)
 	if err != nil {
 		return []MessageListDTO{}, 0, err
 	}
 	return response, count, nil
 }
 
-func (s *messageListAppService) GetForumSystemMessage(userName string, pageNum, countPerPage int) (
-	[]MessageListDTO, int64, error) {
+func (s *messageListAppService) GetForumSystemMessage(userName string, pageNum, countPerPage int,
+	startTime string) ([]MessageListDTO, int64, error) {
 	response, count, err := s.messageListAdapter.GetForumSystemMessage(userName, pageNum,
-		countPerPage)
+		countPerPage, startTime)
 	if err != nil {
 		return []MessageListDTO{}, 0, err
 	}
@@ -146,9 +144,9 @@ func (s *messageListAppService) GetForumSystemMessage(userName string, pageNum, 
 }
 
 func (s *messageListAppService) GetForumAboutMessage(userName string, isBot bool, pageNum,
-	countPerPage int) ([]MessageListDTO, int64, error) {
+	countPerPage int, startTime string) ([]MessageListDTO, int64, error) {
 	response, count, err := s.messageListAdapter.GetForumAboutMessage(userName, isBot, pageNum,
-		countPerPage)
+		countPerPage, startTime)
 	if err != nil {
 		return []MessageListDTO{}, 0, err
 	}
@@ -156,9 +154,9 @@ func (s *messageListAppService) GetForumAboutMessage(userName string, isBot bool
 }
 
 func (s *messageListAppService) GetMeetingToDoMessage(userName string, giteeUsername string,
-	filter int, pageNum, countPerPage int) ([]MessageListDTO, int64, error) {
+	filter int, pageNum, countPerPage int, startTime string) ([]MessageListDTO, int64, error) {
 	response, count, err := s.messageListAdapter.GetMeetingToDoMessage(userName, giteeUsername,
-		filter, pageNum, countPerPage)
+		filter, pageNum, countPerPage, startTime)
 	if err != nil {
 		return []MessageListDTO{}, 0, err
 	}
@@ -166,9 +164,9 @@ func (s *messageListAppService) GetMeetingToDoMessage(userName string, giteeUser
 }
 
 func (s *messageListAppService) GetCVEToDoMessage(userName string, giteeUsername string,
-	isDone bool, pageNum, countPerPage int) ([]MessageListDTO, int64, error) {
+	isDone bool, pageNum, countPerPage int, startTime string) ([]MessageListDTO, int64, error) {
 	response, count, err := s.messageListAdapter.GetCVEToDoMessage(userName, giteeUsername,
-		isDone, pageNum, countPerPage)
+		isDone, pageNum, countPerPage, startTime)
 	if err != nil {
 		return []MessageListDTO{}, 0, err
 	}
@@ -176,9 +174,9 @@ func (s *messageListAppService) GetCVEToDoMessage(userName string, giteeUsername
 }
 
 func (s *messageListAppService) GetCVEMessage(userName string, giteeUsername string, pageNum,
-	countPerPage int) ([]MessageListDTO, int64, error) {
+	countPerPage int, startTime string) ([]MessageListDTO, int64, error) {
 	response, count, err := s.messageListAdapter.GetCVEMessage(userName, giteeUsername, pageNum,
-		countPerPage)
+		countPerPage, startTime)
 	if err != nil {
 		return []MessageListDTO{}, 0, err
 	}
@@ -186,9 +184,9 @@ func (s *messageListAppService) GetCVEMessage(userName string, giteeUsername str
 }
 
 func (s *messageListAppService) GetIssueToDoMessage(userName string, giteeUsername string,
-	isDone bool, pageNum, countPerPage int) ([]MessageListDTO, int64, error) {
+	isDone bool, pageNum, countPerPage int, startTime string) ([]MessageListDTO, int64, error) {
 	response, count, err := s.messageListAdapter.GetIssueToDoMessage(userName, giteeUsername,
-		isDone, pageNum, countPerPage)
+		isDone, pageNum, countPerPage, startTime)
 	if err != nil {
 		return []MessageListDTO{}, 0, err
 	}
@@ -196,9 +194,9 @@ func (s *messageListAppService) GetIssueToDoMessage(userName string, giteeUserna
 }
 
 func (s *messageListAppService) GetPullRequestToDoMessage(userName string, giteeUsername string,
-	isDone bool, pageNum, countPerPage int) ([]MessageListDTO, int64, error) {
+	isDone bool, pageNum, countPerPage int, startTime string) ([]MessageListDTO, int64, error) {
 	response, count, err := s.messageListAdapter.GetPullRequestToDoMessage(userName,
-		giteeUsername, isDone, pageNum, countPerPage)
+		giteeUsername, isDone, pageNum, countPerPage, startTime)
 	if err != nil {
 		return []MessageListDTO{}, 0, err
 	}
@@ -206,9 +204,9 @@ func (s *messageListAppService) GetPullRequestToDoMessage(userName string, gitee
 }
 
 func (s *messageListAppService) GetGiteeAboutMessage(userName string, giteeUsername string,
-	isBot bool, pageNum, countPerPage int) ([]MessageListDTO, int64, error) {
+	isBot bool, pageNum, countPerPage int, startTime string) ([]MessageListDTO, int64, error) {
 	response, count, err := s.messageListAdapter.GetGiteeAboutMessage(userName, giteeUsername,
-		isBot, pageNum, countPerPage)
+		isBot, pageNum, countPerPage, startTime)
 	if err != nil {
 		return []MessageListDTO{}, 0, err
 	}
@@ -216,18 +214,19 @@ func (s *messageListAppService) GetGiteeAboutMessage(userName string, giteeUsern
 }
 
 func (s *messageListAppService) GetGiteeMessage(userName string, giteeUsername string, pageNum,
-	countPerPage int) ([]MessageListDTO, int64, error) {
+	countPerPage int, startTime string) ([]MessageListDTO, int64, error) {
 	response, count, err := s.messageListAdapter.GetGiteeMessage(userName, giteeUsername,
-		pageNum, countPerPage)
+		pageNum, countPerPage, startTime)
 	if err != nil {
 		return []MessageListDTO{}, 0, err
 	}
 	return response, count, nil
 }
 
-func (s *messageListAppService) GetEurMessage(userName string, pageNum, countPerPage int) (
-	[]MessageListDTO, int64, error) {
-	response, count, err := s.messageListAdapter.GetEurMessage(userName, pageNum, countPerPage)
+func (s *messageListAppService) GetEurMessage(userName string, pageNum, countPerPage int,
+	startTime string) ([]MessageListDTO, int64, error) {
+	response, count, err := s.messageListAdapter.GetEurMessage(userName, pageNum, countPerPage,
+		startTime)
 	if err != nil {
 		return []MessageListDTO{}, 0, err
 	}
