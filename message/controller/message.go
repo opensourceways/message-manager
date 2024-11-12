@@ -228,8 +228,12 @@ func (ctl *messageListController) GetForumAboutMessage(ctx *gin.Context) {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
 	}
-	isBot := ctx.Query("is_bot")
-	if data, count, err := ctl.appService.GetForumAboutMessage(userName, isBot); err != nil {
+	var params QueryParams
+	if err := ctx.ShouldBindQuery(&params); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if data, count, err := ctl.appService.GetForumAboutMessage(userName, params.IsBot); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
@@ -243,9 +247,13 @@ func (ctl *messageListController) GetMeetingToDoMessage(ctx *gin.Context) {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
 	}
-	giteeUserName := ctx.Query("gitee_user_name")
-	filter := ctx.Query("filter")
-	if data, count, err := ctl.appService.GetMeetingToDoMessage(userName, giteeUserName, filter); err != nil {
+	var params QueryParams
+	if err := ctx.ShouldBindQuery(&params); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if data, count, err := ctl.appService.GetMeetingToDoMessage(userName, params.GiteeUserName,
+		params.Filter); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
@@ -259,9 +267,13 @@ func (ctl *messageListController) GetCVEToDoMessage(ctx *gin.Context) {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
 	}
-	giteeUserName := ctx.Query("gitee_user_name")
+	var params QueryParams
+	if err := ctx.ShouldBindQuery(&params); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
-	if data, count, err := ctl.appService.GetCVEToDoMessage(userName, giteeUserName); err != nil {
+	if data, count, err := ctl.appService.GetCVEToDoMessage(userName, params.GiteeUserName); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
@@ -275,9 +287,13 @@ func (ctl *messageListController) GetCVEMessage(ctx *gin.Context) {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
 	}
-	giteeUserName := ctx.Query("gitee_user_name")
+	var params QueryParams
+	if err := ctx.ShouldBindQuery(&params); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
-	if data, count, err := ctl.appService.GetCVEMessage(userName, giteeUserName); err != nil {
+	if data, count, err := ctl.appService.GetCVEMessage(userName, params.GiteeUserName); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
@@ -291,9 +307,13 @@ func (ctl *messageListController) GetIssueToDoMessage(ctx *gin.Context) {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
 	}
-	giteeUserName := ctx.Query("gitee_user_name")
+	var params QueryParams
+	if err := ctx.ShouldBindQuery(&params); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
-	if data, count, err := ctl.appService.GetIssueToDoMessage(userName, giteeUserName); err != nil {
+	if data, count, err := ctl.appService.GetIssueToDoMessage(userName, params.GiteeUserName); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
@@ -307,9 +327,13 @@ func (ctl *messageListController) GetPullRequestToDoMessage(ctx *gin.Context) {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
 	}
-	giteeUserName := ctx.Query("gitee_user_name")
+	var params QueryParams
+	if err := ctx.ShouldBindQuery(&params); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
-	if data, count, err := ctl.appService.GetPullRequestToDoMessage(userName, giteeUserName); err != nil {
+	if data, count, err := ctl.appService.GetPullRequestToDoMessage(userName, params.GiteeUserName); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
@@ -323,9 +347,13 @@ func (ctl *messageListController) GetGiteeAboutMessage(ctx *gin.Context) {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
 	}
-	giteeUserName := ctx.Query("gitee_user_name")
-	isBot := ctx.Query("is_bot")
-	if data, count, err := ctl.appService.GetGiteeAboutMessage(userName, giteeUserName, isBot); err != nil {
+	var params QueryParams
+	if err := ctx.ShouldBindQuery(&params); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if data, count, err := ctl.appService.GetGiteeAboutMessage(userName, params.GiteeUserName,
+		params.IsBot); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
@@ -339,9 +367,13 @@ func (ctl *messageListController) GetGiteeMessage(ctx *gin.Context) {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
 	}
-	giteeUserName := ctx.Query("gitee_user_name")
+	var params QueryParams
+	if err := ctx.ShouldBindQuery(&params); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
-	if data, count, err := ctl.appService.GetGiteeMessage(userName, giteeUserName); err != nil {
+	if data, count, err := ctl.appService.GetGiteeMessage(userName, params.GiteeUserName); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})

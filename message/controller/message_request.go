@@ -103,3 +103,9 @@ func (req *messageStatus) toCmd() (cmd app.CmdToSetIsRead, err error) {
 	cmd.Source = req.Source
 	return cmd, nil
 }
+
+type QueryParams struct {
+	GiteeUserName string `form:"gitee_user_name"`
+	IsBot         bool   `form:"is_bot"`
+	Filter        int    `form:"filter"`
+}
