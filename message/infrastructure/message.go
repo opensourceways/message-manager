@@ -853,7 +853,7 @@ func (s *messageAdapter) GetEurMessage(userName string, pageNum,
 }
 
 func (s *messageAdapter) CountAllMessage(userName, giteeUserName string) (CountDataDAO, error) {
-	_, todoCountNotDone, _ := s.GetAllToDoMessage(userName, giteeUserName, false, 1, 0, "", false)
+	_, todoCountNotDone, _ := s.GetAllToDoMessage(userName, giteeUserName, false, 1, 0, "")
 
 	_, aboutCountBot, _ := s.GetAllAboutMessage(userName, giteeUserName, true, 1, 0, "", false)
 	_, aboutCountNotBot, _ := s.GetAllAboutMessage(userName, giteeUserName, false, 1, 0, "", false)
