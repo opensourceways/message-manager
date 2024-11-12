@@ -874,16 +874,15 @@ func (s *messageAdapter) GetEurMessage(userName string, pageNum,
 
 func (s *messageAdapter) CountAllMessage(userName, giteeUserName string) (CountDataDAO, error) {
 	_, todoCountNotDone, _ := s.GetAllToDoMessage(userName, giteeUserName, false, 1, 0, "", false)
-	_, todoCountDone, _ := s.GetAllToDoMessage(userName, giteeUserName, true, 1, 0, "", false)
 
 	_, aboutCountBot, _ := s.GetAllAboutMessage(userName, giteeUserName, true, 1, 0, "", false)
 	_, aboutCountNotBot, _ := s.GetAllAboutMessage(userName, giteeUserName, false, 1, 0, "", false)
 
 	_, watchCount, _ := s.GetAllWatchMessage(userName, giteeUserName, 1, 0, "", false)
 
-	_, meetingCount, _ := s.GetMeetingToDoMessage(userName, giteeUserName, 0, 1, 0, false)
+	_, meetingCount, _ := s.GetMeetingToDoMessage(userName, giteeUserName, 1, 1, 0, false)
 	return CountDataDAO{
-		TodoCount:    todoCountDone + todoCountNotDone,
+		TodoCount:    todoCountNotDone,
 		AboutCount:   aboutCountBot + aboutCountNotBot,
 		WatchCount:   watchCount,
 		MeetingCount: meetingCount,
