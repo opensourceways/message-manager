@@ -136,7 +136,7 @@ func (s *messageListAppService) GetAllWatchMessage(userName string, giteeUsernam
 func (s *messageListAppService) GetForumSystemMessage(userName string, pageNum, countPerPage int,
 	startTime string, isRead bool) ([]MessageListDTO, int64, error) {
 	response, count, err := s.messageListAdapter.GetForumSystemMessage(userName, pageNum,
-		countPerPage, startTime)
+		countPerPage, startTime, isRead)
 	if err != nil {
 		return []MessageListDTO{}, 0, err
 	}
@@ -146,7 +146,7 @@ func (s *messageListAppService) GetForumSystemMessage(userName string, pageNum, 
 func (s *messageListAppService) GetForumAboutMessage(userName string, isBot bool, pageNum,
 	countPerPage int, startTime string, isRead bool) ([]MessageListDTO, int64, error) {
 	response, count, err := s.messageListAdapter.GetForumAboutMessage(userName, isBot, pageNum,
-		countPerPage, startTime)
+		countPerPage, startTime, isRead)
 	if err != nil {
 		return []MessageListDTO{}, 0, err
 	}
