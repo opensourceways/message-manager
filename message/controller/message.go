@@ -228,7 +228,8 @@ func (ctl *messageListController) GetForumAboutMessage(ctx *gin.Context) {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
 	}
-	if data, count, err := ctl.appService.GetForumAboutMessage(userName); err != nil {
+	isBot := ctx.Query("is_bot")
+	if data, count, err := ctl.appService.GetForumAboutMessage(userName, isBot); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
@@ -243,7 +244,8 @@ func (ctl *messageListController) GetMeetingToDoMessage(ctx *gin.Context) {
 		return
 	}
 	giteeUserName := ctx.Query("gitee_user_name")
-	if data, count, err := ctl.appService.GetMeetingToDoMessage(userName, giteeUserName); err != nil {
+	filter := ctx.Query("filter")
+	if data, count, err := ctl.appService.GetMeetingToDoMessage(userName, giteeUserName, filter); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
@@ -322,8 +324,8 @@ func (ctl *messageListController) GetGiteeAboutMessage(ctx *gin.Context) {
 		return
 	}
 	giteeUserName := ctx.Query("gitee_user_name")
-
-	if data, count, err := ctl.appService.GetGiteeAboutMessage(userName, giteeUserName); err != nil {
+	isBot := ctx.Query("is_bot")
+	if data, count, err := ctl.appService.GetGiteeAboutMessage(userName, giteeUserName, isBot); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
