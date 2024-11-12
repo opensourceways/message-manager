@@ -35,6 +35,7 @@ func AddRouterForMessageListController(
 	v1.GET("/inner/about", ctl.GetAllAboutMessage)
 	v1.GET("/inner/watch", ctl.GetAllWatchMessage)
 
+	v1.GET("/inner/count_new", ctl.CountAllMessage)
 	v1.GET("/inner/forum/system", ctl.GetForumSystemMessage)
 	v1.GET("/inner/forum/about", ctl.GetForumAboutMessage)
 	v1.GET("/inner/meeting/todo", ctl.GetMeetingToDoMessage)
@@ -473,6 +474,25 @@ func (ctl *messageListController) GetAllWatchMessage(ctx *gin.Context) {
 	}
 	if data, count, err := ctl.appService.GetAllWatchMessage(userName,
 		params.GiteeUserName, params.PageNum, params.CountPerPage, params.StartTime, params.IsRead); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
+	} else {
+		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
+	}
+}
+
+// CountAllMessage count all message
+func (ctl *messageListController) CountAllMessage(ctx *gin.Context) {
+	var params QueryParams
+	if err := ctx.ShouldBindQuery(&params); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	userName, err := user.GetEulerUserName(ctx)
+	if err != nil {
+		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
+		return
+	}
+	if data, err := ctl.appService.CountAllMessage(userName, params.GiteeUserName); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
