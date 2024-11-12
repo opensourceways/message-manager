@@ -495,6 +495,6 @@ func (ctl *messageListController) CountAllMessage(ctx *gin.Context) {
 	if data, err := ctl.appService.CountAllMessage(userName, params.GiteeUserName); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
-		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
+		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": data})
 	}
 }
