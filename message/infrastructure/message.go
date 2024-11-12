@@ -616,19 +616,19 @@ func (s *messageAdapter) GetMeetingToDoMessage(userName string, giteeUsername st
 		      where cem.type = 'meeting'
 		        and cem.source = 'https://www.openEuler.org/meeting'
 		        and (rc.gitee_user_name = ? or rc.user_id = ?)
-		        and (cem.data_json #>> '{Action}') <> 'delete_meeting' `
+		        and (cem.data_json #>> '{Action}') <> 'delete_meeting'`
 
 	if filter == 1 {
-		query += `and NOW() <= to_timestamp(data_json ->> 'MeetingEndTime', 'YYYY-MM-DDHH24:MI') `
+		query += ` and NOW() <= to_timestamp(data_json ->> 'MeetingEndTime', 'YYYY-MM-DDHH24:MI')`
 	} else if filter == 2 {
-		query += `and NOW() > to_timestamp(data_json ->> 'MeetingEndTime', 'YYYY-MM-DDHH24:MI') `
+		query += ` and NOW() > to_timestamp(data_json ->> 'MeetingEndTime', 'YYYY-MM-DDHH24:MI')`
 	}
 	if isRead {
-		query += ` and im.is_read = true `
+		query += ` and im.is_read = true`
 	} else {
-		query += ` and im.is_read = false `
+		query += ` and im.is_read = false`
 	}
-	query += `order by cem.source_url, updated_at desc) a
+	query += ` order by cem.source_url, updated_at desc) a
 		order by updated_at`
 	if result := postgresql.DB().Raw(query, giteeUsername, userName).Scan(&response); result.Error != nil {
 		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
@@ -805,7 +805,7 @@ func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, is
 	} else {
 		query += ` and im.is_read = false`
 	}
-	query += `order by cem.updated_at desc`
+	query += ` order by cem.updated_at desc`
 	if result := postgresql.DB().Raw(query, giteeUsername, userName,
 		giteeUsername, giteeUsername, "%"+giteeUsername+"%").Scan(&response); result.Error != nil {
 		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
