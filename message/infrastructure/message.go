@@ -496,7 +496,7 @@ func (s *messageAdapter) GetForumAboutMessage(userName string, isBot bool) ([]Me
 		'Data', 'OriginalUsername') <> 'system')`
 	}
 
-	if result := postgresql.DB().Raw(query, userName).Scan(&response); result.Error != nil {
+	if result := postgresql.DB().Debug().Raw(query, userName).Scan(&response); result.Error != nil {
 		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
