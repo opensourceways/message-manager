@@ -31,6 +31,10 @@ func AddRouterForMessageListController(
 	v1.DELETE("/inner", ctl.RemoveMessage)
 
 	//release-openeuler-summit
+	v1.GET("/inner/todo", ctl.GetAllTodoMessage)
+	v1.GET("/inner/about", ctl.GetAllAboutMessage)
+	v1.GET("/inner/watch", ctl.GetAllWatchMessage)
+
 	v1.GET("/inner/forum/system", ctl.GetForumSystemMessage)
 	v1.GET("/inner/forum/about", ctl.GetForumAboutMessage)
 	v1.GET("/inner/meeting/todo", ctl.GetMeetingToDoMessage)
@@ -60,7 +64,7 @@ type messageListController struct {
 func (ctl *messageListController) GetInnerMessageQuick(ctx *gin.Context) {
 	var params queryInnerParamsQuick
 	if err := ctx.ShouldBindQuery(&params); err != nil {
-		commonctl.SendBadRequestParam(ctx, xerrors.Errorf("failed to bind params, %w", err))
+		commonctl.SendBadRequestParam(ctx, xerrors.Errorf("failed to bind params, %v", err))
 		return
 	}
 
@@ -388,6 +392,65 @@ func (ctl *messageListController) GetEurMessage(ctx *gin.Context) {
 		return
 	}
 	if data, count, err := ctl.appService.GetEurMessage(userName); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
+	} else {
+		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
+	}
+}
+
+// GetAllTodoMessage get alltodo message
+func (ctl *messageListController) GetAllTodoMessage(ctx *gin.Context) {
+	var params QueryParams
+	if err := ctx.ShouldBindQuery(&params); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	userName, err := user.GetEulerUserName(ctx)
+	if err != nil {
+		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
+		return
+	}
+	if data, count, err := ctl.appService.GetAllToDoMessage(userName, params.GiteeUserName); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
+	} else {
+		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
+	}
+}
+
+// GetAllAboutMessage get all about message
+func (ctl *messageListController) GetAllAboutMessage(ctx *gin.Context) {
+	var params QueryParams
+	if err := ctx.ShouldBindQuery(&params); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	userName, err := user.GetEulerUserName(ctx)
+	if err != nil {
+		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
+		return
+	}
+	if data, count, err := ctl.appService.GetAllAboutMessage(userName, params.GiteeUserName,
+		params.IsBot); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
+	} else {
+		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
+	}
+}
+
+// GetAllWatchMessage get all watch message
+func (ctl *messageListController) GetAllWatchMessage(ctx *gin.Context) {
+	var params QueryParams
+	if err := ctx.ShouldBindQuery(&params); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	userName, err := user.GetEulerUserName(ctx)
+	if err != nil {
+		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
+		return
+	}
+	if data, count, err := ctl.appService.GetAllWatchMessage(userName,
+		params.GiteeUserName); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
