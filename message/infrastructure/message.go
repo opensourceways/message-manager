@@ -694,7 +694,7 @@ func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string, pageNum, 
 	} else {
 		query += ` and im.is_read = false`
 	}
-	query += ` order by updated_at desc`
+	query += ` order by cem.updated_at desc`
 	if result := postgresql.DB().Raw(query, giteeUsername, userName).Scan(&response); result.
 		Error != nil {
 		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
