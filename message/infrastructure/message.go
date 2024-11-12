@@ -594,6 +594,10 @@ func (s *messageAdapter) GetMeetingToDoMessage(userName string, giteeUsername st
 func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDone bool) (
 	[]MessageListDAO, int64, error) {
 	var response []MessageListDAO
+	var doneSql string
+	if isDone {
+		doneSql = `and (cem.data_json #>> '{IssueEvent,Issue,State}') == 'closed'`
+	}
 	query := `select *
 		from (select distinct on (cem.source_url) cem.*
 		      from cloud_event_message cem
@@ -603,10 +607,11 @@ func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDon
 		        and cem.source = 'cve'
 		        and (rc.gitee_user_name = ? or rc.user_id = ?)
 		        and (cem.data_json #>> '{IssueEvent,Issue,Assignee,UserName}') = ?
+		        ?
 		      order by cem.source_url, cem.updated_at desc) a
 		order by updated_at desc`
 	if result := postgresql.DB().Raw(query, giteeUsername, userName,
-		giteeUsername).Scan(&response); result.Error != nil {
+		giteeUsername, doneSql).Scan(&response); result.Error != nil {
 		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
@@ -637,6 +642,10 @@ func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string) (
 func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isDone bool) (
 	[]MessageListDAO, int64, error) {
 	var response []MessageListDAO
+	var doneSql string
+	if isDone {
+		doneSql = `and (cem.data_json #>> '{IssueEvent,Issue,State}') == 'closed'`
+	}
 	query := `select *
 		from (select distinct on (cem.source_url) cem.*
 		      from cloud_event_message cem
@@ -646,10 +655,11 @@ func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isD
 		        and cem.source = 'https://gitee.com'
 		        and (rc.gitee_user_name = ? or rc.user_id = ?)
 		        and (cem.data_json #>> '{IssueEvent,Issue,Assignee,UserName}') = ?
+		        ?
 		      order by cem.source_url, cem.updated_at desc) a
 		order by updated_at desc`
 	if result := postgresql.DB().Raw(query, giteeUsername, userName,
-		giteeUsername).Scan(&response); result.Error != nil {
+		giteeUsername, doneSql).Scan(&response); result.Error != nil {
 		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
@@ -660,6 +670,10 @@ func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isD
 func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername string, isDone bool) (
 	[]MessageListDAO, int64, error) {
 	var response []MessageListDAO
+	var doneSql string
+	if isDone {
+		doneSql = `and (cem.data_json #>> '{PullRequestEvent,State}') IN ('closed', 'merged')`
+	}
 	query := `select *
 		from (select distinct on (cem.source_url) cem.*
 		      from cloud_event_message cem
@@ -669,10 +683,11 @@ func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername strin
 		          and cem.source = 'https://gitee.com'
 		          and (rc.gitee_user_name = ? or rc.user_id = ?)
 		          and (cem.data_json ->> 'Assignees') :: text like ?
+		          ?                                          
 		      order by cem.source_url, cem.updated_at desc) a
 		order by updated_at desc`
 	if result := postgresql.DB().Debug().Raw(query, giteeUsername, userName,
-		"%"+giteeUsername+"%").Scan(&response); result.Error != nil {
+		"%"+giteeUsername+"%", doneSql).Scan(&response); result.Error != nil {
 		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
