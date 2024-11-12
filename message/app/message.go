@@ -18,7 +18,8 @@ type MessageListAppService interface {
 	SetMessageIsRead(cmd *CmdToSetIsRead) error
 	RemoveMessage(cmd *CmdToSetIsRead) error
 
-	GetAllToDoMessage(userName string, giteeUsername string) ([]MessageListDTO, int64, error)
+	GetAllToDoMessage(userName string, giteeUsername string, isDone bool) ([]MessageListDTO, int64,
+		error)
 	GetAllAboutMessage(userName string, giteeUsername string, isBot bool) ([]MessageListDTO,
 		int64, error)
 	GetAllWatchMessage(userName string, giteeUsername string) ([]MessageListDTO,
@@ -28,10 +29,11 @@ type MessageListAppService interface {
 	GetForumAboutMessage(userName string, isBot bool) ([]MessageListDTO, int64, error)
 	GetMeetingToDoMessage(userName string, giteeUsername string, filter int) ([]MessageListDTO,
 		int64, error)
-	GetCVEToDoMessage(userName string, giteeUsername string) ([]MessageListDTO, int64, error)
+	GetCVEToDoMessage(userName string, giteeUsername string, isDone bool) ([]MessageListDTO, int64, error)
 	GetCVEMessage(userName string, giteeUsername string) ([]MessageListDTO, int64, error)
-	GetIssueToDoMessage(userName string, giteeUsername string) ([]MessageListDTO, int64, error)
-	GetPullRequestToDoMessage(userName string, giteeUsername string) ([]MessageListDTO, int64, error)
+	GetIssueToDoMessage(userName string, giteeUsername string, isDone bool) ([]MessageListDTO, int64, error)
+	GetPullRequestToDoMessage(userName string, giteeUsername string, isDone bool) ([]MessageListDTO, int64,
+		error)
 	GetGiteeAboutMessage(userName string, giteeUsername string, isBot bool) ([]MessageListDTO,
 		int64, error)
 	GetGiteeMessage(userName string, giteeUsername string) ([]MessageListDTO, int64, error)
@@ -90,9 +92,10 @@ func (s *messageListAppService) RemoveMessage(cmd *CmdToSetIsRead) error {
 	return nil
 }
 
-func (s *messageListAppService) GetAllToDoMessage(userName string, giteeUsername string) (
+func (s *messageListAppService) GetAllToDoMessage(userName string, giteeUsername string,
+	isDone bool) (
 	[]MessageListDTO, int64, error) {
-	response, count, err := s.messageListAdapter.GetAllToDoMessage(userName, giteeUsername)
+	response, count, err := s.messageListAdapter.GetAllToDoMessage(userName, giteeUsername, isDone)
 	if err != nil {
 		return []MessageListDTO{}, 0, err
 	}
@@ -146,9 +149,9 @@ func (s *messageListAppService) GetMeetingToDoMessage(userName string, giteeUser
 	return response, count, nil
 }
 
-func (s *messageListAppService) GetCVEToDoMessage(userName string, giteeUsername string) (
+func (s *messageListAppService) GetCVEToDoMessage(userName string, giteeUsername string, isDone bool) (
 	[]MessageListDTO, int64, error) {
-	response, count, err := s.messageListAdapter.GetCVEToDoMessage(userName, giteeUsername)
+	response, count, err := s.messageListAdapter.GetCVEToDoMessage(userName, giteeUsername, isDone)
 	if err != nil {
 		return []MessageListDTO{}, 0, err
 	}
@@ -164,18 +167,20 @@ func (s *messageListAppService) GetCVEMessage(userName string, giteeUsername str
 	return response, count, nil
 }
 
-func (s *messageListAppService) GetIssueToDoMessage(userName string, giteeUsername string) (
+func (s *messageListAppService) GetIssueToDoMessage(userName string, giteeUsername string, isDone bool) (
 	[]MessageListDTO, int64, error) {
-	response, count, err := s.messageListAdapter.GetIssueToDoMessage(userName, giteeUsername)
+	response, count, err := s.messageListAdapter.GetIssueToDoMessage(userName, giteeUsername,
+		isDone)
 	if err != nil {
 		return []MessageListDTO{}, 0, err
 	}
 	return response, count, nil
 }
 
-func (s *messageListAppService) GetPullRequestToDoMessage(userName string, giteeUsername string) (
+func (s *messageListAppService) GetPullRequestToDoMessage(userName string, giteeUsername string, isDone bool) (
 	[]MessageListDTO, int64, error) {
-	response, count, err := s.messageListAdapter.GetPullRequestToDoMessage(userName, giteeUsername)
+	response, count, err := s.messageListAdapter.GetPullRequestToDoMessage(userName,
+		giteeUsername, isDone)
 	if err != nil {
 		return []MessageListDTO{}, 0, err
 	}

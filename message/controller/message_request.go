@@ -108,4 +108,5 @@ type QueryParams struct {
 	GiteeUserName string `form:"gitee_user_name"`
 	IsBot         bool   `form:"is_bot"`
 	Filter        int    `form:"filter"`
+	IsDone        bool   `form:"is_done"`
 }

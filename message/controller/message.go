@@ -277,7 +277,8 @@ func (ctl *messageListController) GetCVEToDoMessage(ctx *gin.Context) {
 		return
 	}
 
-	if data, count, err := ctl.appService.GetCVEToDoMessage(userName, params.GiteeUserName); err != nil {
+	if data, count, err := ctl.appService.GetCVEToDoMessage(userName, params.GiteeUserName,
+		params.IsDone); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
@@ -317,7 +318,8 @@ func (ctl *messageListController) GetIssueToDoMessage(ctx *gin.Context) {
 		return
 	}
 
-	if data, count, err := ctl.appService.GetIssueToDoMessage(userName, params.GiteeUserName); err != nil {
+	if data, count, err := ctl.appService.GetIssueToDoMessage(userName, params.GiteeUserName,
+		params.IsDone); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
@@ -337,7 +339,8 @@ func (ctl *messageListController) GetPullRequestToDoMessage(ctx *gin.Context) {
 		return
 	}
 
-	if data, count, err := ctl.appService.GetPullRequestToDoMessage(userName, params.GiteeUserName); err != nil {
+	if data, count, err := ctl.appService.GetPullRequestToDoMessage(userName,
+		params.GiteeUserName, params.IsDone); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
@@ -410,7 +413,8 @@ func (ctl *messageListController) GetAllTodoMessage(ctx *gin.Context) {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
 	}
-	if data, count, err := ctl.appService.GetAllToDoMessage(userName, params.GiteeUserName); err != nil {
+	if data, count, err := ctl.appService.GetAllToDoMessage(userName, params.GiteeUserName,
+		params.IsDone); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
