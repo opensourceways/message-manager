@@ -652,7 +652,7 @@ func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDon
 		        and (rc.gitee_user_name = ? or rc.user_id = ?)
 		        and (cem.data_json #>> '{IssueEvent,Issue,Assignee,UserName}') = ?`
 	if isDone {
-		query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') == 'closed'`
+		query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') = 'closed'`
 	} else {
 		query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') <> 'closed'`
 	}
@@ -718,7 +718,7 @@ func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isD
 		        and (rc.gitee_user_name = ? or rc.user_id = ?)
 		        and (cem.data_json #>> '{IssueEvent,Issue,Assignee,UserName}') = ?`
 	if isDone {
-		query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') == 'closed'`
+		query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') = 'closed'`
 	} else {
 		query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') <> 'closed'`
 	}
