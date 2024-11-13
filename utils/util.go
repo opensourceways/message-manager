@@ -44,6 +44,26 @@ func ParseUnixTimestamp(timestampStr string) *time.Time {
 	return &utcPlus8
 }
 
+func ParseUnixTimestampNew(timestampStr string) *string {
+	if timestampStr == "" {
+		return nil
+	}
+
+	// 解析字符串为整数
+	timestamp, err := strconv.ParseInt(timestampStr, 10, 64)
+	if err != nil {
+		return nil
+	}
+
+	// 将毫秒转换为秒和纳秒
+	seconds := timestamp / 1000
+	nanoseconds := (timestamp % 1000) * 1000000
+	t := time.Unix(seconds, nanoseconds).UTC() // 转换为 UTC 时区
+
+	// 格式化时间为 PostgreSQL 可接受的格式
+	formattedTime := t.Format("2006-01-02 15:04:05.999999999 -0700")
+	return &formattedTime
+}
 func IsEurMessage(source string) bool {
 	return source == EurSource
 }
