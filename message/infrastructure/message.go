@@ -499,7 +499,7 @@ func (s *messageAdapter) GetAllToDoMessage(userName string, giteeUsername string
 	return pagination(response, pageNum, countPerPage), issueCount + prCount + cveCount, nil
 }
 
-func (s *messageAdapter) GetAllAboutMessage(userName string, giteeUsername string, isBot bool,
+func (s *messageAdapter) GetAllAboutMessage(userName string, giteeUsername string, isBot *bool,
 	pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	giteeAbout, giteeCount, err := s.GetGiteeAboutMessage(userName, giteeUsername, isBot,
@@ -571,7 +571,7 @@ func (s *messageAdapter) GetForumSystemMessage(userName string, pageNum,
 	return pagination(response, pageNum, countPerPage), int64(len(response)), nil
 }
 
-func (s *messageAdapter) GetForumAboutMessage(userName string, isBot bool, pageNum,
+func (s *messageAdapter) GetForumAboutMessage(userName string, isBot *bool, pageNum,
 	countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	query := `select * from message_center.cloud_event_message cem
@@ -579,12 +579,14 @@ func (s *messageAdapter) GetForumAboutMessage(userName string, isBot bool, pageN
 		join message_center.recipient_config rc on rc.id = im.recipient_id
 		where im.is_deleted = false and rc.is_deleted = false and cem.source = 'forum'
 		  and rc.user_id = ? and cem.type NOT IN ('12','24','37') `
-	if isBot {
-		query += `and jsonb_extract_path_text(cem.data_json::jsonb,
+	if isBot != nil {
+		if *isBot {
+			query += `and jsonb_extract_path_text(cem.data_json::jsonb,
 		'Data', 'OriginalUsername') = 'system'`
-	} else {
-		query += `and jsonb_extract_path_text(cem.data_json::jsonb,
+		} else {
+			query += `and jsonb_extract_path_text(cem.data_json::jsonb,
 		'Data', 'OriginalUsername') <> 'system'`
+		}
 	}
 	if startTime != "" {
 		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
@@ -758,7 +760,7 @@ func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername strin
 	return pagination(response, pageNum, countPerPage), int64(len(response)), nil
 }
 
-func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, isBot bool,
+func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, isBot *bool,
 	pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	query := `select *
@@ -772,10 +774,12 @@ func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, is
 		    and (cem.data_json #>> '{NoteEvent,Issue,User,UserName}' = ?
 		        or cem.data_json #>> '{NoteEvent,PullRequest,User,UserName}' = ?
 		        or cem.data_json #>> '{NoteEvent,Comment,Body}' like ?)`
-	if isBot {
-		query += ` and cem."user" IN ('openeuler-ci-bot','ci-robot','openeuler-sync-bot') `
-	} else {
-		query += ` and cem."user" NOT IN ('openeuler-ci-bot','ci-robot','openeuler-sync-bot') `
+	if isBot != nil {
+		if *isBot {
+			query += ` and cem."user" IN ('openeuler-ci-bot','ci-robot','openeuler-sync-bot') `
+		} else {
+			query += ` and cem."user" NOT IN ('openeuler-ci-bot','ci-robot','openeuler-sync-bot') `
+		}
 	}
 	if startTime != "" {
 		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
@@ -852,15 +856,14 @@ func (s *messageAdapter) CountAllMessage(userName, giteeUserName string) (CountD
 	isRead := false
 	_, todoCountNotDone, _ := s.GetAllToDoMessage(userName, giteeUserName, false, 1, 0, "")
 
-	_, aboutCountBot, _ := s.GetAllAboutMessage(userName, giteeUserName, true, 1, 0, "", &isRead)
-	_, aboutCountNotBot, _ := s.GetAllAboutMessage(userName, giteeUserName, false, 1, 0, "", &isRead)
+	_, aboutCount, _ := s.GetAllAboutMessage(userName, giteeUserName, nil, 1, 0, "", &isRead)
 
 	_, watchCount, _ := s.GetAllWatchMessage(userName, giteeUserName, 1, 0, "", &isRead)
 
 	_, meetingCount, _ := s.GetMeetingToDoMessage(userName, 1, 1, 0)
 	return CountDataDAO{
 		TodoCount:    todoCountNotDone,
-		AboutCount:   aboutCountBot + aboutCountNotBot,
+		AboutCount:   aboutCount,
 		WatchCount:   watchCount,
 		MeetingCount: meetingCount,
 	}, nil

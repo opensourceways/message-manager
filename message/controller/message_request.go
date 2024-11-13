@@ -106,7 +106,7 @@ func (req *messageStatus) toCmd() (cmd app.CmdToSetIsRead, err error) {
 
 type QueryParams struct {
 	GiteeUserName string `form:"gitee_user_name"`
-	IsBot         bool   `form:"is_bot"`
+	IsBot         *bool  `form:"is_bot"`
 	Filter        int    `form:"filter"`
 	IsDone        bool   `form:"is_done"`
 	PageNum       int    `form:"page_num"`
