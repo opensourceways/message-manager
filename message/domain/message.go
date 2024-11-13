@@ -14,14 +14,14 @@ type MessageListAdapter interface {
 
 	GetAllToDoMessage(userName, giteeUsername string, isDone bool, pageNum,
 		countPerPage int, startTime string) ([]MessageListDO, int64, error)
-	GetAllAboutMessage(userName, giteeUsername string, isBot bool, pageNum,
+	GetAllAboutMessage(userName, giteeUsername string, isBot *bool, pageNum,
 		countPerPage int, startTime string, isRead *bool) ([]MessageListDO, int64, error)
 	GetAllWatchMessage(userName, giteeUsername string, pageNum, countPerPage int,
 		startTime string, isRead *bool) ([]MessageListDO, int64, error)
 
 	GetForumSystemMessage(userName string, pageNum, countPerPage int,
 		startTime string, isRead *bool) ([]MessageListDO, int64, error)
-	GetForumAboutMessage(userName string, isBot bool, pageNum,
+	GetForumAboutMessage(userName string, isBot *bool, pageNum,
 		countPerPage int, startTime string, isRead *bool) ([]MessageListDO, int64, error)
 	GetMeetingToDoMessage(userName string, filter int, pageNum,
 		countPerPage int) ([]MessageListDO, int64, error)
@@ -33,7 +33,7 @@ type MessageListAdapter interface {
 		countPerPage int, startTime string) ([]MessageListDO, int64, error)
 	GetPullRequestToDoMessage(userName, giteeUsername string, isDone bool, pageNum,
 		countPerPage int, startTime string) ([]MessageListDO, int64, error)
-	GetGiteeAboutMessage(userName, giteeUsername string, isBot bool,
+	GetGiteeAboutMessage(userName, giteeUsername string, isBot *bool,
 		pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDO, int64, error)
 	GetGiteeMessage(userName, giteeUsername string, pageNum, countPerPage int,
 		startTime string, isRead *bool) ([]MessageListDO, int64, error)

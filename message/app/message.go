@@ -20,7 +20,7 @@ type MessageListAppService interface {
 
 	GetAllToDoMessage(userName string, giteeUsername string, isDone bool,
 		pageNum, countPerPage int, startTime string) ([]MessageListDTO, int64, error)
-	GetAllAboutMessage(userName string, giteeUsername string, isBot bool,
+	GetAllAboutMessage(userName string, giteeUsername string, isBot *bool,
 		pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDTO, int64, error)
 	GetAllWatchMessage(userName string, giteeUsername string,
 		pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDTO, int64, error)
@@ -29,7 +29,7 @@ type MessageListAppService interface {
 
 	GetForumSystemMessage(userName string, pageNum, countPerPage int,
 		startTime string, isRead *bool) ([]MessageListDTO, int64, error)
-	GetForumAboutMessage(userName string, isBot bool, pageNum,
+	GetForumAboutMessage(userName string, isBot *bool, pageNum,
 		countPerPage int, startTime string, isRead *bool) ([]MessageListDTO, int64, error)
 	GetMeetingToDoMessage(userName string, filter int, pageNum, countPerPage int) (
 		[]MessageListDTO, int64, error)
@@ -41,7 +41,7 @@ type MessageListAppService interface {
 		pageNum, countPerPage int, startTime string) ([]MessageListDTO, int64, error)
 	GetPullRequestToDoMessage(userName string, giteeUsername string, isDone bool,
 		pageNum, countPerPage int, startTime string) ([]MessageListDTO, int64, error)
-	GetGiteeAboutMessage(userName string, giteeUsername string, isBot bool,
+	GetGiteeAboutMessage(userName string, giteeUsername string, isBot *bool,
 		pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDTO, int64, error)
 	GetGiteeMessage(userName string, giteeUsername string, pageNum,
 		countPerPage int, startTime string, isRead *bool) ([]MessageListDTO, int64, error)
@@ -113,7 +113,7 @@ func (s *messageListAppService) GetAllToDoMessage(userName string, giteeUsername
 }
 
 func (s *messageListAppService) GetAllAboutMessage(userName string, giteeUsername string,
-	isBot bool, pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDTO, int64, error) {
+	isBot *bool, pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDTO, int64, error) {
 	response, count, err := s.messageListAdapter.GetAllAboutMessage(userName, giteeUsername,
 		isBot, pageNum, countPerPage, startTime, isRead)
 	if err != nil {
@@ -142,7 +142,7 @@ func (s *messageListAppService) GetForumSystemMessage(userName string, pageNum, 
 	return response, count, nil
 }
 
-func (s *messageListAppService) GetForumAboutMessage(userName string, isBot bool, pageNum,
+func (s *messageListAppService) GetForumAboutMessage(userName string, isBot *bool, pageNum,
 	countPerPage int, startTime string, isRead *bool) ([]MessageListDTO, int64, error) {
 	response, count, err := s.messageListAdapter.GetForumAboutMessage(userName, isBot, pageNum,
 		countPerPage, startTime, isRead)
@@ -203,7 +203,7 @@ func (s *messageListAppService) GetPullRequestToDoMessage(userName string, gitee
 }
 
 func (s *messageListAppService) GetGiteeAboutMessage(userName string, giteeUsername string,
-	isBot bool, pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDTO, int64, error) {
+	isBot *bool, pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDTO, int64, error) {
 	response, count, err := s.messageListAdapter.GetGiteeAboutMessage(userName, giteeUsername,
 		isBot, pageNum, countPerPage, startTime, isRead)
 	if err != nil {
