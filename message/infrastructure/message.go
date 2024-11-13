@@ -601,7 +601,7 @@ func (s *messageAdapter) GetForumAboutMessage(userName string, isBot bool, pageN
 	return pagination(response, pageNum, countPerPage), int64(len(response)), nil
 }
 
-func (s *messageAdapter) GetMeetingToDoMessage(userName string, giteeUsername string, filter int,
+func (s *messageAdapter) GetMeetingToDoMessage(userName string, filter int,
 	pageNum, countPerPage int) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	query := `select *
@@ -612,7 +612,7 @@ func (s *messageAdapter) GetMeetingToDoMessage(userName string, giteeUsername st
 		      where cem.type = 'meeting'
 		        and im.is_deleted = false and rc.is_deleted = false
 		        and cem.source = 'https://www.openEuler.org/meeting'
-		        and (rc.gitee_user_name = ? or rc.user_id = ?)
+		        and (rc.user_id = ?)
 		        and (cem.data_json #>> '{Action}') <> 'delete_meeting'`
 
 	if filter == 1 {
@@ -622,8 +622,7 @@ func (s *messageAdapter) GetMeetingToDoMessage(userName string, giteeUsername st
 	}
 	query += ` order by cem.source_url, updated_at desc) a
 		order by updated_at`
-	if result := postgresql.DB().Debug().Raw(query, giteeUsername,
-		userName).Scan(&response); result.Error != nil {
+	if result := postgresql.DB().Debug().Raw(query, userName).Scan(&response); result.Error != nil {
 		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
@@ -858,7 +857,7 @@ func (s *messageAdapter) CountAllMessage(userName, giteeUserName string) (CountD
 
 	_, watchCount, _ := s.GetAllWatchMessage(userName, giteeUserName, 1, 0, "", &isRead)
 
-	_, meetingCount, _ := s.GetMeetingToDoMessage(userName, giteeUserName, 1, 1, 0)
+	_, meetingCount, _ := s.GetMeetingToDoMessage(userName, 1, 1, 0)
 	return CountDataDAO{
 		TodoCount:    todoCountNotDone,
 		AboutCount:   aboutCountBot + aboutCountNotBot,
