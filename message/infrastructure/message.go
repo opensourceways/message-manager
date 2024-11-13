@@ -560,9 +560,7 @@ func (s *messageAdapter) GetForumSystemMessage(userName string, pageNum,
 	if startTime != "" {
 		query += fmt.Sprintf(` and cem.time >= %s`, startTime)
 	}
-	if isRead {
-		query += ` and im.is_read = true`
-	} else {
+	if isRead == false {
 		query += ` and im.is_read = false`
 	}
 
@@ -591,9 +589,7 @@ func (s *messageAdapter) GetForumAboutMessage(userName string, isBot bool, pageN
 	if startTime != "" {
 		query += fmt.Sprintf(` and cem.time >= %s`, startTime)
 	}
-	if isRead {
-		query += ` and im.is_read = true`
-	} else {
+	if isRead == false {
 		query += ` and im.is_read = false`
 	}
 
@@ -682,9 +678,7 @@ func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string, pageNum, 
 	if startTime != "" {
 		query += fmt.Sprintf(` and cem.time >= %s`, startTime)
 	}
-	if isRead {
-		query += ` and im.is_read = true`
-	} else {
+	if isRead == false {
 		query += ` and im.is_read = false`
 	}
 	query += ` order by cem.updated_at desc`
@@ -786,9 +780,7 @@ func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, is
 	if startTime != "" {
 		query += fmt.Sprintf(` and cem.time >= %s`, startTime)
 	}
-	if isRead {
-		query += ` and im.is_read = true`
-	} else {
+	if isRead == false {
 		query += ` and im.is_read = false`
 	}
 	query += ` order by cem.updated_at desc`
@@ -815,9 +807,7 @@ func (s *messageAdapter) GetGiteeMessage(userName, giteeUsername string, pageNum
 	if startTime != "" {
 		query += fmt.Sprintf(` and cem.time >= %s`, startTime)
 	}
-	if isRead {
-		query += ` and im.is_read = true`
-	} else {
+	if isRead == false {
 		query += ` and im.is_read = false`
 	}
 	query += ` order by cem.updated_at desc`
@@ -845,9 +835,7 @@ func (s *messageAdapter) GetEurMessage(userName string, pageNum,
 	if startTime != "" {
 		query += fmt.Sprintf(` and cem.time >= %s`, startTime)
 	}
-	if isRead {
-		query += ` and im.is_read = true`
-	} else {
+	if isRead == false {
 		query += ` and im.is_read = false`
 	}
 	query += ` order by cem.updated_at desc`
