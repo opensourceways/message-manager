@@ -593,7 +593,7 @@ func (s *messageAdapter) GetForumAboutMessage(userName string, isBot bool, pageN
 		query += ` and im.is_read = false`
 	}
 
-	if result := postgresql.DB().Debug().Raw(query, userName).Scan(&response); result.Error != nil {
+	if result := postgresql.DB().Raw(query, userName).Scan(&response); result.Error != nil {
 		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
@@ -716,8 +716,8 @@ func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isD
 	}
 	query += ` order by cem.source_url, cem.updated_at desc) a
 		order by updated_at desc`
-	if result := postgresql.DB().Raw(query, giteeUsername, userName,
-		giteeUsername).Scan(&response); result.Error != nil {
+	if result := postgresql.DB().Debug().Raw(query, giteeUsername, userName, giteeUsername).
+		Scan(&response); result.Error != nil {
 		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
@@ -749,7 +749,7 @@ func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername strin
 	}
 	query += ` order by cem.source_url, cem.updated_at desc) a
 		order by updated_at desc`
-	if result := postgresql.DB().Debug().Raw(query, giteeUsername, userName,
+	if result := postgresql.DB().Raw(query, giteeUsername, userName,
 		"%"+giteeUsername+"%").Scan(&response); result.Error != nil {
 		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
