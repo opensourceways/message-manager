@@ -645,9 +645,9 @@ func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDon
 		        and (rc.gitee_user_name = ? or rc.user_id = ?)
 		        and (cem.data_json #>> '{IssueEvent,Issue,Assignee,UserName}') = ?`
 	if isDone {
-		query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') IN ('rejected,closed')`
+		query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') IN ('rejected','closed')`
 	} else {
-		query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') NOT IN ('rejected,closed')`
+		query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') NOT IN ('rejected','closed')`
 	}
 	if startTime != "" {
 		query += fmt.Sprintf(` and cem.time >= %s`, startTime)
@@ -707,9 +707,9 @@ func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isD
 		        and (rc.gitee_user_name = ? or rc.user_id = ?)
 		        and (cem.data_json #>> '{IssueEvent,Issue,Assignee,UserName}') = ?`
 	if isDone {
-		query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') IN ('rejected,closed')`
+		query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') IN ('rejected','closed')`
 	} else {
-		query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') NOT IN ('rejected,closed')`
+		query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') NOT IN ('rejected','closed')`
 	}
 	if startTime != "" {
 		query += fmt.Sprintf(` and cem.time >= %s`, startTime)
@@ -742,8 +742,7 @@ func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername strin
 	if isDone {
 		query += ` and (cem.data_json #>> '{PullRequestEvent,State}') IN ('closed', 'merged')`
 	} else {
-		query += ` and (cem.data_json #>> '{PullRequestEvent,State}') <> 'closed'
-		  and (cem.data_json #>> '{PullRequestEvent,State}') <> 'merged'`
+		query += ` and (cem.data_json #>> '{PullRequestEvent,State}') NOT IN ('closed', 'merged')`
 	}
 	if startTime != "" {
 		query += fmt.Sprintf(` and cem.time >= %s`, startTime)
