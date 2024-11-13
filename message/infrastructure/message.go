@@ -622,7 +622,8 @@ func (s *messageAdapter) GetMeetingToDoMessage(userName string, giteeUsername st
 	}
 	query += ` order by cem.source_url, updated_at desc) a
 		order by updated_at`
-	if result := postgresql.DB().Raw(query, giteeUsername, userName).Scan(&response); result.Error != nil {
+	if result := postgresql.DB().Debug().Raw(query, giteeUsername,
+		userName).Scan(&response); result.Error != nil {
 		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
@@ -716,7 +717,7 @@ func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isD
 	}
 	query += ` order by cem.source_url, cem.updated_at desc) a
 		order by updated_at desc`
-	if result := postgresql.DB().Debug().Raw(query, giteeUsername, userName, giteeUsername).
+	if result := postgresql.DB().Raw(query, giteeUsername, userName, giteeUsername).
 		Scan(&response); result.Error != nil {
 		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
