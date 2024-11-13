@@ -500,7 +500,7 @@ func (s *messageAdapter) GetAllToDoMessage(userName string, giteeUsername string
 }
 
 func (s *messageAdapter) GetAllAboutMessage(userName string, giteeUsername string, isBot bool,
-	pageNum, countPerPage int, startTime string, isRead bool) ([]MessageListDAO, int64, error) {
+	pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	giteeAbout, giteeCount, err := s.GetGiteeAboutMessage(userName, giteeUsername, isBot,
 		0, 0, startTime, isRead)
@@ -519,7 +519,7 @@ func (s *messageAdapter) GetAllAboutMessage(userName string, giteeUsername strin
 }
 
 func (s *messageAdapter) GetAllWatchMessage(userName string, giteeUsername string, pageNum,
-	countPerPage int, startTime string, isRead bool) ([]MessageListDAO, int64, error) {
+	countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	forumMsg, forumCount, err := s.GetForumSystemMessage(userName,
 		0, 0, startTime, isRead)
@@ -548,7 +548,7 @@ func (s *messageAdapter) GetAllWatchMessage(userName string, giteeUsername strin
 }
 
 func (s *messageAdapter) GetForumSystemMessage(userName string, pageNum,
-	countPerPage int, startTime string, isRead bool) ([]MessageListDAO, int64, error) {
+	countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 
 	query := `select * from message_center.cloud_event_message cem
@@ -560,7 +560,7 @@ func (s *messageAdapter) GetForumSystemMessage(userName string, pageNum,
 	if startTime != "" {
 		query += fmt.Sprintf(` and cem.time >= %s`, startTime)
 	}
-	if isRead == false {
+	if isRead != nil && *isRead == false {
 		query += ` and im.is_read = false`
 	}
 
@@ -572,7 +572,7 @@ func (s *messageAdapter) GetForumSystemMessage(userName string, pageNum,
 }
 
 func (s *messageAdapter) GetForumAboutMessage(userName string, isBot bool, pageNum,
-	countPerPage int, startTime string, isRead bool) ([]MessageListDAO, int64, error) {
+	countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	query := `select * from message_center.cloud_event_message cem
 		join message_center.inner_message im on im.event_id = cem.event_id
@@ -589,7 +589,7 @@ func (s *messageAdapter) GetForumAboutMessage(userName string, isBot bool, pageN
 	if startTime != "" {
 		query += fmt.Sprintf(` and cem.time >= %s`, startTime)
 	}
-	if isRead == false {
+	if isRead != nil && *isRead == false {
 		query += ` and im.is_read = false`
 	}
 
@@ -665,7 +665,7 @@ func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDon
 }
 
 func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string, pageNum, countPerPage int,
-	startTime string, isRead bool) ([]MessageListDAO, int64, error) {
+	startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	query := `select *
 		from cloud_event_message cem
@@ -678,9 +678,10 @@ func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string, pageNum, 
 	if startTime != "" {
 		query += fmt.Sprintf(` and cem.time >= %s`, startTime)
 	}
-	if isRead == false {
+	if isRead != nil && *isRead == false {
 		query += ` and im.is_read = false`
 	}
+
 	query += ` order by cem.updated_at desc`
 	if result := postgresql.DB().Raw(query, giteeUsername, userName).Scan(&response); result.
 		Error != nil {
@@ -759,7 +760,7 @@ func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername strin
 }
 
 func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, isBot bool,
-	pageNum, countPerPage int, startTime string, isRead bool) ([]MessageListDAO, int64, error) {
+	pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	query := `select *
 		from cloud_event_message cem
@@ -780,7 +781,7 @@ func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, is
 	if startTime != "" {
 		query += fmt.Sprintf(` and cem.time >= %s`, startTime)
 	}
-	if isRead == false {
+	if isRead != nil && *isRead == false {
 		query += ` and im.is_read = false`
 	}
 	query += ` order by cem.updated_at desc`
@@ -794,7 +795,7 @@ func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, is
 }
 
 func (s *messageAdapter) GetGiteeMessage(userName, giteeUsername string, pageNum,
-	countPerPage int, startTime string, isRead bool) ([]MessageListDAO, int64, error) {
+	countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	query := `select *
 		from cloud_event_message cem
@@ -807,7 +808,7 @@ func (s *messageAdapter) GetGiteeMessage(userName, giteeUsername string, pageNum
 	if startTime != "" {
 		query += fmt.Sprintf(` and cem.time >= %s`, startTime)
 	}
-	if isRead == false {
+	if isRead != nil && *isRead == false {
 		query += ` and im.is_read = false`
 	}
 	query += ` order by cem.updated_at desc`
@@ -821,7 +822,7 @@ func (s *messageAdapter) GetGiteeMessage(userName, giteeUsername string, pageNum
 }
 
 func (s *messageAdapter) GetEurMessage(userName string, pageNum,
-	countPerPage int, startTime string, isRead bool) ([]MessageListDAO, int64, error) {
+	countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	query := `select *
 		from cloud_event_message cem
@@ -835,7 +836,7 @@ func (s *messageAdapter) GetEurMessage(userName string, pageNum,
 	if startTime != "" {
 		query += fmt.Sprintf(` and cem.time >= %s`, startTime)
 	}
-	if isRead == false {
+	if isRead != nil && *isRead == false {
 		query += ` and im.is_read = false`
 	}
 	query += ` order by cem.updated_at desc`
@@ -849,12 +850,13 @@ func (s *messageAdapter) GetEurMessage(userName string, pageNum,
 }
 
 func (s *messageAdapter) CountAllMessage(userName, giteeUserName string) (CountDataDAO, error) {
+	isRead := false
 	_, todoCountNotDone, _ := s.GetAllToDoMessage(userName, giteeUserName, false, 1, 0, "")
 
-	_, aboutCountBot, _ := s.GetAllAboutMessage(userName, giteeUserName, true, 1, 0, "", false)
-	_, aboutCountNotBot, _ := s.GetAllAboutMessage(userName, giteeUserName, false, 1, 0, "", false)
+	_, aboutCountBot, _ := s.GetAllAboutMessage(userName, giteeUserName, true, 1, 0, "", &isRead)
+	_, aboutCountNotBot, _ := s.GetAllAboutMessage(userName, giteeUserName, false, 1, 0, "", &isRead)
 
-	_, watchCount, _ := s.GetAllWatchMessage(userName, giteeUserName, 1, 0, "", false)
+	_, watchCount, _ := s.GetAllWatchMessage(userName, giteeUserName, 1, 0, "", &isRead)
 
 	_, meetingCount, _ := s.GetMeetingToDoMessage(userName, giteeUserName, 1, 1, 0)
 	return CountDataDAO{
