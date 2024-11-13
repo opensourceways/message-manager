@@ -614,6 +614,7 @@ func (s *messageAdapter) GetMeetingToDoMessage(userName string, giteeUsername st
 		               join message_center.inner_message im on cem.event_id = im.event_id
 		               join message_center.recipient_config rc on im.recipient_id = rc.id
 		      where cem.type = 'meeting'
+		        and im.is_deleted = false and rc.is_deleted = false
 		        and cem.source = 'https://www.openEuler.org/meeting'
 		        and (rc.gitee_user_name = ? or rc.user_id = ?)
 		        and (cem.data_json #>> '{Action}') <> 'delete_meeting'`
@@ -644,6 +645,7 @@ func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDon
 		               join message_center.recipient_config rc on im.recipient_id = rc.id
 		      where cem.type = 'issue'
 		        and cem.source = 'cve'
+		        and im.is_deleted = false and rc.is_deleted = false
 		        and (rc.gitee_user_name = ? or rc.user_id = ?)
 		        and (cem.data_json #>> '{IssueEvent,Issue,Assignee,UserName}') = ?`
 	if isDone {
@@ -675,6 +677,7 @@ func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string, pageNum, 
 		         join message_center.recipient_config rc on im.recipient_id = rc.id
 		where cem.type = 'issue'
 		  and cem.source = 'cve'
+		  and im.is_deleted = false and rc.is_deleted = false
 		  and (rc.gitee_user_name = ? or rc.user_id = ?)`
 	if startTime != "" {
 		query += fmt.Sprintf(` and cem.time >= %s`, startTime)
@@ -705,6 +708,7 @@ func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isD
 		               join message_center.recipient_config rc on im.recipient_id = rc.id
 		      where cem.type = 'issue'
 		        and cem.source = 'https://gitee.com'
+		        and im.is_deleted = false and rc.is_deleted = false
 		        and (rc.gitee_user_name = ? or rc.user_id = ?)
 		        and (cem.data_json #>> '{IssueEvent,Issue,Assignee,UserName}') = ?`
 	if isDone {
@@ -737,6 +741,7 @@ func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername strin
 		               join message_center.recipient_config rc on im.recipient_id = rc.id
 		          and cem.type = 'pr'
 		          and cem.source = 'https://gitee.com'
+		          and im.is_deleted = false and rc.is_deleted = false
 		          and (rc.gitee_user_name = ? or rc.user_id = ?)
 		          and (cem.data_json ->> 'Assignees') :: text like ?`
 	if isDone {
@@ -768,6 +773,7 @@ func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, is
 		         join message_center.recipient_config rc on im.recipient_id = rc.id
 		    and cem.type = 'note'
 		    and cem.source = 'https://gitee.com'
+		    and im.is_deleted = false and rc.is_deleted = false
 		    and (rc.gitee_user_name = ? or rc.user_id = ?)
 		    and (cem.data_json #>> '{NoteEvent,Issue,User,UserName}' = ?
 		        or cem.data_json #>> '{NoteEvent,PullRequest,User,UserName}' = ?
@@ -803,6 +809,7 @@ func (s *messageAdapter) GetGiteeMessage(userName, giteeUsername string, pageNum
 		         join message_center.inner_message im on cem.event_id = im.event_id
 		         join message_center.recipient_config rc on im.recipient_id = rc.id
 		    and cem.source = 'https://gitee.com'
+			and im.is_deleted = false and rc.is_deleted = false
 		    and (rc.gitee_user_name = ? or rc.user_id = ?)
 		and cem."user" NOT IN ('openeuler-ci-bot','ci-robot','openeuler-sync-bot')`
 	if startTime != "" {
@@ -831,6 +838,7 @@ func (s *messageAdapter) GetEurMessage(userName string, pageNum,
 		         join message_center.inner_message im on cem.event_id = im.event_id
 		         join message_center.recipient_config rc on im.recipient_id = rc.id
 		    and cem.source = 'https://eur.openeuler.openatom.cn'
+		    and im.is_deleted = false and rc.is_deleted = false
 		    and rc.user_id = ?
 			and (cem.data_json #>> '{Body,User}' = ?
 		         or cem.data_json #>> '{Body,Owner}' = ?)`
