@@ -558,7 +558,7 @@ func (s *messageAdapter) GetForumSystemMessage(userName string, pageNum,
 		  and rc.user_id = ? and cem.type IN ('12','24','37')`
 
 	if startTime != "" {
-		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestamp(startTime))
+		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
 	}
 	if isRead != nil && *isRead == false {
 		query += ` and im.is_read = false`
@@ -587,7 +587,7 @@ func (s *messageAdapter) GetForumAboutMessage(userName string, isBot bool, pageN
 		'Data', 'OriginalUsername') <> 'system'`
 	}
 	if startTime != "" {
-		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestamp(startTime))
+		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
 	}
 	if isRead != nil && *isRead == false {
 		query += ` and im.is_read = false`
@@ -651,7 +651,7 @@ func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDon
 		query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') NOT IN ('rejected','closed')`
 	}
 	if startTime != "" {
-		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestamp(startTime))
+		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
 	}
 	query += ` order by cem.source_url, cem.updated_at desc) a
 		order by updated_at desc`
@@ -677,7 +677,7 @@ func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string, pageNum, 
 		  and im.is_deleted = false and rc.is_deleted = false
 		  and (rc.gitee_user_name = ? or rc.user_id = ?)`
 	if startTime != "" {
-		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestamp(startTime))
+		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
 	}
 	if isRead != nil && *isRead == false {
 		query += ` and im.is_read = false`
@@ -713,7 +713,7 @@ func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isD
 		query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') NOT IN ('rejected','closed')`
 	}
 	if startTime != "" {
-		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestamp(startTime))
+		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
 	}
 	query += ` order by cem.source_url, cem.updated_at desc) a
 		order by updated_at desc`
@@ -746,7 +746,7 @@ func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername strin
 		query += ` and (cem.data_json #>> '{PullRequestEvent,State}') NOT IN ('closed', 'merged')`
 	}
 	if startTime != "" {
-		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestamp(startTime))
+		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
 	}
 	query += ` order by cem.source_url, cem.updated_at desc) a
 		order by updated_at desc`
@@ -779,7 +779,7 @@ func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, is
 		query += ` and cem."user" NOT IN ('openeuler-ci-bot','ci-robot','openeuler-sync-bot') `
 	}
 	if startTime != "" {
-		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestamp(startTime))
+		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
 	}
 	if isRead != nil && *isRead == false {
 		query += ` and im.is_read = false`
@@ -806,7 +806,7 @@ func (s *messageAdapter) GetGiteeMessage(userName, giteeUsername string, pageNum
 		    and (rc.gitee_user_name = ? or rc.user_id = ?)
 		and cem."user" NOT IN ('openeuler-ci-bot','ci-robot','openeuler-sync-bot')`
 	if startTime != "" {
-		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestamp(startTime))
+		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
 	}
 	if isRead != nil && *isRead == false {
 		query += ` and im.is_read = false`
@@ -834,7 +834,7 @@ func (s *messageAdapter) GetEurMessage(userName string, pageNum,
 			and (cem.data_json #>> '{Body,User}' = ?
 		         or cem.data_json #>> '{Body,Owner}' = ?)`
 	if startTime != "" {
-		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestamp(startTime))
+		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
 	}
 	if isRead != nil && *isRead == false {
 		query += ` and im.is_read = false`
