@@ -635,7 +635,9 @@ func (s *messageAdapter) GetMeetingToDoMessage(userName string, filter int,
 func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDone bool, pageNum,
 	countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
-
+	if giteeUsername == "" {
+		return []MessageListDAO{}, 0, xerrors.Errorf("gitee username is empty")
+	}
 	query := `select *
 		from (select distinct on (cem.source_url) cem.*, im.is_read
 		      from cloud_event_message cem
@@ -669,6 +671,9 @@ func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDon
 func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string, pageNum, countPerPage int,
 	startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
+	if giteeUsername == "" {
+		return []MessageListDAO{}, 0, xerrors.Errorf("gitee username is empty")
+	}
 	query := `select cem.*, im.is_read
 		from cloud_event_message cem
 		         join message_center.inner_message im on cem.event_id = im.event_id
@@ -697,7 +702,9 @@ func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string, pageNum, 
 func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isDone bool,
 	pageNum, countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
-
+	if giteeUsername == "" {
+		return []MessageListDAO{}, 0, xerrors.Errorf("gitee username is empty")
+	}
 	query := `select *
 		from (select distinct on (cem.source_url) cem.*, im.is_read
 		      from cloud_event_message cem
@@ -730,7 +737,9 @@ func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isD
 func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername string, isDone bool,
 	pageNum, countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
-
+	if giteeUsername == "" {
+		return []MessageListDAO{}, 0, xerrors.Errorf("gitee username is empty")
+	}
 	query := `select *
 		from (select distinct on (cem.source_url) cem.*, im.is_read
 		      from cloud_event_message cem
@@ -763,6 +772,9 @@ func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername strin
 func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, isBot *bool,
 	pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
+	if giteeUsername == "" {
+		return []MessageListDAO{}, 0, xerrors.Errorf("gitee username is empty")
+	}
 	query := `select cem.*, im.is_read
 		from cloud_event_message cem
 		         join message_center.inner_message im on cem.event_id = im.event_id
@@ -800,6 +812,9 @@ func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, is
 func (s *messageAdapter) GetGiteeMessage(userName, giteeUsername string, pageNum,
 	countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
+	if giteeUsername == "" {
+		return []MessageListDAO{}, 0, xerrors.Errorf("gitee username is empty")
+	}
 	query := `select cem.*, im.is_read
 		from cloud_event_message cem
 		         join message_center.inner_message im on cem.event_id = im.event_id
