@@ -551,7 +551,7 @@ func (s *messageAdapter) GetForumSystemMessage(userName string, pageNum,
 	countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 
-	query := `select * from message_center.cloud_event_message cem
+	query := `select cem.*, im.is_read from message_center.cloud_event_message cem
 		join message_center.inner_message im on im.event_id = cem.event_id
 		join message_center.recipient_config rc on rc.id = im.recipient_id
 		where im.is_deleted = false and rc.is_deleted = false and cem.source = 'forum'
@@ -574,7 +574,7 @@ func (s *messageAdapter) GetForumSystemMessage(userName string, pageNum,
 func (s *messageAdapter) GetForumAboutMessage(userName string, isBot *bool, pageNum,
 	countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
-	query := `select * from message_center.cloud_event_message cem
+	query := `select cem.*, im.is_read from message_center.cloud_event_message cem
 		join message_center.inner_message im on im.event_id = cem.event_id
 		join message_center.recipient_config rc on rc.id = im.recipient_id
 		where im.is_deleted = false and rc.is_deleted = false and cem.source = 'forum'
@@ -606,7 +606,7 @@ func (s *messageAdapter) GetForumAboutMessage(userName string, isBot *bool, page
 func (s *messageAdapter) GetMeetingToDoMessage(userName string, filter int,
 	pageNum, countPerPage int) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
-	query := `select *
+	query := `select cem.*, im.is_read
 		from (select distinct on (cem.source_url) cem.*
 		      from cloud_event_message cem
 		               join message_center.inner_message im on cem.event_id = im.event_id
@@ -636,7 +636,7 @@ func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDon
 	countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 
-	query := `select *
+	query := `select cem.*, im.is_read
 		from (select distinct on (cem.source_url) cem.*
 		      from cloud_event_message cem
 		               join message_center.inner_message im on cem.event_id = im.event_id
@@ -669,7 +669,7 @@ func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDon
 func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string, pageNum, countPerPage int,
 	startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
-	query := `select *
+	query := `select cem.*, im.is_read
 		from cloud_event_message cem
 		         join message_center.inner_message im on cem.event_id = im.event_id
 		         join message_center.recipient_config rc on im.recipient_id = rc.id
@@ -698,7 +698,7 @@ func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isD
 	pageNum, countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 
-	query := `select *
+	query := `select cem.*, im.is_read
 		from (select distinct on (cem.source_url) cem.*
 		      from cloud_event_message cem
 		               join message_center.inner_message im on cem.event_id = im.event_id
@@ -731,7 +731,7 @@ func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername strin
 	pageNum, countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 
-	query := `select *
+	query := `select cem.*, im.is_read
 		from (select distinct on (cem.source_url) cem.*
 		      from cloud_event_message cem
 		               join message_center.inner_message im on cem.event_id = im.event_id
@@ -763,7 +763,7 @@ func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername strin
 func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, isBot *bool,
 	pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
-	query := `select *
+	query := `select cem.*, im.is_read
 		from cloud_event_message cem
 		         join message_center.inner_message im on cem.event_id = im.event_id
 		         join message_center.recipient_config rc on im.recipient_id = rc.id
@@ -800,7 +800,7 @@ func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, is
 func (s *messageAdapter) GetGiteeMessage(userName, giteeUsername string, pageNum,
 	countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
-	query := `select *
+	query := `select cem.*, im.is_read
 		from cloud_event_message cem
 		         join message_center.inner_message im on cem.event_id = im.event_id
 		         join message_center.recipient_config rc on im.recipient_id = rc.id
@@ -827,7 +827,7 @@ func (s *messageAdapter) GetGiteeMessage(userName, giteeUsername string, pageNum
 func (s *messageAdapter) GetEurMessage(userName string, pageNum,
 	countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
-	query := `select *
+	query := `select cem.*, im.is_read
 		from cloud_event_message cem
 		         join message_center.inner_message im on cem.event_id = im.event_id
 		         join message_center.recipient_config rc on im.recipient_id = rc.id
