@@ -606,8 +606,8 @@ func (s *messageAdapter) GetForumAboutMessage(userName string, isBot *bool, page
 func (s *messageAdapter) GetMeetingToDoMessage(userName string, filter int,
 	pageNum, countPerPage int) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
-	query := `select cem.*, im.is_read
-		from (select distinct on (cem.source_url) cem.*
+	query := `select *
+		from (select distinct on (cem.source_url) cem.*, im.is_read
 		      from cloud_event_message cem
 		               join message_center.inner_message im on cem.event_id = im.event_id
 		               join message_center.recipient_config rc on im.recipient_id = rc.id
@@ -636,8 +636,8 @@ func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDon
 	countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 
-	query := `select cem.*, im.is_read
-		from (select distinct on (cem.source_url) cem.*
+	query := `select *
+		from (select distinct on (cem.source_url) cem.*, im.is_read
 		      from cloud_event_message cem
 		               join message_center.inner_message im on cem.event_id = im.event_id
 		               join message_center.recipient_config rc on im.recipient_id = rc.id
@@ -698,8 +698,8 @@ func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isD
 	pageNum, countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 
-	query := `select cem.*, im.is_read
-		from (select distinct on (cem.source_url) cem.*
+	query := `select *
+		from (select distinct on (cem.source_url) cem.*, im.is_read
 		      from cloud_event_message cem
 		               join message_center.inner_message im on cem.event_id = im.event_id
 		               join message_center.recipient_config rc on im.recipient_id = rc.id
@@ -731,8 +731,8 @@ func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername strin
 	pageNum, countPerPage int, startTime string) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 
-	query := `select cem.*, im.is_read
-		from (select distinct on (cem.source_url) cem.*
+	query := `select *
+		from (select distinct on (cem.source_url) cem.*, im.is_read
 		      from cloud_event_message cem
 		               join message_center.inner_message im on cem.event_id = im.event_id
 		               join message_center.recipient_config rc on im.recipient_id = rc.id
