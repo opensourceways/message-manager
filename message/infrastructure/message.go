@@ -757,10 +757,9 @@ func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername strin
 		          and (cem.data_json ->> 'Assignees') :: text like ?
 		      order by cem.source_url, cem.updated_at desc) a`
 	if isDone {
-		query += ` where (a.data_json #>> '{IssueEvent,Issue,State}') IN ('rejected','closed')`
+		query += ` where (a.data_json #>> '{PullRequestEvent,State}') IN ('closed', 'merged')`
 	} else {
-		query += ` where (a.data_json #>> '{IssueEvent,Issue,State}') NOT IN ('rejected',
-'closed')`
+		query += ` where (a.data_json #>> '{PullRequestEvent,State}') NOT IN ('closed', 'merged')`
 	}
 	if startTime != "" {
 		query += fmt.Sprintf(` and a.time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
