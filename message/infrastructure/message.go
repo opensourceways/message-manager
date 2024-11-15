@@ -564,7 +564,7 @@ func (s *messageAdapter) GetForumSystemMessage(userName string, pageNum,
 		query += ` and im.is_read = false`
 	}
 
-	query += ` order by updated_at desc`
+	query += ` order by time desc`
 
 	if result := postgresql.DB().Raw(query, userName).Scan(&response); result.Error != nil {
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
@@ -596,7 +596,7 @@ func (s *messageAdapter) GetForumAboutMessage(userName string, isBot *bool, page
 	if isRead != nil && *isRead == false {
 		query += ` and im.is_read = false`
 	}
-	query += ` order by updated_at desc`
+	query += ` order by time desc`
 	if result := postgresql.DB().Raw(query, userName).Scan(&response); result.Error != nil {
 		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
