@@ -615,15 +615,17 @@ func (s *messageAdapter) GetMeetingToDoMessage(userName string, filter int,
 		        and im.is_deleted = false and rc.is_deleted = false
 		        and cem.source = 'https://www.openEuler.org/meeting'
 		        and (rc.user_id = ?)
-		        and (cem.data_json #>> '{Action}') <> 'delete_meeting'`
+		        and (cem.data_json #>> '{Action}') <> 'delete_meeting'
+		        order by cem.source_url, updated_at desc) a`
 
 	if filter == 1 {
-		query += ` and NOW() <= to_timestamp(data_json ->> 'MeetingEndTime', 'YYYY-MM-DDHH24:MI')`
+		query += ` where NOW() <= to_timestamp(a.data_json ->> 'MeetingEndTime', 
+'YYYY-MM-DDHH24:MI')`
 	} else if filter == 2 {
-		query += ` and NOW() > to_timestamp(data_json ->> 'MeetingEndTime', 'YYYY-MM-DDHH24:MI')`
+		query += ` where NOW() > to_timestamp(a.data_json ->> 'MeetingEndTime', 
+'YYYY-MM-DDHH24:MI')`
 	}
-	query += ` order by cem.source_url, updated_at desc) a
-		order by updated_at`
+	query += ` order by updated_at`
 	if result := postgresql.DB().Debug().Raw(query, userName).Scan(&response); result.Error != nil {
 		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
@@ -647,17 +649,17 @@ func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDon
 		        and cem.source = 'cve'
 		        and im.is_deleted = false and rc.is_deleted = false
 		        and (rc.gitee_user_name = ? or rc.user_id = ?)
-		        and (cem.data_json #>> '{IssueEvent,Issue,Assignee,UserName}') = ?`
+		        and (cem.data_json #>> '{IssueEvent,Issue,Assignee,UserName}') = ?
+		      order by cem.source_url, cem.updated_at desc) a`
 	if isDone {
-		query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') IN ('rejected','closed')`
+		query += ` where (a.data_json #>> '{IssueEvent,Issue,State}') IN ('rejected','closed')`
 	} else {
-		query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') NOT IN ('rejected','closed')`
+		query += ` where (a.data_json #>> '{IssueEvent,Issue,State}') NOT IN ('rejected','closed')`
 	}
 	if startTime != "" {
-		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
+		query += fmt.Sprintf(` and a.time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
 	}
-	query += ` order by cem.source_url, cem.updated_at desc) a
-		order by updated_at desc`
+	query += ` order by updated_at desc`
 
 	if result := postgresql.DB().Raw(query, giteeUsername, userName,
 		giteeUsername).Scan(&response); result.Error != nil {
@@ -714,17 +716,18 @@ func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isD
 		        and cem.source = 'https://gitee.com'
 		        and im.is_deleted = false and rc.is_deleted = false
 		        and (rc.gitee_user_name = ? or rc.user_id = ?)
-		        and (cem.data_json #>> '{IssueEvent,Issue,Assignee,UserName}') = ?`
+		        and (cem.data_json #>> '{IssueEvent,Issue,Assignee,UserName}') = ?
+ 			  order by cem.source_url, cem.updated_at desc) a`
 	if isDone {
-		query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') IN ('rejected','closed')`
+		query += ` where (a.data_json #>> '{IssueEvent,Issue,State}') IN ('rejected','closed')`
 	} else {
-		query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') NOT IN ('rejected','closed')`
+		query += ` where (a.data_json #>> '{IssueEvent,Issue,State}') NOT IN ('rejected',
+'closed')`
 	}
 	if startTime != "" {
-		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
+		query += fmt.Sprintf(` and a.time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
 	}
-	query += ` order by cem.source_url, cem.updated_at desc) a
-		order by updated_at desc`
+	query += ` order by updated_at desc`
 	if result := postgresql.DB().Raw(query, giteeUsername, userName, giteeUsername).
 		Scan(&response); result.Error != nil {
 		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
@@ -749,17 +752,19 @@ func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername strin
 		          and cem.source = 'https://gitee.com'
 		          and im.is_deleted = false and rc.is_deleted = false
 		          and (rc.gitee_user_name = ? or rc.user_id = ?)
-		          and (cem.data_json ->> 'Assignees') :: text like ?`
+		          and (cem.data_json ->> 'Assignees') :: text like ?
+		      order by cem.source_url, cem.updated_at desc) a`
 	if isDone {
-		query += ` and (cem.data_json #>> '{PullRequestEvent,State}') IN ('closed', 'merged')`
+		query += ` where (a.data_json #>> '{IssueEvent,Issue,State}') IN ('rejected','closed')`
 	} else {
-		query += ` and (cem.data_json #>> '{PullRequestEvent,State}') NOT IN ('closed', 'merged')`
+		query += ` where (a.data_json #>> '{IssueEvent,Issue,State}') NOT IN ('rejected',
+'closed')`
 	}
 	if startTime != "" {
-		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
+		query += fmt.Sprintf(` and a.time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
 	}
-	query += ` order by cem.source_url, cem.updated_at desc) a
-		order by updated_at desc`
+
+	query += ` order by updated_at desc`
 	if result := postgresql.DB().Raw(query, giteeUsername, userName,
 		"%"+giteeUsername+"%").Scan(&response); result.Error != nil {
 		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
