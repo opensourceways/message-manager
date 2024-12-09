@@ -31,7 +31,8 @@ type MessageListAppService interface {
 		startTime string, isRead *bool) ([]MessageListDTO, int64, error)
 	GetForumAboutMessage(userName string, isBot *bool, pageNum,
 		countPerPage int, startTime string, isRead *bool) ([]MessageListDTO, int64, error)
-	GetMeetingToDoMessage(userName string, filter int, pageNum, countPerPage int) (
+	GetMeetingToDoMessage(userName string, filter int, pageNum, countPerPage int, isRead *bool,
+		startTime string) (
 		[]MessageListDTO, int64, error)
 	GetCVEToDoMessage(userName string, giteeUsername string, isDone bool,
 		pageNum, countPerPage int, startTime string) ([]MessageListDTO, int64, error)
@@ -153,9 +154,9 @@ func (s *messageListAppService) GetForumAboutMessage(userName string, isBot *boo
 }
 
 func (s *messageListAppService) GetMeetingToDoMessage(userName string, filter int, pageNum,
-	countPerPage int) ([]MessageListDTO, int64, error) {
+	countPerPage int, isRead *bool, startTime string) ([]MessageListDTO, int64, error) {
 	response, count, err := s.messageListAdapter.GetMeetingToDoMessage(userName, filter,
-		pageNum, countPerPage)
+		pageNum, countPerPage, isRead, startTime)
 	if err != nil {
 		return []MessageListDTO{}, 0, err
 	}

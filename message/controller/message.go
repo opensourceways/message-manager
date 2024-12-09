@@ -297,7 +297,7 @@ func (ctl *messageListController) GetMeetingToDoMessage(ctx *gin.Context) {
 		return
 	}
 	if data, count, err := ctl.appService.GetMeetingToDoMessage(userName, params.Filter,
-		params.PageNum, params.CountPerPage); err != nil {
+		params.PageNum, params.CountPerPage, params.IsRead, params.StartTime); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})

@@ -606,29 +606,31 @@ func (s *messageAdapter) GetForumAboutMessage(userName string, isBot *bool, page
 }
 
 func (s *messageAdapter) GetMeetingToDoMessage(userName string, filter int,
-	pageNum, countPerPage int) ([]MessageListDAO, int64, error) {
+	pageNum, countPerPage int, isRead *bool, startTime string) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	query := `select *
-		from (select distinct on (cem.source_url) cem.*, im.is_read
+		from (select distinct on (cem.source_url) cem.*, tm.is_read
 		      from cloud_event_message cem
-		               join message_center.inner_message im on cem.event_id = im.event_id
-		               join message_center.recipient_config rc on im.recipient_id = rc.id
+		               join message_center.todo_message tm on cem.event_id = tm.latest_event_id
+		               join message_center.recipient_config rc on tm.recipient_id = rc.id
 		      where cem.type = 'meeting'
-		        and im.is_deleted = false and rc.is_deleted = false
-		        and cem.source = 'https://www.openEuler.org/meeting'
-		        and (rc.user_id = ?)
-		        and (cem.data_json #>> '{Action}') <> 'delete_meeting'
-		        order by cem.source_url, updated_at desc) a`
+		        and tm.is_deleted = false and rc.is_deleted = false
+		        and (rc.user_id = ?)`
+
+	if isRead != nil {
+		query += fmt.Sprintf(` and tm.is_read = %t`, *isRead)
+	}
 
 	if filter == 1 {
-		query += ` where NOW() <= to_timestamp(a.data_json ->> 'MeetingEndTime', 
-'YYYY-MM-DDHH24:MI')`
+		query += ` and tm.is_done = true`
 	} else if filter == 2 {
-		query += ` where NOW() > to_timestamp(a.data_json ->> 'MeetingEndTime', 
-'YYYY-MM-DDHH24:MI')`
+		query += ` and tm.is_done = false`
 	}
-	query += ` order by updated_at`
-	if result := postgresql.DB().Debug().Raw(query, userName).Scan(&response); result.Error != nil {
+
+	query += ` order by cem.source_url, updated_at desc) a
+		order by updated_at`
+	if result := postgresql.DB().Debug().Raw(query, userName, isRead).
+		Scan(&response); result.Error != nil {
 		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
@@ -847,16 +849,12 @@ func (s *messageAdapter) GetGiteeMessage(userName, giteeUsername string, pageNum
 
 func (s *messageAdapter) GetEurMessage(userName string, pageNum,
 	countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
-	var response []MessageListDAO
-	query := `select cem.*, im.is_read
-		from cloud_event_message cem
-		         join message_center.inner_message im on cem.event_id = im.event_id
-		         join message_center.recipient_config rc on im.recipient_id = rc.id
-		    and cem.source = 'https://eur.openeuler.openatom.cn'
-		    and im.is_deleted = false and rc.is_deleted = false
-		    and rc.user_id = ?
-			and (cem.data_json #>> '{Body,User}' = ?
-		         or cem.data_json #>> '{Body,Owner}' = ?)`
+	query := `select * from follow_message fm
+    join cloud_event_message cem on cem.event_id = fm.event_id
+    join recipient_config rc on rc.id = fm.recipient_id
+    where fm.is_deleted = false and rc.is_deleted = false
+      and cem.source = 'https://eur.openeuler.openatom.cn'
+	  and rc.user_id = ?`
 	if startTime != "" {
 		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
 	}
@@ -864,10 +862,11 @@ func (s *messageAdapter) GetEurMessage(userName string, pageNum,
 		query += ` and im.is_read = false`
 	}
 	query += ` order by cem.updated_at desc`
-	if result := postgresql.DB().Raw(query, userName, userName, userName).Scan(&response); result.
-		Error != nil {
-		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
-		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
+
+	var response []MessageListDAO
+	if result := postgresql.DB().Raw(query, userName).
+		Scan(&response); result.Error != nil {
+		return []MessageListDAO{}, 0, xerrors.Errorf("get inner message failed, err:%v",
 			result.Error)
 	}
 	return pagination(response, pageNum, countPerPage), int64(len(response)), nil
@@ -881,7 +880,7 @@ func (s *messageAdapter) CountAllMessage(userName, giteeUserName string) (CountD
 
 	_, watchCount, _ := s.GetAllWatchMessage(userName, giteeUserName, 1, 0, "", &isRead)
 
-	_, meetingCount, _ := s.GetMeetingToDoMessage(userName, 1, 1, 0)
+	_, meetingCount, _ := s.GetMeetingToDoMessage(userName, 1, 1, 0, nil, "")
 	return CountDataDAO{
 		TodoCount:    todoCountNotDone,
 		AboutCount:   aboutCount,

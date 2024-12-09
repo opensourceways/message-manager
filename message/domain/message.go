@@ -24,7 +24,7 @@ type MessageListAdapter interface {
 	GetForumAboutMessage(userName string, isBot *bool, pageNum,
 		countPerPage int, startTime string, isRead *bool) ([]MessageListDO, int64, error)
 	GetMeetingToDoMessage(userName string, filter int, pageNum,
-		countPerPage int) ([]MessageListDO, int64, error)
+		countPerPage int, isRead *bool, startTime string) ([]MessageListDO, int64, error)
 	GetCVEToDoMessage(userName, giteeUsername string, isDone bool, pageNum,
 		countPerPage int, startTime string) ([]MessageListDO, int64, error)
 	GetCVEMessage(userName, giteeUsername string, pageNum, countPerPage int,
