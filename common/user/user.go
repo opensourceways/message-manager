@@ -106,9 +106,9 @@ func GetEulerUserName(ctx *gin.Context) (string, error) {
 	}
 
 	url := fmt.Sprintf("%s/oneid/manager/personal/center/user?community=%s", config.AuthorHost,
-		config.EulerCommunity)
+		config.Community)
 
-	managerToken, err := getManagerToken(config.EulerAppId, config.EulerAppSecret)
+	managerToken, err := getManagerToken(config.AppId, config.AppSecret)
 	if err != nil {
 		logrus.Errorf("get manager token failed, err:%v", err)
 		return "", err

@@ -9,11 +9,11 @@ type MessageListAdapter interface {
 		[]MessageListDO, int64, error)
 	GetInnerMessage(cmd CmdToGetInnerMessage, userName string) ([]MessageListDO, int64, error)
 	CountAllUnReadMessage(userName string) ([]CountDO, error)
-	SetMessageIsRead(source, eventId string) error
-	RemoveMessage(source, eventId string) error
+	SetMessageIsRead(userName string, eventId string) error
+	RemoveMessage(userName string, eventId string) error
 
-	GetAllToDoMessage(userName, giteeUsername string, isDone bool, pageNum,
-		countPerPage int, startTime string) ([]MessageListDO, int64, error)
+	GetAllToDoMessage(userName, giteeUsername string, isDone *bool, pageNum,
+		countPerPage int, startTime string, isRead *bool) ([]MessageListDO, int64, error)
 	GetAllAboutMessage(userName, giteeUsername string, isBot *bool, pageNum,
 		countPerPage int, startTime string, isRead *bool) ([]MessageListDO, int64, error)
 	GetAllWatchMessage(userName, giteeUsername string, pageNum, countPerPage int,
@@ -24,15 +24,15 @@ type MessageListAdapter interface {
 	GetForumAboutMessage(userName string, isBot *bool, pageNum,
 		countPerPage int, startTime string, isRead *bool) ([]MessageListDO, int64, error)
 	GetMeetingToDoMessage(userName string, filter int, pageNum,
-		countPerPage int, isRead *bool, startTime string) ([]MessageListDO, int64, error)
-	GetCVEToDoMessage(userName, giteeUsername string, isDone bool, pageNum,
-		countPerPage int, startTime string) ([]MessageListDO, int64, error)
+		countPerPage int, startTime string, isRead *bool) ([]MessageListDO, int64, error)
+	GetCVEToDoMessage(userName, giteeUsername string, isDone *bool, pageNum,
+		countPerPage int, startTime string, isRead *bool) ([]MessageListDO, int64, error)
 	GetCVEMessage(userName, giteeUsername string, pageNum, countPerPage int,
 		startTime string, isRead *bool) ([]MessageListDO, int64, error)
-	GetIssueToDoMessage(userName, giteeUsername string, isDone bool, pageNum,
-		countPerPage int, startTime string) ([]MessageListDO, int64, error)
-	GetPullRequestToDoMessage(userName, giteeUsername string, isDone bool, pageNum,
-		countPerPage int, startTime string) ([]MessageListDO, int64, error)
+	GetIssueToDoMessage(userName, giteeUsername string, isDone *bool, pageNum,
+		countPerPage int, startTime string, isRead *bool) ([]MessageListDO, int64, error)
+	GetPullRequestToDoMessage(userName, giteeUsername string, isDone *bool, pageNum,
+		countPerPage int, startTime string, isRead *bool) ([]MessageListDO, int64, error)
 	GetGiteeAboutMessage(userName, giteeUsername string, isBot *bool,
 		pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDO, int64, error)
 	GetGiteeMessage(userName, giteeUsername string, pageNum, countPerPage int,

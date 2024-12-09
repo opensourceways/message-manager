@@ -94,13 +94,11 @@ func (req *queryInnerParamsQuick) toCmd() (cmd app.CmdToGetInnerMessageQuick, er
 }
 
 type messageStatus struct {
-	Source  string `json:"source"`
 	EventId string `json:"event_id"`
 }
 
 func (req *messageStatus) toCmd() (cmd app.CmdToSetIsRead, err error) {
 	cmd.EventId = req.EventId
-	cmd.Source = req.Source
 	return cmd, nil
 }
 
@@ -108,7 +106,7 @@ type QueryParams struct {
 	GiteeUserName string `form:"gitee_user_name"`
 	IsBot         *bool  `form:"is_bot"`
 	Filter        int    `form:"filter"`
-	IsDone        bool   `form:"is_done"`
+	IsDone        *bool  `form:"is_done"`
 	PageNum       int    `form:"page_num"`
 	CountPerPage  int    `form:"count_per_page"`
 	StartTime     string `form:"start_time"`

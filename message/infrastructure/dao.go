@@ -130,7 +130,6 @@ type CmdToGetInnerMessage struct {
 }
 
 type CmdToSetIsRead struct {
-	Source  string `json:"source"`
 	EventId string `json:"event_id"`
 }
 
