@@ -718,7 +718,8 @@ func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isD
 		        and cem.source = 'https://gitee.com'
 		        and im.is_deleted = false and rc.is_deleted = false
 		        and (rc.gitee_user_name = ? or rc.user_id = ?)
-		        and (cem.data_json #>> '{IssueEvent,Issue,Assignee,UserName}') = ?
+		        and (cem.data_json #>> '{IssueEvent,Issue,Assignee,UserName}' = ?
+		        or cem.data_json #>> '{IssueEvent,Assignee,UserName}' = ?)
  			  order by cem.source_url, cem.updated_at desc) a`
 	if isDone {
 		query += ` where (a.data_json #>> '{IssueEvent,Issue,State}') IN ('rejected','closed')`
