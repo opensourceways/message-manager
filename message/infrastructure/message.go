@@ -390,7 +390,7 @@ func (s *messageAdapter) GetInnerMessageQuick(cmd CmdToGetInnerMessageQuick,
 	if result := query.Limit(cmd.CountPerPage).Offset(offsetNum).
 		Order("cloud_event_message.time DESC").
 		Scan(&response); result.Error != nil {
-		return []MessageListDAO{}, 0, xerrors.Errorf("get inner message failed, err:%v",
+		return []MessageListDAO{}, 0, xerrors.Errorf("get message failed, err:%v",
 			result.Error)
 	}
 	return response, Count, nil
@@ -416,7 +416,7 @@ func (s *messageAdapter) GetInnerMessage(cmd CmdToGetInnerMessage,
 	if result := query.Limit(cmd.CountPerPage).Offset(offsetNum).
 		Order("cloud_event_message.time DESC").
 		Scan(&response); result.Error != nil {
-		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
+		logrus.Errorf("get message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
 	}
@@ -657,7 +657,7 @@ func (s *messageAdapter) GetForumAboutMessage(userName string, isBot *bool, page
 	}
 	query += ` order by time desc`
 	if result := postgresql.DB().Raw(query, userName).Scan(&response); result.Error != nil {
-		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
+		logrus.Errorf("get message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
 	}
@@ -689,7 +689,7 @@ func (s *messageAdapter) GetMeetingToDoMessage(userName string, filter int,
 	query += ` order by tm.business_id, tm.recipient_id desc`
 	if result := postgresql.DB().Debug().Raw(query, userName).
 		Scan(&response); result.Error != nil {
-		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
+		logrus.Errorf("get message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
 	}
@@ -728,7 +728,7 @@ tm.is_read from todo_message tm
 
 	if result := postgresql.DB().Raw(query, giteeUsername, userName,
 		giteeUsername).Scan(&response); result.Error != nil {
-		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
+		logrus.Errorf("get message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
 	}
@@ -758,7 +758,7 @@ func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string, pageNum, 
 	query += ` order by cem.updated_at desc`
 	if result := postgresql.DB().Raw(query, giteeUsername, userName).Scan(&response); result.
 		Error != nil {
-		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
+		logrus.Errorf("get message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
 	}
@@ -796,7 +796,7 @@ tm.is_read from todo_message tm
 	query += ` order by tm.business_id, tm.recipient_id, cem.updated_at desc`
 	if result := postgresql.DB().Raw(query, giteeUsername, userName, giteeUsername).
 		Scan(&response); result.Error != nil {
-		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
+		logrus.Errorf("get message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
 	}
@@ -832,7 +832,7 @@ tm.is_read from todo_message tm
 	query += ` order by tm.business_id, tm.recipient_id, cem.updated_at desc`
 	if result := postgresql.DB().Raw(query, giteeUsername, userName).
 		Scan(&response); result.Error != nil {
-		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
+		logrus.Errorf("get message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
 	}
@@ -872,7 +872,7 @@ func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, is
 	query += ` order by cem.updated_at desc`
 	if result := postgresql.DB().Raw(query, giteeUsername, userName,
 		giteeUsername, giteeUsername, "%"+giteeUsername+"%").Scan(&response); result.Error != nil {
-		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
+		logrus.Errorf("get message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
 	}
@@ -902,7 +902,7 @@ func (s *messageAdapter) GetGiteeMessage(userName, giteeUsername string, pageNum
 	query += ` order by cem.updated_at desc`
 	if result := postgresql.DB().Raw(query, userName, giteeUsername).Scan(&response); result.
 		Error != nil {
-		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
+		logrus.Errorf("get message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
 	}
@@ -928,7 +928,7 @@ func (s *messageAdapter) GetEurMessage(userName string, pageNum,
 	var response []MessageListDAO
 	if result := postgresql.DB().Raw(query, userName).
 		Scan(&response); result.Error != nil {
-		return []MessageListDAO{}, 0, xerrors.Errorf("get inner message failed, err:%v",
+		return []MessageListDAO{}, 0, xerrors.Errorf("get message failed, err:%v",
 			result.Error)
 	}
 	return pagination(response, pageNum, countPerPage), int64(len(response)), nil
@@ -958,5 +958,66 @@ func (s *messageAdapter) CountAllMessage(userName, giteeUserName string) (CountD
 
 func (s *messageAdapter) GetAllMessage(userName string, pageNum, countPerPage int,
 	isRead *bool) ([]MessageListDAO, int64, error) {
-	return []MessageListDAO{}, 0, nil
+	query := `SELECT
+    fm.is_read,
+    cem.*
+FROM
+    follow_message fm
+JOIN
+    cloud_event_message cem ON fm.event_id = cem.event_id
+JOIN
+    recipient_config rc ON fm.recipient_id = rc.id
+WHERE
+    rc.user_id = ?`
+	if isRead != nil {
+		query += fmt.Sprintf(" AND fm.is_read = %t", *isRead)
+	}
+	query += ` 
+UNION ALL
+
+SELECT
+    tm.is_read,
+    cem.*
+FROM
+    todo_message tm
+JOIN
+    cloud_event_message cem ON tm.latest_event_id = cem.event_id
+JOIN
+    recipient_config rc ON tm.recipient_id = rc.id
+WHERE
+    rc.user_id = ?
+`
+	if isRead != nil {
+		query += fmt.Sprintf(" AND tm.is_read = %t", *isRead)
+	}
+	query += ` 
+UNION ALL
+
+SELECT
+    im.is_read,
+    cem.*
+FROM
+    inner_message im
+JOIN
+    cloud_event_message cem ON im.event_id = cem.event_id
+JOIN
+    recipient_config rc ON im.recipient_id = rc.id
+WHERE
+    rc.user_id = ?
+`
+	if isRead != nil {
+		query += fmt.Sprintf(" AND im.is_read = %t", *isRead)
+	}
+	query += ` 
+ORDER BY 
+    cem.update_at DESC;
+`
+	var response []MessageListDAO
+	if result := postgresql.DB().Raw(query, userName, userName, userName).Scan(&response); result.
+		Error != nil {
+		logrus.Errorf("get message failed, err:%v", result.Error.Error())
+		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
+			result.Error)
+	}
+	return pagination(response, pageNum, countPerPage), int64(len(response)), nil
 }
