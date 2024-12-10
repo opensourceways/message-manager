@@ -612,11 +612,11 @@ func (s *messageAdapter) GetForumSystemMessage(userName string, pageNum,
 	countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 
-	query := `select * from follow_message fm
+	query := `select cem.*, fm.is_read from follow_message fm
 		join cloud_event_message cem on cem.event_id = fm.event_id
 		join recipient_config rc on rc.id = fm.recipient_id
 		where fm.is_deleted = false and rc.is_deleted = false
-		and cem.source = 'fourm' and rc.user_id = ?`
+		and cem.source = 'forumm' and rc.user_id = ?`
 
 	if startTime != "" {
 		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
@@ -637,7 +637,7 @@ func (s *messageAdapter) GetForumSystemMessage(userName string, pageNum,
 func (s *messageAdapter) GetForumAboutMessage(userName string, isBot *bool, pageNum,
 	countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
-	query := `select * from follow_message im
+	query := `select cem.*, im.is_read from follow_message im
 		join cloud_event_message cem on cem.event_id = im.event_id
 		join recipient_config rc on rc.id = im.recipient_id
 		where im.is_deleted = false and rc.is_deleted = false
@@ -667,7 +667,7 @@ func (s *messageAdapter) GetForumAboutMessage(userName string, isBot *bool, page
 func (s *messageAdapter) GetMeetingToDoMessage(userName string, filter int,
 	pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
-	query := `select distinct on (tm.business_id, tm.recipient_id) tm.* from todo_message tm
+	query := `select distinct on (tm.business_id, tm.recipient_id) cem.*, tm.is_read from todo_message tm
 		join cloud_event_message cem on cem.event_id = tm.latest_event_id
 		join recipient_config rc on rc.id = tm.recipient_id
 		where rc.is_deleted = false and tm.is_deleted = false
@@ -702,7 +702,8 @@ func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDon
 	if giteeUsername == "" {
 		return []MessageListDAO{}, 0, nil
 	}
-	query := `select distinct on (tm.business_id, tm.recipient_id) tm.* from todo_message tm
+	query := `select distinct on (tm.business_id, tm.recipient_id) cem.*, 
+tm.is_read from todo_message tm
 		join cloud_event_message cem on cem.event_id = tm.latest_event_id
 		join recipient_config rc on rc.id = tm.recipient_id
 		where rc.is_deleted = false and tm.is_deleted = false
@@ -740,7 +741,7 @@ func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string, pageNum, 
 	if giteeUsername == "" {
 		return []MessageListDAO{}, 0, nil
 	}
-	query := `select * from follow_message fm
+	query := `select cem.*, fm.is_read from follow_message fm
 		join cloud_event_message cem on cem.event_id = fm.event_id
 		join recipient_config rc on rc.id = fm.recipient_id
 		where rc.is_deleted = false and fm.is_deleted = false
@@ -770,7 +771,8 @@ func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isD
 	if giteeUsername == "" {
 		return []MessageListDAO{}, 0, nil
 	}
-	query := `select DISTINCT ON (tm.business_id, tm.recipient_id) tm.* from todo_message tm
+	query := `select DISTINCT ON (tm.business_id, tm.recipient_id) cem.*, 
+tm.is_read from todo_message tm
 		join cloud_event_message cem on cem.event_id = latest_event_id
 		join recipient_config rc on rc.id = tm.recipient_id
 		where tm.is_deleted = false and rc.is_deleted = false
@@ -807,7 +809,8 @@ func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername strin
 	if giteeUsername == "" {
 		return []MessageListDAO{}, 0, nil
 	}
-	query := `select DISTINCT ON (tm.business_id, tm.recipient_id) tm.* from todo_message tm
+	query := `select DISTINCT ON (tm.business_id, tm.recipient_id) cem.*, 
+tm.is_read from todo_message tm
 		join cloud_event_message cem on cem.event_id = latest_event_id
 		join recipient_config rc on rc.id = tm.recipient_id
 		where tm.is_deleted = false and rc.is_deleted = false
@@ -882,7 +885,7 @@ func (s *messageAdapter) GetGiteeMessage(userName, giteeUsername string, pageNum
 	if giteeUsername == "" {
 		return []MessageListDAO{}, 0, nil
 	}
-	query := `select *
+	query := `select cem.*, fm.is_read
 		from follow_message fm 
 		join cloud_event_message cem on cem.event_id = fm.event_id
 		join recipient_config rc on rc.id = fm.recipient_id
