@@ -672,7 +672,7 @@ func (s *messageAdapter) GetMeetingToDoMessage(userName string, filter int,
 		join recipient_config rc on rc.id = tm.recipient_id
 		where rc.is_deleted = false and tm.is_deleted = false
 		and cem.type = 'meeting'
-		and (rc.gitee_user_name = ? or rc.user_id = ?)`
+		and rc.user_id = ?`
 
 	if isRead != nil {
 		query += fmt.Sprintf(` and tm.is_read = %t`, *isRead)
@@ -687,7 +687,7 @@ func (s *messageAdapter) GetMeetingToDoMessage(userName string, filter int,
 		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
 	}
 	query += ` order by tm.business_id, tm.recipient_id desc`
-	if result := postgresql.DB().Debug().Raw(query, userName, isRead).
+	if result := postgresql.DB().Debug().Raw(query, userName).
 		Scan(&response); result.Error != nil {
 		logrus.Errorf("get inner message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
