@@ -15,8 +15,8 @@ type MessageListAppService interface {
 		int64, error)
 	GetInnerMessage(userName string, cmd *CmdToGetInnerMessage) ([]MessageListDTO, int64, error)
 	CountAllUnReadMessage(userName string) ([]CountDTO, error)
-	SetMessageIsRead(userName string, cmd *CmdToSetIsRead) error
-	RemoveMessage(userName string, cmd *CmdToSetIsRead) error
+	SetMessageIsRead(userName string, eventId string) error
+	RemoveMessage(userName string, eventId string) error
 
 	GetAllToDoMessage(userName string, giteeUsername string, isDone *bool,
 		pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDTO, int64, error)
@@ -47,6 +47,9 @@ type MessageListAppService interface {
 		countPerPage int, startTime string, isRead *bool) ([]MessageListDTO, int64, error)
 	GetEurMessage(userName string, pageNum, countPerPage int,
 		startTime string, isRead *bool) ([]MessageListDTO, int64, error)
+
+	GetAllMessage(userName string, pageNum, countPerPage int, isRead *bool) ([]MessageListDTO,
+		int64, error)
 }
 
 func NewMessageListAppService(
@@ -87,15 +90,15 @@ func (s *messageListAppService) CountAllUnReadMessage(userName string) ([]CountD
 	return count, nil
 }
 
-func (s *messageListAppService) SetMessageIsRead(userName string, cmd *CmdToSetIsRead) error {
-	if err := s.messageListAdapter.SetMessageIsRead(userName, cmd.EventId); err != nil {
+func (s *messageListAppService) SetMessageIsRead(userName string, eventId string) error {
+	if err := s.messageListAdapter.SetMessageIsRead(userName, eventId); err != nil {
 		return xerrors.Errorf("set message is_read failed, err:%v", err.Error())
 	}
 	return nil
 }
 
-func (s *messageListAppService) RemoveMessage(userName string, cmd *CmdToSetIsRead) error {
-	if err := s.messageListAdapter.RemoveMessage(userName, cmd.EventId); err != nil {
+func (s *messageListAppService) RemoveMessage(userName string, eventId string) error {
+	if err := s.messageListAdapter.RemoveMessage(userName, eventId); err != nil {
 		return xerrors.Errorf("set message is_read failed, err:%v", err.Error())
 	}
 	return nil
@@ -239,4 +242,13 @@ func (s *messageListAppService) CountAllMessage(userName string, giteeUsername s
 		return CountDataDTO{}, err
 	}
 	return data, nil
+}
+
+func (s *messageListAppService) GetAllMessage(userName string, pageNum, countPerPage int,
+	isRead *bool) ([]MessageListDTO, int64, error) {
+	response, count, err := s.messageListAdapter.GetAllMessage(userName, pageNum, countPerPage, isRead)
+	if err != nil {
+		return []MessageListDTO{}, 0, err
+	}
+	return response, count, nil
 }

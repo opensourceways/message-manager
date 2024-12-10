@@ -93,13 +93,6 @@ definitions:
       source:
         type: string
     type: object
-  controller.messageStatus:
-    properties:
-      event_id:
-        type: string
-      source:
-        type: string
-    type: object
   controller.newPushConfigDTO:
     properties:
       need_inner_message:
@@ -300,6 +293,35 @@ info:
   title: Message Manager
   version: "1.0"
 paths:
+  /message_center/all:
+    get:
+      consumes:
+      - application/json
+      description: get all message 获取所有消息
+      operationId: getAllMessage
+      parameters:
+      - description: QueryParams
+        in: body
+        name: params
+        required: true
+        schema:
+          $ref: '#/definitions/controller.QueryParams'
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: GetAllMessage
+      tags:
+      - message_center_ubmc
   /message_center/config/push:
     delete:
       consumes:
@@ -713,12 +735,14 @@ paths:
       description: remove message
       operationId: removeMessage
       parameters:
-      - description: messageStatus
+      - description: eventId
         in: body
-        name: body
+        name: eventId
         required: true
         schema:
-          $ref: '#/definitions/controller.messageStatus'
+          items:
+            type: string
+          type: array
       responses:
         "202":
           description: Accepted
@@ -889,12 +913,14 @@ paths:
       description: set message read
       operationId: setMessageIsRead
       parameters:
-      - description: messageStatus
+      - description: eventId
         in: body
-        name: body
+        name: eventId
         required: true
         schema:
-          $ref: '#/definitions/controller.messageStatus'
+          items:
+            type: string
+          type: array
       responses:
         "202":
           description: Accepted

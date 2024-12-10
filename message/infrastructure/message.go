@@ -952,3 +952,8 @@ func (s *messageAdapter) CountAllMessage(userName, giteeUserName string) (CountD
 		MeetingCount: meetingCount,
 	}, nil
 }
+
+func (s *messageAdapter) GetAllMessage(userName string, pageNum, countPerPage int,
+	isRead *bool) ([]MessageListDAO, int64, error) {
+	return []MessageListDAO{}, 0, nil
+}

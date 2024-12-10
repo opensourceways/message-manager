@@ -15,6 +15,50 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/message_center/all": {
+            "get": {
+                "description": "get all message 获取所有消息",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "message_center_ubmc"
+                ],
+                "summary": "GetAllMessage",
+                "operationId": "getAllMessage",
+                "parameters": [
+                    {
+                        "description": "QueryParams",
+                        "name": "params",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.QueryParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/message_center/config/push": {
             "get": {
                 "description": "get push config",
@@ -638,12 +682,15 @@ const docTemplate = `{
                 "operationId": "setMessageIsRead",
                 "parameters": [
                     {
-                        "description": "messageStatus",
-                        "name": "body",
+                        "description": "eventId",
+                        "name": "eventId",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controller.messageStatus"
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
                         }
                     }
                 ],
@@ -903,12 +950,15 @@ const docTemplate = `{
                 "operationId": "removeMessage",
                 "parameters": [
                     {
-                        "description": "messageStatus",
-                        "name": "body",
+                        "description": "eventId",
+                        "name": "eventId",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controller.messageStatus"
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
                         }
                     }
                 ],
@@ -1722,17 +1772,6 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "mode_name": {
-                    "type": "string"
-                },
-                "source": {
-                    "type": "string"
-                }
-            }
-        },
-        "controller.messageStatus": {
-            "type": "object",
-            "properties": {
-                "event_id": {
                     "type": "string"
                 },
                 "source": {

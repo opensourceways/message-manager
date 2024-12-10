@@ -40,4 +40,5 @@ type MessageListAdapter interface {
 	GetEurMessage(userName string, pageNum, countPerPage int, startTime string,
 		isRead *bool) ([]MessageListDO, int64, error)
 	CountAllMessage(username, giteeUsername string) (CountDataDO, error)
+	GetAllMessage(username, pageNum, countPerPage int, isRead *bool) ([]MessageListDO, int64, error)
 }
