@@ -625,7 +625,7 @@ func (s *messageAdapter) GetForumSystemMessage(userName string, pageNum,
 		query += ` and fm.is_read = false`
 	}
 
-	query += ` order by cem.update_at desc`
+	query += ` order by cem.updated_at desc`
 
 	if result := postgresql.DB().Raw(query, userName).Scan(&response); result.Error != nil {
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
@@ -781,9 +781,9 @@ tm.is_read from todo_message tm
 
 	if isDone != nil {
 		if *isDone {
-			query += ` where (cem.data_json #>> '{IssueEvent,Issue,State}') IN ('rejected','closed')`
+			query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') IN ('rejected','closed')`
 		} else {
-			query += ` where (cem.data_json #>> '{IssueEvent,Issue,State}') NOT IN ('rejected',
+			query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') NOT IN ('rejected',
 'closed')`
 		}
 	}
