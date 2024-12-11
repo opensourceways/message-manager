@@ -1030,6 +1030,40 @@ const docTemplate = `{
         },
         "/message_center/inner/count": {
             "get": {
+                "description": "get unread inner message count",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "message_center"
+                ],
+                "summary": "CountAllUnReadMessage",
+                "operationId": "countAllUnReadMessage",
+                "responses": {
+                    "202": {
+                        "description": "成功响应",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "系统错误",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/message_center/inner/count_new": {
+            "get": {
                 "description": "count all message 获取所有消息分类数量",
                 "consumes": [
                     "application/json"

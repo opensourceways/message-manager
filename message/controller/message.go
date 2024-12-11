@@ -621,7 +621,7 @@ func (ctl *messageListController) GetAllWatchMessage(ctx *gin.Context) {
 // @Success			202	string accepted 查询成功
 // @Failure         400 string bad_request 无法解析请求正文
 // @Failure			500	string system_error  查询失败
-// @Router			/message_center/inner/count [get]
+// @Router			/message_center/inner/count_new [get]
 // @Id	    countAllMessage
 func (ctl *messageListController) CountAllMessage(ctx *gin.Context) {
 	var params QueryParams
