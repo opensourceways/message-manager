@@ -724,7 +724,7 @@ tm.is_read from todo_message tm
 	if startTime != "" {
 		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
 	}
-	query += ` order by updated_at desc`
+	query += ` order by tm.business_id, tm.recipient_id, cem.updated_at desc`
 
 	if result := postgresql.DB().Raw(query, giteeUsername, userName,
 		giteeUsername).Scan(&response); result.Error != nil {
