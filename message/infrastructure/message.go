@@ -958,60 +958,32 @@ func (s *messageAdapter) CountAllMessage(userName, giteeUserName string) (CountD
 
 func (s *messageAdapter) GetAllMessage(userName string, pageNum, countPerPage int,
 	isRead *bool) ([]MessageListDAO, int64, error) {
-	query := `SELECT
-    fm.is_read,
-    cem.*
-FROM
-    follow_message fm
-JOIN
-    cloud_event_message cem ON fm.event_id = cem.event_id
-JOIN
-    recipient_config rc ON fm.recipient_id = rc.id
-WHERE
-    rc.user_id = ?`
+	query := `select fm.is_read, cem.* from follow_message fm
+		join cloud_event_message cem on cem.event_id = fm.event_id
+		join recipient_config rc on rc.id = fm.recipient_id
+		where fm.is_deleted = false and rc.is_deleted = false and rc.user_id = ?
+`
 	if isRead != nil {
-		query += fmt.Sprintf(" AND fm.is_read = %t", *isRead)
+		query += fmt.Sprintf(" and fm.is_read = %t", *isRead)
 	}
-	query += ` 
-UNION ALL
+	query += ` union all select tm.is_read, cem.* from todo_message tm
+		join cloud_event_message cem on cem.event_id = tm.latest_event_id
+		join recipient_config rc on rc.id = tm.recipient_id
+		where tm.is_deleted = false and rc.is_deleted = false and rc.user_id = ?
 
-SELECT
-    tm.is_read,
-    cem.*
-FROM
-    todo_message tm
-JOIN
-    cloud_event_message cem ON tm.latest_event_id = cem.event_id
-JOIN
-    recipient_config rc ON tm.recipient_id = rc.id
-WHERE
-    rc.user_id = ?
 `
 	if isRead != nil {
 		query += fmt.Sprintf(" AND tm.is_read = %t", *isRead)
 	}
-	query += ` 
-UNION ALL
-
-SELECT
-    im.is_read,
-    cem.*
-FROM
-    inner_message im
-JOIN
-    cloud_event_message cem ON im.event_id = cem.event_id
-JOIN
-    recipient_config rc ON im.recipient_id = rc.id
-WHERE
-    rc.user_id = ?
+	query += ` union all select im.is_read, cem.* from inner_message im 
+		join cloud_event_message cem on cem.event_id = im.event_id
+		join recipient_config rc on rc.id = im.recipient_id
+		where im.is_deleted = false and rc.is_deleted = false and rc.user_id = ?
 `
 	if isRead != nil {
 		query += fmt.Sprintf(" AND im.is_read = %t", *isRead)
 	}
-	query += ` 
-ORDER BY 
-    cem.update_at DESC;
-`
+	query += ` order by updated_at desc`
 	var response []MessageListDAO
 	if result := postgresql.DB().Raw(query, userName, userName, userName).Scan(&response); result.
 		Error != nil {
