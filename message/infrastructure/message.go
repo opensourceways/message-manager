@@ -711,10 +711,10 @@ tm.is_read from todo_message tm
 		and (rc.gitee_user_name = ? or rc.user_id = ?)`
 	if isDone != nil {
 		if *isDone {
-			query += ` where (cem.data_json #>> '{IssueEvent,Issue,State}') IN ('rejected',
+			query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') IN ('rejected',
 'closed')`
 		} else {
-			query += ` where (cem.data_json #>> '{IssueEvent,Issue,State}') NOT IN ('rejected',
+			query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') NOT IN ('rejected',
 'closed')`
 		}
 	}
@@ -817,9 +817,10 @@ tm.is_read from todo_message tm
 		and cem.type = 'pr' and (rc.gitee_user_name = ? or rc.user_id = ?)`
 	if isDone != nil {
 		if *isDone {
-			query += ` where (cem.data_json #>> '{PullRequestEvent,State}') IN ('closed', 'merged')`
+			query += ` and (cem.data_json #>> '{PullRequestEvent,State}') IN ('closed', 'merged')`
 		} else {
-			query += ` where (cem.data_json #>> '{PullRequestEvent,State}') NOT IN ('closed', 'merged')`
+			query += ` and (cem.data_json #>> '{PullRequestEvent,State}') NOT IN ('closed', 
+'merged')`
 		}
 	}
 	if isRead != nil {
@@ -921,7 +922,7 @@ func (s *messageAdapter) GetEurMessage(userName string, pageNum,
 		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
 	}
 	if isRead != nil && *isRead == false {
-		query += ` and im.is_read = false`
+		query += ` and fm.is_read = false`
 	}
 	query += ` order by cem.updated_at desc`
 
