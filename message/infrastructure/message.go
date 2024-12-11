@@ -794,7 +794,7 @@ tm.is_read from todo_message tm
 		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
 	}
 	query += ` order by tm.business_id, tm.recipient_id, cem.updated_at desc`
-	if result := postgresql.DB().Raw(query, giteeUsername, userName, giteeUsername).
+	if result := postgresql.DB().Raw(query, giteeUsername, userName).
 		Scan(&response); result.Error != nil {
 		logrus.Errorf("get message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
