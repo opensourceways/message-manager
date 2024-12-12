@@ -756,26 +756,25 @@ func (s *messageAdapter) GetForumAboutMessage(userName string, isBot *bool, page
 func (s *messageAdapter) GetMeetingToDoMessage(userName string, filter int,
 	pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
-	query := `select distinct on (tm.business_id, tm.recipient_id) cem.*, tm.is_read from todo_message tm
-		join cloud_event_message cem on cem.event_id = tm.latest_event_id
-		join recipient_config rc on rc.id = tm.recipient_id
-		where rc.is_deleted = false and tm.is_deleted = false
-		and cem.type = 'meeting'
-		and rc.user_id = ?`
-
-	if isRead != nil {
-		query += fmt.Sprintf(` and tm.is_read = %t`, *isRead)
-	}
+	query := `select a.*
+		from (
+		    select distinct on (tm.business_id, tm.recipient_id) tm.is_read, cem.*
+		    from todo_message tm
+		    join cloud_event_message cem ON cem.event_id = tm.latest_event_id
+		    join recipient_config rc ON rc.id = tm.recipient_id
+		    where rc.is_deleted = false
+		      and tm.is_deleted = false
+		      and cem.type = 'meeting'
+		      and rc.user_id = ?`
 
 	if filter == 1 {
 		query += ` and NOW() <= cem.time`
 	} else if filter == 2 {
 		query += ` and NOW() > cem.time`
 	}
-	if startTime != "" {
-		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
-	}
-	query += ` order by tm.business_id, tm.recipient_id desc`
+	filterTodoSql(&query, isRead, startTime)
+	query += ` order by tm.business_id, tm.recipient_id, cem.updated_at desc
+		) as a order by a.updated_at desc`
 	if result := postgresql.DB().Debug().Raw(query, userName).
 		Scan(&response); result.Error != nil {
 		logrus.Errorf("get message failed, err:%v", result.Error.Error())
