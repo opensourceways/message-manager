@@ -641,7 +641,7 @@ func (s *messageAdapter) GetForumAboutMessage(userName string, isBot *bool, page
 		join cloud_event_message cem on cem.event_id = im.event_id
 		join recipient_config rc on rc.id = im.recipient_id
 		where im.is_deleted = false and rc.is_deleted = false
-		and cem.source = 'fourm' and rc.user_id = ?`
+		and cem.source = 'forum' and rc.user_id = ?`
 	if isBot != nil {
 		if *isBot {
 			query += ` and cem.data_json #>> '{Data, OriginalUsername}' = 'system'`
