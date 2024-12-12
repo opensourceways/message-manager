@@ -679,9 +679,11 @@ func (s *messageAdapter) GetMeetingToDoMessage(userName string, filter int,
 	}
 
 	if filter == 1 {
-		query += ` and tm.is_done = false`
+		query += ` and NOW() <= to_timestamp(a.data_json ->> 'MeetingEndTime', 
+'YYYY-MM-DDHH24:MI')`
 	} else if filter == 2 {
-		query += ` and tm.is_done = true`
+		query += ` and NOW() > to_timestamp(a.data_json ->> 'MeetingEndTime', 
+'YYYY-MM-DDHH24:MI')`
 	}
 	if startTime != "" {
 		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
