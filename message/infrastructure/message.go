@@ -768,11 +768,9 @@ func (s *messageAdapter) GetMeetingToDoMessage(userName string, filter int,
 	}
 
 	if filter == 1 {
-		query += ` and NOW() <= to_timestamp(cem.data_json ->> 'MeetingEndTime', 
-'YYYY-MM-DDHH24:MI')`
+		query += ` and NOW() <= cem.time`
 	} else if filter == 2 {
-		query += ` and NOW() > to_timestamp(cem.data_json ->> 'MeetingEndTime', 
-'YYYY-MM-DDHH24:MI')`
+		query += ` and NOW() > cem.time`
 	}
 	if startTime != "" {
 		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
