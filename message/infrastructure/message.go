@@ -637,7 +637,7 @@ func (s *messageAdapter) GetForumSystemMessage(userName string, pageNum,
 func (s *messageAdapter) GetForumAboutMessage(userName string, isBot *bool, pageNum,
 	countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
-	query := `select cem.*, im.is_read from follow_message im
+	query := `select cem.*, im.is_read from inner_message im
 		join cloud_event_message cem on cem.event_id = im.event_id
 		join recipient_config rc on rc.id = im.recipient_id
 		where im.is_deleted = false and rc.is_deleted = false
