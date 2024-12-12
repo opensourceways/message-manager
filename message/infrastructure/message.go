@@ -698,7 +698,7 @@ func (s *messageAdapter) GetAllWatchMessage(userName string, giteeUsername strin
     	and cem.source = 'https://eur.openeuler.openatom.cn'
 		and rc.user_id = ?`
 	filterFollowSql(&query, isRead, startTime)
-	query += ` order by cem.updated_at desc`
+	query += ` order by updated_at desc`
 
 	if result := postgresql.DB().Raw(query, userName, giteeUsername, userName, userName,
 		giteeUsername, userName).Scan(&response); result.Error != nil {
