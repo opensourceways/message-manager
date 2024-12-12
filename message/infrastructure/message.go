@@ -616,7 +616,7 @@ func (s *messageAdapter) GetForumSystemMessage(userName string, pageNum,
 		join cloud_event_message cem on cem.event_id = fm.event_id
 		join recipient_config rc on rc.id = fm.recipient_id
 		where fm.is_deleted = false and rc.is_deleted = false
-		and cem.source = 'forumm' and rc.user_id = ?`
+		and cem.source = 'forum' and rc.user_id = ?`
 
 	if startTime != "" {
 		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
@@ -679,9 +679,9 @@ func (s *messageAdapter) GetMeetingToDoMessage(userName string, filter int,
 	}
 
 	if filter == 1 {
-		query += ` and tm.is_done = true`
-	} else if filter == 2 {
 		query += ` and tm.is_done = false`
+	} else if filter == 2 {
+		query += ` and tm.is_done = true`
 	}
 	if startTime != "" {
 		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
@@ -985,11 +985,21 @@ func (s *messageAdapter) GetAllMessage(userName string, pageNum, countPerPage in
 	}
 	query += ` order by updated_at desc`
 	var response []MessageListDAO
-	if result := postgresql.DB().Raw(query, userName, userName, userName).Scan(&response); result.
+
+	var count int64
+	countQuery := fmt.Sprintf(`select count(*) from (%s) as t`, query)
+	if result := postgresql.DB().Raw(countQuery, userName, userName,
+		userName).Scan(&count); result.Error != nil {
+		logrus.Errorf("get count failed, err:%v", result.Error.Error())
+		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v", result.Error)
+	}
+	offsetNum := (pageNum - 1) * countPerPage
+	if result := postgresql.DB().Raw(query, userName, userName,
+		userName).Limit(countPerPage).Offset(offsetNum).Scan(&response); result.
 		Error != nil {
 		logrus.Errorf("get message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
 	}
-	return pagination(response, pageNum, countPerPage), int64(len(response)), nil
+	return response, int64(len(response)), nil
 }
