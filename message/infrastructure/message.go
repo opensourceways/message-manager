@@ -947,7 +947,7 @@ func (s *messageAdapter) CountAllMessage(userName, giteeUserName string) (CountD
 		s.GetAllWatchMessage(userName, giteeUserName, 1, 0, "", &isRead)
 
 	_, meetingCount, _ :=
-		s.GetMeetingToDoMessage(userName, 1, 1, 0, "", nil)
+		s.GetMeetingToDoMessage(userName, 2, 1, 0, "", nil)
 	return CountDataDAO{
 		TodoCount:    todoCountNotDone,
 		AboutCount:   aboutCount,
