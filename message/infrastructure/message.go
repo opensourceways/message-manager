@@ -768,10 +768,10 @@ func (s *messageAdapter) GetMeetingToDoMessage(userName string, filter int,
 	}
 
 	if filter == 1 {
-		query += ` and NOW() <= to_timestamp(a.data_json ->> 'MeetingEndTime', 
+		query += ` and NOW() <= to_timestamp(cem.data_json ->> 'MeetingEndTime', 
 'YYYY-MM-DDHH24:MI')`
 	} else if filter == 2 {
-		query += ` and NOW() > to_timestamp(a.data_json ->> 'MeetingEndTime', 
+		query += ` and NOW() > to_timestamp(cem.data_json ->> 'MeetingEndTime', 
 'YYYY-MM-DDHH24:MI')`
 	}
 	if startTime != "" {
