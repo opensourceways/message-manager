@@ -441,10 +441,10 @@ FROM (
 
     SELECT cem.source, COUNT(*) AS count
     FROM message_center.cloud_event_message cem
-    JOIN message_center.inner_message im ON cem.event_id = im.event_id
-    JOIN message_center.recipient_config rc ON im.recipient_id = rc.id
-    WHERE im.is_read = false
-      AND im.is_deleted = false
+    JOIN message_center.related_message rm ON cem.event_id = rm.event_id
+    JOIN message_center.recipient_config rc ON rm.recipient_id = rc.id
+    WHERE rm.is_read = false
+      AND rm.is_deleted = false
       AND rc.user_id = ?  -- 替换为实际的用户 ID
     GROUP BY cem.source
 
@@ -475,7 +475,7 @@ func (s *messageAdapter) SetMessageIsRead(userName string, eventId string) error
     	    select id from recipient_config where user_id = ?
     	);
 	
-    	update message_center.inner_message
+    	update message_center.related_message
     	set is_read = true
     	where event_id = ? and is_read = false and recipient_id in (
     	    select id from recipient_config where user_id = ?
@@ -503,7 +503,7 @@ func (s *messageAdapter) RemoveMessage(userName string, eventId string) error {
     	    select id from recipient_config where user_id = ?
     	);
 
-    UPDATE message_center.inner_message
+    UPDATE message_center.related_message
     SET is_deleted = true
     WHERE event_id = ? AND is_deleted = false and recipient_id in (
     	    select id from recipient_config where user_id = ?
@@ -555,7 +555,7 @@ func filterAboutSql(query *string, isRead *bool, startTime string) {
 		*query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
 	}
 	if isRead != nil {
-		*query += fmt.Sprintf(` and im.is_read = %t`, *isRead)
+		*query += fmt.Sprintf(` and rm.is_read = %t`, *isRead)
 	}
 }
 
@@ -639,12 +639,12 @@ SELECT * FROM latest_issues WHERE rn = 1`
 func (s *messageAdapter) GetAllAboutMessage(userName string, giteeUsername string, isBot *bool,
 	pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
-	query := `select cem.*, im.is_read
+	query := `select cem.*, rm.is_read
 		from cloud_event_message cem
-		         join message_center.inner_message im on cem.event_id = im.event_id
-		         join message_center.recipient_config rc on im.recipient_id = rc.id
+		         join message_center.related_message rm on cem.event_id = rm.event_id
+		         join message_center.recipient_config rc on rm.recipient_id = rc.id
 		    and cem.type = 'note'
-		    and im.is_deleted = false and rc.is_deleted = false
+		    and rm.is_deleted = false and rc.is_deleted = false
 		    and (rc.gitee_user_name = ? or rc.user_id = ?)`
 	if isBot != nil {
 		if *isBot {
@@ -654,10 +654,10 @@ func (s *messageAdapter) GetAllAboutMessage(userName string, giteeUsername strin
 		}
 	}
 	filterAboutSql(&query, isRead, startTime)
-	query += ` union all select cem.*, im.is_read from inner_message im
-			join cloud_event_message cem on cem.event_id = im.event_id
-			join recipient_config rc on rc.id = im.recipient_id
-			where im.is_deleted = false and rc.is_deleted = false
+	query += ` union all select cem.*, rm.is_read from related_message rm
+			join cloud_event_message cem on cem.event_id = rm.event_id
+			join recipient_config rc on rc.id = rm.recipient_id
+			where rm.is_deleted = false and rc.is_deleted = false
 			and cem.source = 'forum' and rc.user_id = ?`
 	if isBot != nil {
 		if *isBot {
@@ -739,10 +739,10 @@ func (s *messageAdapter) GetForumSystemMessage(userName string, pageNum,
 func (s *messageAdapter) GetForumAboutMessage(userName string, isBot *bool, pageNum,
 	countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
-	query := `select cem.*, im.is_read from inner_message im
-		join cloud_event_message cem on cem.event_id = im.event_id
-		join recipient_config rc on rc.id = im.recipient_id
-		where im.is_deleted = false and rc.is_deleted = false
+	query := `select cem.*, rm.is_read from related_message rm
+		join cloud_event_message cem on cem.event_id = rm.event_id
+		join recipient_config rc on rc.id = rm.recipient_id
+		where rm.is_deleted = false and rc.is_deleted = false
 		and cem.source = 'forum' and rc.user_id = ?`
 	if isBot != nil {
 		if *isBot {
@@ -903,13 +903,13 @@ func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, is
 	if giteeUsername == "" {
 		return []MessageListDAO{}, 0, nil
 	}
-	query := `select cem.*, im.is_read
+	query := `select cem.*, rm.is_read
 		from cloud_event_message cem
-		         join message_center.inner_message im on cem.event_id = im.event_id
-		         join message_center.recipient_config rc on im.recipient_id = rc.id
+		         join message_center.related_message rm on cem.event_id = rm.event_id
+		         join message_center.recipient_config rc on rm.recipient_id = rc.id
 		    and cem.type = 'note'
 		    and cem.source = 'https://gitee.com'
-		    and im.is_deleted = false and rc.is_deleted = false
+		    and rm.is_deleted = false and rc.is_deleted = false
 		    and (rc.gitee_user_name = ? or rc.user_id = ?)`
 	if isBot != nil {
 		if *isBot {
@@ -1014,13 +1014,13 @@ func (s *messageAdapter) GetAllMessage(userName string, pageNum, countPerPage in
 	if isRead != nil {
 		query += fmt.Sprintf(" AND tm.is_read = %t", *isRead)
 	}
-	query += ` union all select im.is_read, cem.* from inner_message im 
-		join cloud_event_message cem on cem.event_id = im.event_id
-		join recipient_config rc on rc.id = im.recipient_id
-		where im.is_deleted = false and rc.is_deleted = false and rc.user_id = ?
+	query += ` union all select rm.is_read, cem.* from related_message rm 
+		join cloud_event_message cem on cem.event_id = rm.event_id
+		join recipient_config rc on rc.id = rm.recipient_id
+		where rm.is_deleted = false and rc.is_deleted = false and rc.user_id = ?
 `
 	if isRead != nil {
-		query += fmt.Sprintf(" AND im.is_read = %t", *isRead)
+		query += fmt.Sprintf(" AND rm.is_read = %t", *isRead)
 	}
 	query += ` order by updated_at desc`
 	var response []MessageListDAO
