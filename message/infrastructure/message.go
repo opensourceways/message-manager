@@ -783,8 +783,7 @@ func (s *messageAdapter) GetMeetingToDoMessage(userName string, filter int,
 		query += ` and NOW() > time`
 	}
 	filterTodoSql(&query, nil, isRead, startTime)
-	query += ` order by tm.business_id, tm.recipient_id, cem.updated_at desc
-		) as a order by a.updated_at desc`
+	query += ` order by updated_at desc`
 	if result := postgresql.DB().Debug().Raw(query, userName).
 		Scan(&response); result.Error != nil {
 		logrus.Errorf("get message failed, err:%v", result.Error.Error())
