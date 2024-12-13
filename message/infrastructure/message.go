@@ -775,7 +775,7 @@ func (s *messageAdapter) GetMeetingToDoMessage(userName string, filter int,
 		    and cem.type = 'meeting'
 		    and rc.user_id = ?
 		    order by tm.business_id, tm.recipient_id, cem.updated_at desc
-		) as a`
+		) as a where true`
 
 	if filter == 1 {
 		query += ` and NOW() <= time`
@@ -807,7 +807,7 @@ func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDon
 		where rc.is_deleted = false and tm.is_deleted = false
 		and cem.source = 'cve'
 		and (rc.gitee_user_name = ? or rc.user_id = ?)
-		order by tm.business_id, tm.recipient_id, cem.updated_at desc) a`
+		order by tm.business_id, tm.recipient_id, cem.updated_at desc) a where true`
 	filterTodoSql(&query, isDone, isRead, startTime)
 	query += ` order by updated_at desc`
 
@@ -857,7 +857,7 @@ func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isD
 			where tm.is_deleted = false and rc.is_deleted = false
 			and cem.type = 'issue' and cem.source = 'https://gitee.com'
 			and (rc.gitee_user_name = ? or rc.user_id = ?)
-			order by tm.business_id, tm.recipient_id, cem.updated_at desc) a`
+			order by tm.business_id, tm.recipient_id, cem.updated_at desc) a where true`
 
 	filterTodoSql(&query, isDone, isRead, startTime)
 	query += ` order by updated_at desc`
@@ -883,7 +883,7 @@ func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername strin
 		join recipient_config rc on rc.id = tm.recipient_id
 		where tm.is_deleted = false and rc.is_deleted = false
 		and cem.type = 'pr' and (rc.gitee_user_name = ? or rc.user_id = ?)
-		order by tm.business_id, tm.recipient_id, cem.updated_at desc) a`
+		order by tm.business_id, tm.recipient_id, cem.updated_at desc) a where true`
 
 	filterTodoSql(&query, isDone, isRead, startTime)
 
