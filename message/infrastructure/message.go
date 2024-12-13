@@ -538,12 +538,15 @@ func pagination(messages []MessageListDAO, pageNum, countPerPage int) []MessageL
 	return messages[start:end]
 }
 
-func filterTodoSql(query *string, isRead *bool, startTime string) {
+func filterTodoSql(query *string, isDone *bool, isRead *bool, startTime string) {
+	if isDone != nil {
+		*query += fmt.Sprintf(` and is_done=%t`, *isDone)
+	}
 	if isRead != nil {
-		*query += fmt.Sprintf(` and tm.is_read = %t`, *isRead)
+		*query += fmt.Sprintf(` and is_read = %t`, *isRead)
 	}
 	if startTime != "" {
-		*query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
+		*query += fmt.Sprintf(` and time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
 	}
 }
 
@@ -569,56 +572,61 @@ func (s *messageAdapter) GetAllToDoMessage(userName string, giteeUsername string
 	pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 
-	query := `select DISTINCT ON (tm.business_id, tm.recipient_id) cem.*,
-		tm.is_read from todo_message tm
-		join cloud_event_message cem on cem.event_id = latest_event_id
-		join recipient_config rc on rc.id = tm.recipient_id
-		where tm.is_deleted = false and rc.is_deleted = false
-		and cem.type = 'issue' and cem.source = 'https://gitee.com'
-		and (rc.gitee_user_name = ? or rc.user_id = ?)`
+	query := `WITH latest_issues AS (
+    SELECT DISTINCT ON (tm.business_id, tm.recipient_id) cem.*,
+           tm.is_read,
+           tm.is_done,
+           ROW_NUMBER() OVER (PARTITION BY tm.business_id, tm.recipient_id ORDER BY cem.updated_at DESC) AS rn
+    FROM todo_message tm
+    JOIN cloud_event_message cem ON cem.event_id = tm.latest_event_id
+    JOIN recipient_config rc ON rc.id = tm.recipient_id
+    WHERE tm.is_deleted = false
+      AND rc.is_deleted = false
+      AND cem.type = 'issue'
+      AND cem.source = 'https://gitee.com'
+      AND (rc.gitee_user_name = ? OR rc.user_id = ?)
+),
+
+latest_prs AS (
+    SELECT DISTINCT ON (tm.business_id, tm.recipient_id) cem.*,
+           tm.is_read,
+           tm.is_done,
+           ROW_NUMBER() OVER (PARTITION BY tm.business_id, tm.recipient_id ORDER BY cem.updated_at DESC) AS rn
+    FROM todo_message tm
+    JOIN cloud_event_message cem ON cem.event_id = tm.latest_event_id
+    JOIN recipient_config rc ON rc.id = tm.recipient_id
+    WHERE tm.is_deleted = false
+      AND rc.is_deleted = false
+      AND cem.type = 'pr'
+      AND (rc.gitee_user_name = ? OR rc.user_id = ?)
+),
+
+latest_cve AS (
+    SELECT DISTINCT ON (tm.business_id, tm.recipient_id) cem.*,
+           tm.is_read,
+           tm.is_done,
+           ROW_NUMBER() OVER (PARTITION BY tm.business_id, tm.recipient_id ORDER BY cem.updated_at DESC) AS rn
+    FROM todo_message tm
+    JOIN cloud_event_message cem ON cem.event_id = tm.latest_event_id
+    JOIN recipient_config rc ON rc.id = tm.recipient_id
+    WHERE rc.is_deleted = false
+      AND tm.is_deleted = false
+      AND cem.source = 'cve'
+      AND (rc.gitee_user_name = ? OR rc.user_id = ?)
+) 
+SELECT * FROM latest_issues WHERE rn = 1`
+	filterTodoSql(&query, isDone, isRead, startTime)
+	query += ` UNION ALL SELECT * FROM latest_prs WHERE rn = 1`
 	if isDone != nil {
-		if *isDone {
-			query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') IN ('rejected',
-'closed')`
-		} else {
-			query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') NOT IN ('rejected',
-'closed')`
-		}
+		query += fmt.Sprintf(` AND is_done=%t`, *isDone)
 	}
-	filterTodoSql(&query, isRead, startTime)
-	query += ` union all select DISTINCT ON (tm.business_id, tm.recipient_id) cem.*,
-		tm.is_read from todo_message tm
-		join cloud_event_message cem on cem.event_id = latest_event_id
-		join recipient_config rc on rc.id = tm.recipient_id
-		where tm.is_deleted = false and rc.is_deleted = false
-		and cem.type = 'pr' and (rc.gitee_user_name = ? or rc.user_id = ?)`
+	filterTodoSql(&query, isDone, isRead, startTime)
+	query += ` UNION ALL SELECT * FROM latest_cve WHERE rn = 1`
 	if isDone != nil {
-		if *isDone {
-			query += ` and (cem.data_json #>> '{PullRequestEvent,State}') IN ('closed', 'merged')`
-		} else {
-			query += ` and (cem.data_json #>> '{PullRequestEvent,State}') NOT IN ('closed', 
-'merged')`
-		}
+		query += fmt.Sprintf(` AND is_done=%t`, *isDone)
 	}
-	filterTodoSql(&query, isRead, startTime)
-	query += ` union all select distinct on (tm.business_id, tm.recipient_id) cem.*,
-		tm.is_read from todo_message tm
-		join cloud_event_message cem on cem.event_id = tm.latest_event_id
-		join recipient_config rc on rc.id = tm.recipient_id
-		where rc.is_deleted = false and tm.is_deleted = false
-		and cem.source = 'cve'
-		and (rc.gitee_user_name = ? or rc.user_id = ?)`
-	if isDone != nil {
-		if *isDone {
-			query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') IN ('rejected',
-'closed')`
-		} else {
-			query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') NOT IN ('rejected',
-'closed')`
-		}
-	}
-	filterTodoSql(&query, isRead, startTime)
-	query += ` order by updated_at desc`
+	filterTodoSql(&query, isDone, isRead, startTime)
+	query += ` ORDER BY updated_at DESC`
 
 	if result := postgresql.DB().Raw(query, giteeUsername, userName, giteeUsername, userName,
 		giteeUsername, userName).Scan(&response); result.Error != nil {
@@ -763,16 +771,18 @@ func (s *messageAdapter) GetMeetingToDoMessage(userName string, filter int,
 		    join cloud_event_message cem ON cem.event_id = tm.latest_event_id
 		    join recipient_config rc ON rc.id = tm.recipient_id
 		    where rc.is_deleted = false
-		      and tm.is_deleted = false
-		      and cem.type = 'meeting'
-		      and rc.user_id = ?`
+		    and tm.is_deleted = false
+		    and cem.type = 'meeting'
+		    and rc.user_id = ?
+		    order by tm.business_id, tm.recipient_id, cem.updated_at desc
+		) as a`
 
 	if filter == 1 {
-		query += ` and NOW() <= cem.time`
+		query += ` and NOW() <= time`
 	} else if filter == 2 {
-		query += ` and NOW() > cem.time`
+		query += ` and NOW() > time`
 	}
-	filterTodoSql(&query, isRead, startTime)
+	filterTodoSql(&query, nil, isRead, startTime)
 	query += ` order by tm.business_id, tm.recipient_id, cem.updated_at desc
 		) as a order by a.updated_at desc`
 	if result := postgresql.DB().Debug().Raw(query, userName).
@@ -790,24 +800,17 @@ func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDon
 	if giteeUsername == "" {
 		return []MessageListDAO{}, 0, nil
 	}
-	query := `select distinct on (tm.business_id, tm.recipient_id) cem.*, 
-tm.is_read from todo_message tm
+	query := `select * from (
+    select distinct on (tm.business_id, tm.recipient_id) cem.*, 
+        tm.is_read, tm.is_done from todo_message tm
 		join cloud_event_message cem on cem.event_id = tm.latest_event_id
 		join recipient_config rc on rc.id = tm.recipient_id
 		where rc.is_deleted = false and tm.is_deleted = false
 		and cem.source = 'cve'
-		and (rc.gitee_user_name = ? or rc.user_id = ?)`
-	if isDone != nil {
-		if *isDone {
-			query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') IN ('rejected',
-'closed')`
-		} else {
-			query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') NOT IN ('rejected',
-'closed')`
-		}
-	}
-	filterTodoSql(&query, isRead, startTime)
-	query += ` order by tm.business_id, tm.recipient_id, cem.updated_at desc`
+		and (rc.gitee_user_name = ? or rc.user_id = ?)
+		order by tm.business_id, tm.recipient_id, cem.updated_at desc) a`
+	filterTodoSql(&query, isDone, isRead, startTime)
+	query += ` order by updated_at desc`
 
 	if result := postgresql.DB().Raw(query, giteeUsername, userName).Scan(&response); result.Error != nil {
 		logrus.Errorf("get message failed, err:%v", result.Error.Error())
@@ -847,24 +850,18 @@ func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isD
 	if giteeUsername == "" {
 		return []MessageListDAO{}, 0, nil
 	}
-	query := `select DISTINCT ON (tm.business_id, tm.recipient_id) cem.*, 
-tm.is_read from todo_message tm
-		join cloud_event_message cem on cem.event_id = latest_event_id
-		join recipient_config rc on rc.id = tm.recipient_id
-		where tm.is_deleted = false and rc.is_deleted = false
-		and cem.type = 'issue' and cem.source = 'https://gitee.com'
-		and (rc.gitee_user_name = ? or rc.user_id = ?)`
+	query := `select * from (
+		select DISTINCT ON (tm.business_id, tm.recipient_id) cem.*, 
+			tm.is_read from todo_message tm
+			join cloud_event_message cem on cem.event_id = latest_event_id
+			join recipient_config rc on rc.id = tm.recipient_id
+			where tm.is_deleted = false and rc.is_deleted = false
+			and cem.type = 'issue' and cem.source = 'https://gitee.com'
+			and (rc.gitee_user_name = ? or rc.user_id = ?)
+			order by tm.business_id, tm.recipient_id, cem.updated_at desc) a`
 
-	if isDone != nil {
-		if *isDone {
-			query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') IN ('rejected','closed')`
-		} else {
-			query += ` and (cem.data_json #>> '{IssueEvent,Issue,State}') NOT IN ('rejected',
-'closed')`
-		}
-	}
-	filterTodoSql(&query, isRead, startTime)
-	query += ` order by tm.business_id, tm.recipient_id, cem.updated_at desc`
+	filterTodoSql(&query, isDone, isRead, startTime)
+	query += ` order by updated_at desc`
 	if result := postgresql.DB().Raw(query, giteeUsername, userName).
 		Scan(&response); result.Error != nil {
 		logrus.Errorf("get message failed, err:%v", result.Error.Error())
@@ -880,23 +877,18 @@ func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername strin
 	if giteeUsername == "" {
 		return []MessageListDAO{}, 0, nil
 	}
-	query := `select DISTINCT ON (tm.business_id, tm.recipient_id) cem.*, 
-tm.is_read from todo_message tm
+	query := `select * from(
+		select DISTINCT ON (tm.business_id, tm.recipient_id) cem.*, 
+			tm.is_read from todo_message tm
 		join cloud_event_message cem on cem.event_id = latest_event_id
 		join recipient_config rc on rc.id = tm.recipient_id
 		where tm.is_deleted = false and rc.is_deleted = false
-		and cem.type = 'pr' and (rc.gitee_user_name = ? or rc.user_id = ?)`
-	if isDone != nil {
-		if *isDone {
-			query += ` and (cem.data_json #>> '{PullRequestEvent,State}') IN ('closed', 'merged')`
-		} else {
-			query += ` and (cem.data_json #>> '{PullRequestEvent,State}') NOT IN ('closed', 
-'merged')`
-		}
-	}
-	filterTodoSql(&query, isRead, startTime)
+		and cem.type = 'pr' and (rc.gitee_user_name = ? or rc.user_id = ?)
+		order by tm.business_id, tm.recipient_id, cem.updated_at desc) a`
 
-	query += ` order by tm.business_id, tm.recipient_id, cem.updated_at desc`
+	filterTodoSql(&query, isDone, isRead, startTime)
+
+	query += ` order by updated_at desc`
 	if result := postgresql.DB().Raw(query, giteeUsername, userName).
 		Scan(&response); result.Error != nil {
 		logrus.Errorf("get message failed, err:%v", result.Error.Error())
