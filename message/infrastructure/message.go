@@ -851,7 +851,7 @@ func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isD
 	}
 	query := `select * from (
 		select DISTINCT ON (tm.business_id, tm.recipient_id) cem.*, 
-			tm.is_read from todo_message tm
+			tm.is_read, tm.is_done from todo_message tm
 			join cloud_event_message cem on cem.event_id = latest_event_id
 			join recipient_config rc on rc.id = tm.recipient_id
 			where tm.is_deleted = false and rc.is_deleted = false
@@ -878,7 +878,7 @@ func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername strin
 	}
 	query := `select * from(
 		select DISTINCT ON (tm.business_id, tm.recipient_id) cem.*, 
-			tm.is_read from todo_message tm
+			tm.is_read, tm.is_done from todo_message tm
 		join cloud_event_message cem on cem.event_id = latest_event_id
 		join recipient_config rc on rc.id = tm.recipient_id
 		where tm.is_deleted = false and rc.is_deleted = false
