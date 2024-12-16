@@ -641,7 +641,8 @@ SELECT * FROM latest_issues WHERE rn = 1`
 	filterTodoSql(&query, isDone, isRead, startTime)
 	query += ` ORDER BY updated_at DESC`
 
-	if result := postgresql.DB().Raw(query, giteeUsername, userName, giteeUsername, userName,
+	if result := postgresql.DB().Debug().Raw(query, giteeUsername, userName, giteeUsername,
+		userName,
 		giteeUsername, userName).Scan(&response); result.Error != nil {
 		return []MessageListDAO{}, 0, xerrors.Errorf("get todo message failed, err:%v",
 			result.Error)
@@ -682,7 +683,7 @@ func (s *messageAdapter) GetAllAboutMessage(userName string, giteeUsername strin
 	filterAboutSql(&query, isRead, startTime)
 	query += ` order by updated_at desc`
 
-	if result := postgresql.DB().Raw(query, giteeUsername, userName,
+	if result := postgresql.DB().Debug().Raw(query, giteeUsername, userName,
 		userName).Scan(&response); result.Error != nil {
 		return []MessageListDAO{}, 0, xerrors.Errorf("get about message failed, err:%v", result.Error)
 	}
@@ -721,7 +722,7 @@ func (s *messageAdapter) GetAllWatchMessage(userName string, giteeUsername strin
 	filterFollowSql(&query, isRead, startTime)
 	query += ` order by updated_at desc`
 
-	if result := postgresql.DB().Raw(query, userName, giteeUsername, userName, userName,
+	if result := postgresql.DB().Debug().Raw(query, userName, giteeUsername, userName, userName,
 		giteeUsername, userName).Scan(&response); result.Error != nil {
 		logrus.Errorf("get watch message failed, err:%v", result.Error)
 		return []MessageListDAO{}, 0, xerrors.Errorf("get watch message failed, err:%v", result.Error)
@@ -742,7 +743,7 @@ func (s *messageAdapter) GetForumSystemMessage(userName string, pageNum,
 	filterFollowSql(&query, isRead, startTime)
 	query += ` order by cem.updated_at desc`
 
-	if result := postgresql.DB().Raw(query, userName).Debug().Scan(&response); result.Error != nil {
+	if result := postgresql.DB().Raw(query, userName).Scan(&response); result.Error != nil {
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
 	}
@@ -766,7 +767,7 @@ func (s *messageAdapter) GetForumAboutMessage(userName string, isBot *bool, page
 	}
 	filterAboutSql(&query, isRead, startTime)
 	query += ` order by time desc`
-	if result := postgresql.DB().Raw(query, userName).Debug().Scan(&response); result.Error != nil {
+	if result := postgresql.DB().Raw(query, userName).Scan(&response); result.Error != nil {
 		logrus.Errorf("get message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
@@ -797,7 +798,7 @@ func (s *messageAdapter) GetMeetingToDoMessage(userName string, filter int,
 	}
 	filterMeetingTodoSql(&query, nil, isRead, startTime)
 	query += ` order by updated_at desc`
-	if result := postgresql.DB().Debug().Raw(query, userName).
+	if result := postgresql.DB().Raw(query, userName).
 		Scan(&response); result.Error != nil {
 		logrus.Errorf("get message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
