@@ -920,8 +920,7 @@ func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, is
 	}
 	filterAboutSql(&query, isRead, startTime)
 	query += ` order by cem.updated_at desc`
-	if result := postgresql.DB().Raw(query, giteeUsername, userName,
-		giteeUsername, giteeUsername, "%"+giteeUsername+"%").Scan(&response); result.Error != nil {
+	if result := postgresql.DB().Raw(query, giteeUsername, userName).Scan(&response); result.Error != nil {
 		logrus.Errorf("get message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
