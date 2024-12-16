@@ -6,9 +6,9 @@ package user
 
 type Config struct {
 	AuthorHost string `json:"author_host"       required:"true"`
-	Community  string `json:"euler_community" required:"true"`
-	AppId      string `json:"euler_app_id" required:"true"`
-	AppSecret  string `json:"euler_app_secret" required:"true"`
+	Community  string `json:"community" required:"true"`
+	AppId      string `json:"app_id" required:"true"`
+	AppSecret  string `json:"app_secret" required:"true"`
 }
 
 var config Config
