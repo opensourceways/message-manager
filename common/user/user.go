@@ -93,7 +93,7 @@ func getManagerToken(appId string, appSecret string) (string, error) {
 	return data.ManagerToken, nil
 }
 
-func GetEulerUserName(ctx *gin.Context) (string, error) {
+func GetSystemUserName(ctx *gin.Context) (string, error) {
 	token := ctx.Request.Header.Get("token")
 	Cookie := ctx.Request.Header.Get("Cookie")
 	var YGCookie string

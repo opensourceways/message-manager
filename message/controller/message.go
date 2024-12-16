@@ -79,7 +79,7 @@ func (ctl *messageListController) GetInnerMessageQuick(ctx *gin.Context) {
 
 		return
 	}
-	userName, err := user.GetEulerUserName(ctx)
+	userName, err := user.GetSystemUserName(ctx)
 	if err != nil {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
@@ -114,7 +114,7 @@ func (ctl *messageListController) GetInnerMessage(ctx *gin.Context) {
 		commonctl.SendBadRequestParam(ctx, xerrors.Errorf("failed to convert req to cmd, %v", err))
 		return
 	}
-	userName, err := user.GetEulerUserName(ctx)
+	userName, err := user.GetSystemUserName(ctx)
 	if err != nil {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
@@ -137,7 +137,7 @@ func (ctl *messageListController) GetInnerMessage(ctx *gin.Context) {
 // @Router			/message_center/inner/count [get]
 // @Id		countAllUnReadMessage
 func (ctl *messageListController) CountAllUnReadMessage(ctx *gin.Context) {
-	userName, err := user.GetEulerUserName(ctx)
+	userName, err := user.GetSystemUserName(ctx)
 	if err != nil {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
@@ -167,7 +167,7 @@ func (ctl *messageListController) SetMessageIsRead(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, "无法解析请求正文")
 		return
 	}
-	userName, err := user.GetEulerUserName(ctx)
+	userName, err := user.GetSystemUserName(ctx)
 	if err != nil {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
@@ -200,7 +200,7 @@ func (ctl *messageListController) RemoveMessage(ctx *gin.Context) {
 		commonctl.SendBadRequestParam(ctx, xerrors.Errorf("无法解析请求正文"))
 		return
 	}
-	userName, err := user.GetEulerUserName(ctx)
+	userName, err := user.GetSystemUserName(ctx)
 	if err != nil {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
@@ -227,7 +227,7 @@ func (ctl *messageListController) RemoveMessage(ctx *gin.Context) {
 // @Router			/message_center/inner/forum/system [get]
 // @Id	    getForumSystemMessage
 func (ctl *messageListController) GetForumSystemMessage(ctx *gin.Context) {
-	userName, err := user.GetEulerUserName(ctx)
+	userName, err := user.GetSystemUserName(ctx)
 	if err != nil {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
@@ -257,7 +257,7 @@ func (ctl *messageListController) GetForumSystemMessage(ctx *gin.Context) {
 // @Router			/message_center/inner/forum/about [get]
 // @Id	    getForumAboutMessage
 func (ctl *messageListController) GetForumAboutMessage(ctx *gin.Context) {
-	userName, err := user.GetEulerUserName(ctx)
+	userName, err := user.GetSystemUserName(ctx)
 	if err != nil {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
@@ -287,7 +287,7 @@ func (ctl *messageListController) GetForumAboutMessage(ctx *gin.Context) {
 // @Router			/message_center/inner/meeting/todo [get]
 // @Id	    getMeetingToDoMessage
 func (ctl *messageListController) GetMeetingToDoMessage(ctx *gin.Context) {
-	userName, err := user.GetEulerUserName(ctx)
+	userName, err := user.GetSystemUserName(ctx)
 	if err != nil {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
@@ -317,7 +317,7 @@ func (ctl *messageListController) GetMeetingToDoMessage(ctx *gin.Context) {
 // @Router			/message_center/inner/cve/todo [get]
 // @Id	    getCVEToDoMessage
 func (ctl *messageListController) GetCVEToDoMessage(ctx *gin.Context) {
-	userName, err := user.GetEulerUserName(ctx)
+	userName, err := user.GetSystemUserName(ctx)
 	if err != nil {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
@@ -348,7 +348,7 @@ func (ctl *messageListController) GetCVEToDoMessage(ctx *gin.Context) {
 // @Router			/message_center/inner/cve [get]
 // @Id	    getCVEMessage
 func (ctl *messageListController) GetCVEMessage(ctx *gin.Context) {
-	userName, err := user.GetEulerUserName(ctx)
+	userName, err := user.GetSystemUserName(ctx)
 	if err != nil {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
@@ -379,7 +379,7 @@ func (ctl *messageListController) GetCVEMessage(ctx *gin.Context) {
 // @Router			/message_center/inner/issue/todo [get]
 // @Id	    getIssueToDoMessage
 func (ctl *messageListController) GetIssueToDoMessage(ctx *gin.Context) {
-	userName, err := user.GetEulerUserName(ctx)
+	userName, err := user.GetSystemUserName(ctx)
 	if err != nil {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
@@ -410,7 +410,7 @@ func (ctl *messageListController) GetIssueToDoMessage(ctx *gin.Context) {
 // @Router			/message_center/inner/pull_request/todo [get]
 // @Id	    getPullRequestToDoMessage
 func (ctl *messageListController) GetPullRequestToDoMessage(ctx *gin.Context) {
-	userName, err := user.GetEulerUserName(ctx)
+	userName, err := user.GetSystemUserName(ctx)
 	if err != nil {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
@@ -442,7 +442,7 @@ func (ctl *messageListController) GetPullRequestToDoMessage(ctx *gin.Context) {
 // @Router			/message_center/inner/gitee/about [get]
 // @Id	    getGiteeAboutMessage
 func (ctl *messageListController) GetGiteeAboutMessage(ctx *gin.Context) {
-	userName, err := user.GetEulerUserName(ctx)
+	userName, err := user.GetSystemUserName(ctx)
 	if err != nil {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
@@ -472,7 +472,7 @@ func (ctl *messageListController) GetGiteeAboutMessage(ctx *gin.Context) {
 // @Router			/message_center/inner/gitee [get]
 // @Id	    getGiteeMessage
 func (ctl *messageListController) GetGiteeMessage(ctx *gin.Context) {
-	userName, err := user.GetEulerUserName(ctx)
+	userName, err := user.GetSystemUserName(ctx)
 	if err != nil {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
@@ -503,7 +503,7 @@ func (ctl *messageListController) GetGiteeMessage(ctx *gin.Context) {
 // @Router			/message_center/inner/eur [get]
 // @Id	    getEurMessage
 func (ctl *messageListController) GetEurMessage(ctx *gin.Context) {
-	userName, err := user.GetEulerUserName(ctx)
+	userName, err := user.GetSystemUserName(ctx)
 	if err != nil {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
@@ -538,7 +538,7 @@ func (ctl *messageListController) GetAllTodoMessage(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	userName, err := user.GetEulerUserName(ctx)
+	userName, err := user.GetSystemUserName(ctx)
 	if err != nil {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
@@ -569,7 +569,7 @@ func (ctl *messageListController) GetAllAboutMessage(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	userName, err := user.GetEulerUserName(ctx)
+	userName, err := user.GetSystemUserName(ctx)
 	if err != nil {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
@@ -599,7 +599,7 @@ func (ctl *messageListController) GetAllWatchMessage(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	userName, err := user.GetEulerUserName(ctx)
+	userName, err := user.GetSystemUserName(ctx)
 	if err != nil {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
@@ -629,7 +629,7 @@ func (ctl *messageListController) CountAllMessage(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	userName, err := user.GetEulerUserName(ctx)
+	userName, err := user.GetSystemUserName(ctx)
 	if err != nil {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
@@ -658,7 +658,7 @@ func (ctl *messageListController) GetAllMessage(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	userName, err := user.GetEulerUserName(ctx)
+	userName, err := user.GetSystemUserName(ctx)
 	if err != nil {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
