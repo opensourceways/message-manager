@@ -33,6 +33,8 @@ type MessageListAppService interface {
 		countPerPage int, startTime string, isRead *bool) ([]MessageListDTO, int64, error)
 	GetMeetingToDoMessage(userName string, filter int, pageNum, countPerPage int,
 		startTime string, isRead *bool) ([]MessageListDTO, int64, error)
+	GetAllMeetingMessage(userName string, filter int, pageNum, coutPerPage int, startTime string,
+		isRead *bool) ([]MessageListDTO, int64, error)
 	GetCVEToDoMessage(userName string, giteeUsername string, isDone *bool,
 		pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDTO, int64, error)
 	GetCVEMessage(userName string, giteeUsername string,
@@ -158,6 +160,16 @@ func (s *messageListAppService) GetForumAboutMessage(userName string, isBot *boo
 func (s *messageListAppService) GetMeetingToDoMessage(userName string, filter int, pageNum,
 	countPerPage int, startTime string, isRead *bool) ([]MessageListDTO, int64, error) {
 	response, count, err := s.messageListAdapter.GetMeetingToDoMessage(userName, filter,
+		pageNum, countPerPage, startTime, isRead)
+	if err != nil {
+		return []MessageListDTO{}, 0, err
+	}
+	return response, count, nil
+}
+
+func (s *messageListAppService) GetAllMeetingMessage(userName string, filter int, pageNum,
+	countPerPage int, startTime string, isRead *bool) ([]MessageListDTO, int64, error) {
+	response, count, err := s.messageListAdapter.GetAllMeetingMessage(userName, filter,
 		pageNum, countPerPage, startTime, isRead)
 	if err != nil {
 		return []MessageListDTO{}, 0, err

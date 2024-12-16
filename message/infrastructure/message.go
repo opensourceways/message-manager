@@ -762,7 +762,8 @@ func (s *messageAdapter) GetForumAboutMessage(userName string, isBot *bool, page
 }
 
 func (s *messageAdapter) GetMeetingToDoMessage(userName string, filter int,
-	pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
+	pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDAO,
+	int64, error) {
 	var response []MessageListDAO
 	query := `select a.*
 		from (
@@ -784,6 +785,36 @@ func (s *messageAdapter) GetMeetingToDoMessage(userName string, filter int,
 	}
 	filterTodoSql(&query, nil, isRead, startTime)
 	query += ` order by updated_at desc`
+	if result := postgresql.DB().Debug().Raw(query, userName).
+		Scan(&response); result.Error != nil {
+		logrus.Errorf("get message failed, err:%v", result.Error.Error())
+		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
+			result.Error)
+	}
+	return pagination(response, pageNum, countPerPage), int64(len(response)), nil
+}
+
+func (s *messageAdapter) GetAllMeetingMessage(userName string, filter int,
+	pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
+	var response []MessageListDAO
+	query := `select a.*
+		from (
+		    select tm.is_read, cem.*
+		    from todo_message tm
+		    join cloud_event_message cem ON cem.event_id = tm.latest_event_id
+		    join recipient_config rc ON rc.id = tm.recipient_id
+		    where rc.is_deleted = false
+		    and tm.is_deleted = false
+		    and cem.type = 'meeting'
+		    and rc.user_id = ?
+		) as a where true`
+	if filter == 1 {
+		query += ` and NOW() <= time`
+	} else if filter == 2 {
+		query += ` and NOW() > time`
+	}
+	filterTodoSql(&query, nil, isRead, startTime)
+	query += ` order by time desc`
 	if result := postgresql.DB().Debug().Raw(query, userName).
 		Scan(&response); result.Error != nil {
 		logrus.Errorf("get message failed, err:%v", result.Error.Error())
@@ -851,7 +882,7 @@ func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isD
 	}
 	query := `select * from (
 		select DISTINCT ON (tm.business_id, tm.recipient_id) cem.*, 
-			tm.is_read from todo_message tm
+			tm.is_read, tm.is_done from todo_message tm
 			join cloud_event_message cem on cem.event_id = latest_event_id
 			join recipient_config rc on rc.id = tm.recipient_id
 			where tm.is_deleted = false and rc.is_deleted = false
@@ -878,7 +909,7 @@ func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername strin
 	}
 	query := `select * from(
 		select DISTINCT ON (tm.business_id, tm.recipient_id) cem.*, 
-			tm.is_read from todo_message tm
+			tm.is_read, tm.is_done from todo_message tm
 		join cloud_event_message cem on cem.event_id = latest_event_id
 		join recipient_config rc on rc.id = tm.recipient_id
 		where tm.is_deleted = false and rc.is_deleted = false
@@ -907,7 +938,7 @@ func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, is
 		from cloud_event_message cem
 		         join message_center.related_message rm on cem.event_id = rm.event_id
 		         join message_center.recipient_config rc on rm.recipient_id = rc.id
-		    and cem.type = 'note'
+		    where cem.type = 'note'
 		    and cem.source = 'https://gitee.com'
 		    and rm.is_deleted = false and rc.is_deleted = false
 		    and (rc.gitee_user_name = ? or rc.user_id = ?)`
@@ -920,8 +951,7 @@ func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, is
 	}
 	filterAboutSql(&query, isRead, startTime)
 	query += ` order by cem.updated_at desc`
-	if result := postgresql.DB().Raw(query, giteeUsername, userName,
-		giteeUsername, giteeUsername, "%"+giteeUsername+"%").Scan(&response); result.Error != nil {
+	if result := postgresql.DB().Raw(query, giteeUsername, userName).Scan(&response); result.Error != nil {
 		logrus.Errorf("get message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
