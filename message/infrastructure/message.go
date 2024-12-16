@@ -550,6 +550,19 @@ func filterTodoSql(query *string, isDone *bool, isRead *bool, startTime string) 
 	}
 }
 
+func filterMeetingTodoSql(query *string, isDone *bool, isRead *bool, startTime string) {
+	if isDone != nil {
+		*query += fmt.Sprintf(` and is_done=%t`, *isDone)
+	}
+	if isRead != nil {
+		*query += fmt.Sprintf(` and is_read = %t`, *isRead)
+	}
+	if startTime != "" {
+		*query += fmt.Sprintf(` and time <= '%s' and time >= NOW()`,
+			*utils.ParseUnixTimestampNew(startTime))
+	}
+}
+
 func filterAboutSql(query *string, isRead *bool, startTime string) {
 	if startTime != "" {
 		*query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
@@ -782,7 +795,7 @@ func (s *messageAdapter) GetMeetingToDoMessage(userName string, filter int,
 	} else if filter == 2 {
 		query += ` and NOW() > time`
 	}
-	filterTodoSql(&query, nil, isRead, startTime)
+	filterMeetingTodoSql(&query, nil, isRead, startTime)
 	query += ` order by updated_at desc`
 	if result := postgresql.DB().Debug().Raw(query, userName).
 		Scan(&response); result.Error != nil {
