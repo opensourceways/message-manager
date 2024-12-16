@@ -907,7 +907,7 @@ func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, is
 		from cloud_event_message cem
 		         join message_center.related_message rm on cem.event_id = rm.event_id
 		         join message_center.recipient_config rc on rm.recipient_id = rc.id
-		    and cem.type = 'note'
+		    where cem.type = 'note'
 		    and cem.source = 'https://gitee.com'
 		    and rm.is_deleted = false and rc.is_deleted = false
 		    and (rc.gitee_user_name = ? or rc.user_id = ?)`
