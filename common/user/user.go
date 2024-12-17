@@ -14,6 +14,7 @@ import (
 	"regexp"
 
 	"github.com/gin-gonic/gin"
+	"github.com/opensourceways/message-manager/common/postgresql"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/xerrors"
 )
@@ -149,4 +150,13 @@ func GetSystemUserName(ctx *gin.Context) (string, error) {
 	} else {
 		return data.UserName, nil
 	}
+}
+
+func GetThirdUserName(userName string) (string, error) {
+	var thirdUsername string
+	query := `select gitee_user_name from recipient_config where user_id = ?`
+	if result := postgresql.DB().Raw(query, userName).Scan(&thirdUsername); result.Error != nil {
+		return "", result.Error
+	}
+	return thirdUsername, nil
 }
