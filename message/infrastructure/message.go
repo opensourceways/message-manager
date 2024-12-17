@@ -632,20 +632,21 @@ func (s *messageAdapter) GetAllAboutMessage(userName string, giteeUsername strin
 		     (cem.type = 'note' and (rc.gitee_user_name = ? or rc.user_id = ?)`
 	if isBot != nil {
 		if *isBot {
-			query += ` and cem."user" IN ('openeuler-ci-bot','ci-robot','openeuler-sync-bot'))`
+			query += ` and cem."user" IN ('openeuler-ci-bot','ci-robot','openeuler-sync-bot')`
 		} else {
-			query += ` and cem."user" NOT IN ('openeuler-ci-bot','ci-robot','openeuler-sync-bot'))`
-		}
-	}
-	query += `or (cem.source = 'forum' and rc.user_id = ?`
-	if isBot != nil {
-		if *isBot {
-			query += ` and cem.data_json #>> '{Data, OriginalUsername}' = 'system')`
-		} else {
-			query += ` and cem.data_json #>> '{Data, OriginalUsername}' <> 'system')`
+			query += ` and cem."user" NOT IN ('openeuler-ci-bot','ci-robot','openeuler-sync-bot')`
 		}
 	}
 	query += `)`
+	query += `or (cem.source = 'forum' and rc.user_id = ?`
+	if isBot != nil {
+		if *isBot {
+			query += ` and cem.data_json #>> '{Data, OriginalUsername}' = 'system'`
+		} else {
+			query += ` and cem.data_json #>> '{Data, OriginalUsername}' <> 'system'`
+		}
+	}
+	query += `))`
 	filterAboutSql(&query, isRead, startTime)
 	query += ` order by cem.updated_at desc`
 
