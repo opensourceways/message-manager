@@ -864,7 +864,7 @@ func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string, pageNum, 
 	from filtered_messages
 	where source = 'cve'`
 	filterFollowSql(&query, isRead, startTime)
-	query += ` order by cem.updated_at desc`
+	query += ` order by updated_at desc`
 	if result := postgresql.DB().Raw(query, giteeUsername, userName).Scan(&response); result.
 		Error != nil {
 		logrus.Errorf("get message failed, err:%v", result.Error.Error())
