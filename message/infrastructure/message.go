@@ -801,7 +801,7 @@ func (s *messageAdapter) GetAllMeetingMessage(userName string, filter int,
 		query += ` and NOW() > time`
 	}
 	filterMeetingTodoSql(&query, nil, isRead, startTime)
-	query += ` order by time desc`
+	query += ` order by updated_at desc`
 	giteeUsername, err := user.GetThirdUserName(userName)
 	if err != nil {
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
@@ -1087,5 +1087,5 @@ func (s *messageAdapter) GetAllMessage(userName string, pageNum, countPerPage in
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
 	}
-	return response, int64(len(response)), nil
+	return pagination(response, pageNum, countPerPage), int64(len(response)), nil
 }
