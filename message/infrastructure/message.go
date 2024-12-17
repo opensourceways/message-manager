@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/opensourceways/message-manager/common/user"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/xerrors"
 	"gorm.io/gorm"
@@ -743,7 +744,7 @@ func (s *messageAdapter) GetForumAboutMessage(userName string, isBot *bool, page
 	return pagination(response, pageNum, countPerPage), int64(len(response)), nil
 }
 
-func (s *messageAdapter) GetMeetingToDoMessage(userName string, filter int,
+func (s *messageAdapter) GetMeetingToDoMessage(username string, filter int,
 	pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
 	query := `select a.*
@@ -755,7 +756,7 @@ func (s *messageAdapter) GetMeetingToDoMessage(userName string, filter int,
 		    where rc.is_deleted = false
 		    and tm.is_deleted = false
 		    and cem.type = 'meeting'
-		    and rc.user_id = ?
+		    and rc.gitee_user_name = ?
 		    order by tm.business_id, tm.recipient_id, cem.updated_at desc
 		) as a where true`
 
@@ -766,7 +767,12 @@ func (s *messageAdapter) GetMeetingToDoMessage(userName string, filter int,
 	}
 	filterMeetingTodoSql(&query, nil, isRead, startTime)
 	query += ` order by updated_at desc`
-	if result := postgresql.DB().Raw(query, userName).
+	giteeUsername, err := user.GetThirdUserName(username)
+	if err != nil {
+		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
+			xerrors.Errorf("get gitee username failed, err:%v", err))
+	}
+	if result := postgresql.DB().Raw(query, giteeUsername).
 		Scan(&response); result.Error != nil {
 		logrus.Errorf("get message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
