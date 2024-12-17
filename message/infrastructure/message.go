@@ -711,7 +711,7 @@ func (s *messageAdapter) GetForumSystemMessage(userName string, pageNum,
 	from filtered_messages
 	where source = 'forum'`
 	filterFollowSql(&query, isRead, startTime)
-	query += ` order by cem.updated_at desc`
+	query += ` order by updated_at desc`
 
 	if result := postgresql.DB().Raw(query, userName).Scan(&response); result.Error != nil {
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
@@ -825,7 +825,7 @@ func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string, pageNum, 
 	from filtered_messages
 	where source = 'cve'`
 	filterFollowSql(&query, isRead, startTime)
-	query += ` order by cem.updated_at desc`
+	query += ` order by updated_at desc`
 	if result := postgresql.DB().Raw(query, giteeUsername, userName).Scan(&response); result.
 		Error != nil {
 		logrus.Errorf("get message failed, err:%v", result.Error.Error())
@@ -943,7 +943,7 @@ func (s *messageAdapter) GetGiteeMessage(userName, giteeUsername string, pageNum
 	where source = 'https://gitee.com'`
 	filterFollowSql(&query, isRead, startTime)
 	query += ` order by updated_at desc`
-	if result := postgresql.DB().Raw(query, userName, giteeUsername).Scan(&response); result.
+	if result := postgresql.DB().Raw(query, giteeUsername, userName).Scan(&response); result.
 		Error != nil {
 		logrus.Errorf("get message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
@@ -957,7 +957,7 @@ func (s *messageAdapter) GetEurMessage(userName string, pageNum,
 	query := `with filtered_recipient as (
     select *
     from recipient_config
-    where not is_deleted and (gitee_user_name = ? or user_id = ?)
+    where not is_deleted and user_id = ?
 	),
 	filtered_messages as (
 	    select fm.is_read, cem.*, rc.user_id as user_id, rc.gitee_user_name as gitee_user_name
