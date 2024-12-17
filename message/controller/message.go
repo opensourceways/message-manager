@@ -40,7 +40,7 @@ func AddRouterForMessageListController(
 	v1.GET("/inner/forum/system", ctl.GetForumSystemMessage)
 	v1.GET("/inner/forum/about", ctl.GetForumAboutMessage)
 	v1.GET("/inner/meeting/todo", ctl.GetMeetingToDoMessage)
-	v1.GET("inner/meeting/all", ctl.GetAllMeetingMessage)
+	v1.GET("/inner/meeting/all", ctl.GetAllMeetingMessage)
 	v1.GET("/inner/cve/todo", ctl.GetCVEToDoMessage)
 	v1.GET("/inner/cve", ctl.GetCVEMessage)
 	v1.GET("/inner/gitee/issue/todo", ctl.GetIssueToDoMessage)
@@ -51,6 +51,7 @@ func AddRouterForMessageListController(
 
 	// ubmc
 	v1.GET("/all", ctl.GetAllMessage)
+	v1.GET("/inner/system", ctl.GetSystemMessage)
 }
 
 type messageListController struct {
@@ -694,7 +695,27 @@ func (ctl *messageListController) GetAllMessage(ctx *gin.Context) {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
 	}
-	if data, count, err := ctl.appService.GetAllMessage(userName, params.PageNum, params.CountPerPage, params.IsRead); err != nil {
+	if data, count, err := ctl.appService.GetAllMessage(userName, params.PageNum,
+		params.CountPerPage, params.IsRead); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
+	} else {
+		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
+	}
+}
+
+func (ctl *messageListController) GetSystemMessage(ctx *gin.Context) {
+	var params QueryParams
+	if err := ctx.ShouldBindQuery(&params); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	userName, err := user.GetSystemUserName(ctx)
+	if err != nil {
+		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
+		return
+	}
+	if data, count, err := ctl.appService.GetSystemMessage(userName, params.PageNum,
+		params.CountPerPage, params.IsRead, params.StartTime); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})

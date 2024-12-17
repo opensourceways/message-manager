@@ -982,7 +982,7 @@ func (s *messageAdapter) GetGiteeMessage(userName, giteeUsername string, pageNum
 	where source = 'https://gitee.com'`
 	filterFollowSql(&query, isRead, startTime)
 	query += ` order by updated_at desc`
-	if result := postgresql.DB().Raw(query, userName, giteeUsername).Scan(&response); result.
+	if result := postgresql.DB().Raw(query, giteeUsername, userName).Scan(&response); result.
 		Error != nil {
 		logrus.Errorf("get message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
@@ -996,7 +996,7 @@ func (s *messageAdapter) GetEurMessage(userName string, pageNum,
 	query := `with filtered_recipient as (
     select *
     from recipient_config
-    where not is_deleted and (gitee_user_name = ? or user_id = ?)
+    where not is_deleted and user_id = ?
 	),
 	filtered_messages as (
 	    select fm.is_read, cem.*, rc.user_id as user_id, rc.gitee_user_name as gitee_user_name
@@ -1085,6 +1085,35 @@ func (s *messageAdapter) GetAllMessage(userName string, pageNum, countPerPage in
 		Error != nil {
 		logrus.Errorf("get message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
+			result.Error)
+	}
+	return pagination(response, pageNum, countPerPage), int64(len(response)), nil
+}
+
+func (s *messageAdapter) GetSystemMessage(userName string, pageNum, countPerPage int,
+	isRead *bool, startTime string) ([]MessageListDAO, int64, error) {
+	query := `with filtered_recipient as (
+    select *
+    from recipient_config
+    where not is_deleted and user_id = ?
+	),
+	filtered_messages as (
+	    select fm.is_read, cem.*, rc.user_id as user_id, rc.gitee_user_name as gitee_user_name
+	    from follow_message fm
+	    join cloud_event_message cem on cem.event_id = fm.event_id
+	    join filtered_recipient rc on rc.id = fm.recipient_id
+	    where not fm.is_deleted
+	)
+	select *
+	from filtered_messages
+	where type = 'publish'`
+	filterFollowSql(&query, isRead, startTime)
+	query += ` order by updated_at desc`
+
+	var response []MessageListDAO
+	if result := postgresql.DB().Raw(query, userName).
+		Scan(&response); result.Error != nil {
+		return []MessageListDAO{}, 0, xerrors.Errorf("get message failed, err:%v",
 			result.Error)
 	}
 	return pagination(response, pageNum, countPerPage), int64(len(response)), nil

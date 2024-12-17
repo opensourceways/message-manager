@@ -52,6 +52,8 @@ type MessageListAppService interface {
 
 	GetAllMessage(userName string, pageNum, countPerPage int, isRead *bool) ([]MessageListDTO,
 		int64, error)
+	GetSystemMessage(userName string, pageNum, countPerPage int, isRead *bool, startTime string) (
+		[]MessageListDTO, int64, error)
 }
 
 func NewMessageListAppService(
@@ -259,6 +261,16 @@ func (s *messageListAppService) CountAllMessage(userName string, giteeUsername s
 func (s *messageListAppService) GetAllMessage(userName string, pageNum, countPerPage int,
 	isRead *bool) ([]MessageListDTO, int64, error) {
 	response, count, err := s.messageListAdapter.GetAllMessage(userName, pageNum, countPerPage, isRead)
+	if err != nil {
+		return []MessageListDTO{}, 0, err
+	}
+	return response, count, nil
+}
+
+func (s *messageListAppService) GetSystemMessage(userName string, pageNum, countPerPage int,
+	isRead *bool, startTime string) ([]MessageListDTO, int64, error) {
+	response, count, err := s.messageListAdapter.GetSystemMessage(userName, pageNum,
+		countPerPage, isRead, startTime)
 	if err != nil {
 		return []MessageListDTO{}, 0, err
 	}
