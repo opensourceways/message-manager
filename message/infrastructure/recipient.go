@@ -134,7 +134,7 @@ func (ctl *messageRecipientAdapter) SyncUserInfo(cmd CmdToSyncUserInfo) (uint, e
 	getTable().Where(gorm.Expr("is_deleted = ?", false)).
 		Where("user_id = ?", cmd.UserName).Select("id").Scan(&id)
 
-	subscribeDefault(id, cmd.UserName, cmd.GiteeUserName)
+	//subscribeDefault(id, cmd.UserName, cmd.GiteeUserName)
 
 	return id, nil
 }
