@@ -610,9 +610,7 @@ type = 'pr' or cem.source = 'cve')
 	filterTodoSql(&query, isDone, isRead, startTime)
 	query += ` order by updated_at desc`
 
-	if result := postgresql.DB().Debug().Raw(query, giteeUsername, userName, giteeUsername,
-		userName,
-		giteeUsername, userName).Scan(&response); result.Error != nil {
+	if result := postgresql.DB().Debug().Raw(query, giteeUsername, userName).Scan(&response); result.Error != nil {
 		return []MessageListDAO{}, 0, xerrors.Errorf("get todo message failed, err:%v",
 			result.Error)
 	}
