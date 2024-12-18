@@ -1011,7 +1011,7 @@ func (s *messageAdapter) CountAllMessage(userName string, giteeUserName string) 
 
 	response := CountDataDAO{}
 	query := `
-WITH params AS (SELECT 'shishupei' AS user_id, 'shishupei' AS gitee_user_name)
+WITH params AS (SELECT ? AS user_id, ? AS gitee_user_name)
 SELECT (SELECT count(*)
         FROM message_center.follow_message fm
                  JOIN recipient_config rc ON fm.recipient_id = rc.id
@@ -1055,7 +1055,7 @@ SELECT (SELECT count(*)
           AND tm.source in ('forum', 'cve', 'https://gitee.com'))                                      AS todo_count
 FROM params;
 `
-	if result := postgresql.DB().Raw(query).Scan(response); result.Error != nil {
+	if result := postgresql.DB().Raw(query, userName, giteeUserName).Scan(&response); result.Error != nil {
 		logrus.Errorf("get count failed, err:%v", result.Error.Error())
 		return CountDataDAO{}, xerrors.Errorf("查询失败, err:%v", result.Error)
 	}
