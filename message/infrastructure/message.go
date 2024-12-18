@@ -1055,7 +1055,7 @@ SELECT (SELECT count(*)
           AND tm.source in ('forum', 'cve', 'https://gitee.com'))                                      AS todo_count
 FROM params;
 `
-	if result := postgresql.DB().Raw(query, userName, giteeUserName).Scan(response); result.Error != nil {
+	if result := postgresql.DB().Raw(query).Scan(response); result.Error != nil {
 		logrus.Errorf("get count failed, err:%v", result.Error.Error())
 		return CountDataDAO{}, xerrors.Errorf("查询失败, err:%v", result.Error)
 	}
