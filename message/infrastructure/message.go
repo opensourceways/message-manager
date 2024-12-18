@@ -1011,7 +1011,7 @@ func (s *messageAdapter) CountAllMessage(userName string, giteeUserName string) 
 
 	response := CountDataDAO{}
 	query := `
-WITH params AS (SELECT ? AS user_id, ? AS gitee_user_name)
+WITH params AS (SELECT 'shishupei' AS user_id, 'shishupei' AS gitee_user_name)
 SELECT (SELECT count(*)
         FROM message_center.follow_message fm
                  JOIN recipient_config rc ON fm.recipient_id = rc.id
