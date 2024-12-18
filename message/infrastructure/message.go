@@ -461,7 +461,7 @@ FROM (
     GROUP BY cem.source
 ) AS unread_counts
 GROUP BY source`
-	if result := postgresql.DB().Debug().Raw(query, userName, userName, userName).
+	if result := postgresql.DB().Raw(query, userName, userName, userName).
 		Scan(&CountData); result.Error != nil {
 		return []CountDAO{}, xerrors.Errorf("get count failed, err:%v", result.Error)
 	}
@@ -803,7 +803,7 @@ func (s *messageAdapter) GetAllMeetingMessage(userName string, filter int,
 	filterMeetingTodoSql(&query, nil, isRead, startTime)
 	query += ` order by updated_at desc`
 	giteeUsername, err := user.GetThirdUserName(userName)
-	if err != nil {
+	if err != nil || giteeUsername == "" {
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			xerrors.Errorf("get gitee username failed, err:%v", err))
 	}
