@@ -985,26 +985,79 @@ func (s *messageAdapter) GetEurMessage(userName string, pageNum,
 	return pagination(response, pageNum, countPerPage), int64(len(response)), nil
 }
 
-func (s *messageAdapter) CountAllMessage(userName, giteeUserName string) (CountDataDAO, error) {
-	isRead := false
-	isDone := false
-	_, todoCountNotDone, _ :=
-		s.GetAllToDoMessage(userName, giteeUserName, &isDone, 1, 0, "", nil)
+//func (s *messageAdapter) CountAllMessage(userName, giteeUserName string) (CountDataDAO, error) {
+//	isRead := false
+//	isDone := false
+//	_, todoCountNotDone, _ :=
+//		s.GetAllToDoMessage(userName, giteeUserName, &isDone, 1, 0, "", nil)
+//
+//	_, aboutCount, _ :=
+//		s.GetAllAboutMessage(userName, giteeUserName, nil, 1, 0, "", &isRead)
+//
+//	_, watchCount, _ :=
+//		s.GetAllWatchMessage(userName, giteeUserName, 1, 0, "", &isRead)
+//
+//	_, meetingCount, _ :=
+//		s.GetMeetingToDoMessage(userName, 1, 1, 0, "", nil)
+//	return CountDataDAO{
+//		TodoCount:    todoCountNotDone,
+//		AboutCount:   aboutCount,
+//		WatchCount:   watchCount,
+//		MeetingCount: meetingCount,
+//	}, nil
+//}
 
-	_, aboutCount, _ :=
-		s.GetAllAboutMessage(userName, giteeUserName, nil, 1, 0, "", &isRead)
+func (s *messageAdapter) CountAllMessage(userName string, giteeUserName string) (CountDataDAO, error) {
 
-	_, watchCount, _ :=
-		s.GetAllWatchMessage(userName, giteeUserName, 1, 0, "", &isRead)
+	response := CountDataDAO{}
+	query := `SELECT (SELECT count(*)
+        FROM message_center.follow_message fm
+                 JOIN recipient_config rc ON fm.recipient_id = rc.id
+        WHERE (rc.user_id = params.user_id
+            OR rc.gitee_user_name = params.gitee_user_name)
+          AND rc.is_deleted IS false
+          AND fm.is_deleted IS false
+          AND fm.is_read IS false
+          AND fm.source in ('forum', 'https://eur.openeuler.openatom.cn', 'cve', 'https://gitee.com')) AS watch_count,
 
-	_, meetingCount, _ :=
-		s.GetMeetingToDoMessage(userName, 1, 1, 0, "", nil)
-	return CountDataDAO{
-		TodoCount:    todoCountNotDone,
-		AboutCount:   aboutCount,
-		WatchCount:   watchCount,
-		MeetingCount: meetingCount,
-	}, nil
+       (SELECT count(*)
+        FROM message_center.related_message rm
+                 JOIN recipient_config rc ON rm.recipient_id = rc.id
+        WHERE (rc.user_id = params.user_id
+            OR rc.gitee_user_name = params.gitee_user_name)
+          AND rc.is_deleted IS false
+          AND rm.is_deleted IS false
+          AND rm.is_read IS false
+          AND rm.source in ('forum', 'https://gitee.com'))                                             AS about_count,
+
+       (SELECT count(*)
+        FROM message_center.todo_message tm
+                 JOIN recipient_config rc ON tm.recipient_id = rc.id
+                 JOIN cloud_event_message cem ON tm.latest_event_id = cem.event_id
+        WHERE (rc.user_id = params.user_id
+            OR rc.gitee_user_name = params.gitee_user_name)
+          AND rc.is_deleted IS false
+          AND tm.is_deleted IS false
+          AND tm.is_done IS false
+          AND tm.source = 'https://www.openEuler.org/meeting'
+          AND cem.time < current_timestamp)                                                            AS meeting_count,
+
+       (SELECT count(*)
+        FROM message_center.todo_message tm
+                 JOIN recipient_config rc ON tm.recipient_id = rc.id
+        WHERE (rc.user_id = params.user_id
+            OR rc.gitee_user_name = params.gitee_user_name)
+          AND rc.is_deleted IS false
+          AND tm.is_deleted IS false
+          AND tm.is_done IS false
+          AND tm.source in ('forum', 'cve', 'https://gitee.com'))                                      AS todo_count
+FROM params;
+`
+	if result := postgresql.DB().Raw(query, userName, giteeUserName).Scan(response); result.Error != nil {
+		logrus.Errorf("get count failed, err:%v", result.Error.Error())
+		return CountDataDAO{}, xerrors.Errorf("查询失败, err:%v", result.Error)
+	}
+	return response, nil
 }
 
 func (s *messageAdapter) GetAllMessage(userName string, pageNum, countPerPage int,
