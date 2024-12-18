@@ -1010,7 +1010,9 @@ func (s *messageAdapter) GetEurMessage(userName string, pageNum,
 func (s *messageAdapter) CountAllMessage(userName string, giteeUserName string) (CountDataDAO, error) {
 
 	response := CountDataDAO{}
-	query := `SELECT (SELECT count(*)
+	query := `
+WITH params AS (SELECT ? AS user_id, ? AS gitee_user_name)
+SELECT (SELECT count(*)
         FROM message_center.follow_message fm
                  JOIN recipient_config rc ON fm.recipient_id = rc.id
         WHERE (rc.user_id = params.user_id
