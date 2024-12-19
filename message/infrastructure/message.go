@@ -569,7 +569,7 @@ func filterFollowSql(query *string, isRead *bool, startTime string) {
 
 func (s *messageAdapter) GetAllToDoMessage(userName string, giteeUsername string, isDone *bool,
 	pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
-	queryHead := `with latest_messages as (
+	query := `with latest_messages as (
     select 
         cem.*,
         tm.is_read,
@@ -585,41 +585,31 @@ func (s *messageAdapter) GetAllToDoMessage(userName string, giteeUsername string
         tm.is_deleted = false
         and rc.is_deleted = false
         and (rc.gitee_user_name = ? OR rc.user_id = ?)
-        and ((cem.type = 'issue' and cem.source = 'https://gitee.com') or cem.
-type = 'pr' or cem.source = 'cve')
-	)`
-	query := ` select *
+        and cem.type <> 'meeting'
+	)
+	select *, count(*) over () as total_count
 	from latest_messages
 	where rn = 1`
-	queryCount := ` select count(1) 
- 	from latest_messages
- 	where rn = 1`
 	filterTodoSql(&query, isDone, isRead, startTime)
-	queryEnd := ` order by updated_at desc limit ? offset ?`
+	query += ` order by updated_at desc limit ? offset ?`
 
-	var totalCount int64
-	if result := postgresql.DB().Debug().Raw(queryHead+queryCount, giteeUsername, userName).
-		Scan(&totalCount); result.Error != nil {
-		return []MessageListDAO{}, 0, xerrors.Errorf("get todo count failed, err:%v",
-			result.Error)
-	}
 	offset := (pageNum - 1) * countPerPage
 	var response []MessageListDAO
-	if result := postgresql.DB().Debug().Raw(queryHead+query+queryEnd, giteeUsername, userName,
-		countPerPage, offset).
-		Scan(&response); result.Error != nil {
+	if result := postgresql.DB().Debug().Raw(query, giteeUsername, userName,
+		countPerPage, offset).Scan(&response); result.Error != nil {
 		return []MessageListDAO{}, 0, xerrors.Errorf("get todo message failed, err:%v",
 			result.Error)
+	}
+	var totalCount int64
+	if len(response) != 0 {
+		totalCount = response[0].TotalCount
 	}
 	return response, totalCount, nil
 }
 
 func (s *messageAdapter) GetAllAboutMessage(userName string, giteeUsername string, isBot *bool,
 	pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
-	queryHead := `select cem.*, rm.is_read`
-	queryCountHead := `select count(1)`
-
-	query := ` from cloud_event_message cem
+	query := `select cem.*, rm.is_read, count(*) from cloud_event_message cem
 		join message_center.related_message rm on cem.event_id = rm.event_id
 		join message_center.recipient_config rc on rm.recipient_id = rc.id
 		where rm.is_deleted = false
@@ -644,27 +634,24 @@ func (s *messageAdapter) GetAllAboutMessage(userName string, giteeUsername strin
 	}
 	query += `))`
 	filterAboutSql(&query, isRead, startTime)
-	queryEnd := ` order by cem.updated_at desc limit ? offset ?`
-	var totalCount int64
-	if result := postgresql.DB().Raw(queryCountHead+query, giteeUsername, userName,
-		userName).Scan(&totalCount); result.Error != nil {
-		return []MessageListDAO{}, 0, xerrors.Errorf("get about count failed, err:%v",
-			result.Error)
-	}
+	query += ` order by cem.updated_at desc limit ? offset ?`
 	offset := (pageNum - 1) * countPerPage
 	var response []MessageListDAO
-	if result := postgresql.DB().Raw(queryHead+query+queryEnd, giteeUsername, userName,
-		userName, countPerPage, offset).Scan(&response); result.Error != nil {
+	if result := postgresql.DB().Raw(query, giteeUsername, userName, userName, countPerPage,
+		offset).Scan(&response); result.Error != nil {
 		return []MessageListDAO{}, 0, xerrors.Errorf("get about message failed, err:%v",
 			result.Error)
 	}
-
+	var totalCount int64
+	if len(response) != 0 {
+		totalCount = response[0].TotalCount
+	}
 	return response, totalCount, nil
 }
 
 func (s *messageAdapter) GetAllWatchMessage(userName string, giteeUsername string, pageNum,
 	countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
-	queryHead := `
+	query := `
 	with filtered_recipient as (
         select *
         from recipient_config
@@ -676,40 +663,31 @@ func (s *messageAdapter) GetAllWatchMessage(userName string, giteeUsername strin
 	    join cloud_event_message cem on cem.event_id = fm.event_id
 	    join filtered_recipient rc on rc.id = fm.recipient_id
 	    where not fm.is_deleted
-	)`
-	query := ` 
-	select *
+	)
+	select *, count(*) over () as total_count
 	from filtered_messages 
 	where true`
-
-	queryCount := `
-	select count(1)
-	from filtered_messages
-	where true`
 	filterFollowSql(&query, isRead, startTime)
-	queryEnd := ` order by updated_at desc limit ? offset ?`
-
-	var totalCount int64
-	if result := postgresql.DB().Debug().Raw(queryHead+queryCount, userName,
-		giteeUsername).Scan(&totalCount); result.Error != nil {
-		return []MessageListDAO{}, 0, xerrors.Errorf("get watch count failed, err:%v", result.Error)
-	}
+	query += ` order by updated_at desc limit ? offset ?`
 
 	offset := (pageNum - 1) * countPerPage
 	var response []MessageListDAO
-	if result := postgresql.DB().Debug().Raw(queryHead+query+queryEnd, userName,
-		giteeUsername, countPerPage, offset).Scan(&response); result.Error != nil {
+	if result := postgresql.DB().Debug().Raw(query, userName, giteeUsername, countPerPage,
+		offset).Scan(&response); result.Error != nil {
 		logrus.Errorf("get watch message failed, err:%v", result.Error)
 		return []MessageListDAO{}, 0, xerrors.Errorf("get watch message failed, err:%v", result.Error)
 	}
-
+	var totalCount int64
+	if len(response) != 0 {
+		totalCount = response[0].TotalCount
+	}
 	return response, totalCount, nil
 }
 
 func (s *messageAdapter) GetForumSystemMessage(userName string, pageNum,
 	countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 
-	queryHead := `with filtered_recipient as (
+	query := `with filtered_recipient as (
     select *
     from recipient_config
     where not is_deleted and user_id = ?
@@ -720,39 +698,31 @@ func (s *messageAdapter) GetForumSystemMessage(userName string, pageNum,
 	    join cloud_event_message cem on cem.event_id = fm.event_id
 	    join filtered_recipient rc on rc.id = fm.recipient_id
 	    where not fm.is_deleted
-	)`
-	query := `
-	select *
+	)
+	select *, count(*) over () as total_count
 	from filtered_messages
 	where source = 'forum'`
 	filterFollowSql(&query, isRead, startTime)
-	queryCount := `
-	select count(1)
-	from filtered_messages
-	where source = 'forum'`
-	filterFollowSql(&queryCount, isRead, startTime)
-	queryEnd := ` order by updated_at desc limit ? offset ?`
-	var totalCount int64
-	if result := postgresql.DB().Raw(queryHead+queryCount, userName).Scan(&totalCount); result.
-		Error != nil {
-		return []MessageListDAO{}, 0, xerrors.Errorf("get forum system count failed, err:%v",
-			result.Error)
-	}
+
+	query += ` order by updated_at desc limit ? offset ?`
 	offset := (pageNum - 1) * countPerPage
 	var response []MessageListDAO
-	if result := postgresql.DB().Raw(queryHead+query+queryEnd, userName,
-		countPerPage, offset).Scan(&response); result.Error != nil {
+	if result := postgresql.DB().Raw(query, userName, countPerPage, offset).
+		Scan(&response); result.Error != nil {
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
+	}
+	var totalCount int64
+	if len(response) != 0 {
+		totalCount = response[0].TotalCount
 	}
 	return response, totalCount, nil
 }
 
 func (s *messageAdapter) GetForumAboutMessage(userName string, isBot *bool, pageNum,
 	countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
-	queryCount := `select count(1)`
-	queryHead := `select cem.*, rm.is_read`
-	query := ` from related_message rm
+	query := `select cem.*, rm.is_read, count(*) over () as total_count
+		from related_message rm
 		join cloud_event_message cem on cem.event_id = rm.event_id
 		join recipient_config rc on rc.id = rm.recipient_id
 		where rm.is_deleted = false and rc.is_deleted = false
@@ -765,30 +735,26 @@ func (s *messageAdapter) GetForumAboutMessage(userName string, isBot *bool, page
 		}
 	}
 	filterAboutSql(&query, isRead, startTime)
-	queryEnd := ` order by time desc limit ? offset ?`
+	query += ` order by time desc limit ? offset ?`
 
-	var totalCount int64
-	if result := postgresql.DB().Raw(queryCount+query, userName).Scan(&totalCount); result.
-		Error != nil {
-		return []MessageListDAO{}, 0,
-			xerrors.Errorf("get forum about count failed, err:%v", result.Error)
-	}
 	offset := (pageNum - 1) * countPerPage
 	var response []MessageListDAO
-	if result := postgresql.DB().Raw(queryHead+query+queryEnd, userName,
-		countPerPage, offset).Scan(&response); result.Error != nil {
+	if result := postgresql.DB().Raw(query, userName, countPerPage, offset).
+		Scan(&response); result.Error != nil {
 		logrus.Errorf("get message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
+	}
+	var totalCount int64
+	if len(response) != 0 {
+		totalCount = response[0].TotalCount
 	}
 	return response, totalCount, nil
 }
 
 func (s *messageAdapter) GetMeetingToDoMessage(username string, filter int,
 	pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
-	queryHead := `select a.*`
-	queryCount := `select count(1)`
-	query := `
+	query := `select a.*, count(*) over () as total_count
 		from (
 		    select distinct on (tm.business_id, tm.recipient_id) tm.is_read, cem.*
 		    from todo_message tm
@@ -807,24 +773,24 @@ func (s *messageAdapter) GetMeetingToDoMessage(username string, filter int,
 		query += ` and NOW() > time`
 	}
 	filterMeetingTodoSql(&query, nil, isRead, startTime)
-	queryEnd := ` order by updated_at desc limit ? offset ?`
+	query += ` order by updated_at desc limit ? offset ?`
 	giteeUsername, err := user.GetThirdUserName(username)
 	if err != nil {
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			xerrors.Errorf("get gitee username failed, err:%v", err))
 	}
-	var totalCount int64
-	if result := postgresql.DB().Raw(queryCount+query, giteeUsername).Scan(&totalCount); result.
-		Error != nil {
-		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v", result.Error)
-	}
+
 	offset := (pageNum - 1) * countPerPage
 	var response []MessageListDAO
-	if result := postgresql.DB().Raw(queryHead+query+queryEnd, giteeUsername, countPerPage, offset).
+	if result := postgresql.DB().Raw(query, giteeUsername, countPerPage, offset).
 		Scan(&response); result.Error != nil {
 		logrus.Errorf("get message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
+	}
+	var totalCount int64
+	if len(response) != 0 {
+		totalCount = response[0].TotalCount
 	}
 	return response, totalCount, nil
 }
@@ -834,11 +800,9 @@ func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDon
 	if giteeUsername == "" {
 		return []MessageListDAO{}, 0, nil
 	}
-	queryHead := `select * from`
-	queryCount := `select count(1) from`
-	query := ` (
-    select distinct on (tm.business_id, tm.recipient_id) cem.*, 
-        tm.is_read, tm.is_done from todo_message tm
+	query := `select *, count(*) over () as total_count from (
+    	select distinct on (tm.business_id, tm.recipient_id) cem.*, 
+        	tm.is_read, tm.is_done from todo_message tm
 		join cloud_event_message cem on cem.event_id = tm.latest_event_id
 		join recipient_config rc on rc.id = tm.recipient_id
 		where rc.is_deleted = false and tm.is_deleted = false
@@ -846,20 +810,19 @@ func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDon
 		and (rc.gitee_user_name = ? or rc.user_id = ?)
 		order by tm.business_id, tm.recipient_id, cem.updated_at desc) a where true`
 	filterTodoSql(&query, isDone, isRead, startTime)
-	queryEnd := ` order by updated_at desc limit ? offset ?`
-	var totalCount int64
-	if result := postgresql.DB().Raw(queryCount+query, giteeUsername,
-		userName).Scan(&totalCount); result.Error != nil {
-		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v", result.Error)
-	}
+	query += ` order by updated_at desc limit ? offset ?`
 
 	offset := (pageNum - 1) * countPerPage
 	var response []MessageListDAO
-	if result := postgresql.DB().Raw(queryHead+query+queryEnd, giteeUsername,
-		userName, countPerPage, offset).Scan(&response); result.Error != nil {
+	if result := postgresql.DB().Raw(query, giteeUsername, userName, countPerPage, offset).
+		Scan(&response); result.Error != nil {
 		logrus.Errorf("get message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
+	}
+	var totalCount int64
+	if len(response) != 0 {
+		totalCount = response[0].TotalCount
 	}
 	return response, totalCount, nil
 }
@@ -869,7 +832,7 @@ func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string, pageNum, 
 	if giteeUsername == "" {
 		return []MessageListDAO{}, 0, nil
 	}
-	queryHead := `with filtered_recipient as (
+	query := `with filtered_recipient as (
     select *
     from recipient_config
     where not is_deleted and (gitee_user_name = ? or user_id = ?)
@@ -880,30 +843,24 @@ func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string, pageNum, 
 	    join cloud_event_message cem on cem.event_id = fm.event_id
 	    join filtered_recipient rc on rc.id = fm.recipient_id
 	    where not fm.is_deleted
-	)`
-	query := ` select *
+	)
+	select *, count(*) over () as total_count
 	from filtered_messages
 	where source = 'cve'`
 	filterFollowSql(&query, isRead, startTime)
 
-	queryCount := ` select count(1)
-	from filtered_messages
-	where source = 'cve'`
-	filterFollowSql(&queryCount, isRead, startTime)
-	queryEnd := ` order by updated_at desc limit ? offset ?`
-	var totalCount int64
-	if result := postgresql.DB().Raw(queryHead+queryCount, giteeUsername,
-		userName).Scan(&totalCount); result.Error != nil {
-		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v", result.Error)
-	}
+	query += ` order by updated_at desc limit ? offset ?`
 	offset := (pageNum - 1) * countPerPage
 	var response []MessageListDAO
-	if result := postgresql.DB().Raw(queryHead+query+queryEnd, giteeUsername,
-		userName, countPerPage, offset).Scan(&response); result.
-		Error != nil {
+	if result := postgresql.DB().Raw(query, giteeUsername, userName, countPerPage, offset).
+		Scan(&response); result.Error != nil {
 		logrus.Errorf("get message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
+	}
+	var totalCount int64
+	if len(response) != 0 {
+		totalCount = response[0].TotalCount
 	}
 	return response, totalCount, nil
 }
@@ -913,32 +870,31 @@ func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isD
 	if giteeUsername == "" {
 		return []MessageListDAO{}, 0, nil
 	}
-	queryHead := `select * from`
-	queryCount := `select count(1) from`
-	query := ` (
+	query := `select *, count(*) over () as total_count from
+        (
 		select DISTINCT ON (tm.business_id, tm.recipient_id) cem.*, 
 			tm.is_read, tm.is_done from todo_message tm
-			join cloud_event_message cem on cem.event_id = latest_event_id
-			join recipient_config rc on rc.id = tm.recipient_id
-			where tm.is_deleted = false and rc.is_deleted = false
-			and cem.type = 'issue' and cem.source = 'https://gitee.com'
-			and (rc.gitee_user_name = ? or rc.user_id = ?)
-			order by tm.business_id, tm.recipient_id, cem.updated_at desc) a where true`
+		join cloud_event_message cem on cem.event_id = latest_event_id
+		join recipient_config rc on rc.id = tm.recipient_id
+		where tm.is_deleted = false and rc.is_deleted = false
+		and cem.type = 'issue' and cem.source = 'https://gitee.com'
+		and (rc.gitee_user_name = ? or rc.user_id = ?)
+		order by tm.business_id, tm.recipient_id, cem.updated_at desc) a where true`
 
 	filterTodoSql(&query, isDone, isRead, startTime)
-	queryEnd := ` order by updated_at desc limit ? offset ?`
-	var totalCount int64
-	if result := postgresql.DB().Raw(queryCount+query, giteeUsername,
-		userName).Scan(&totalCount); result.Error != nil {
-		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v", result.Error)
-	}
+	query += ` order by updated_at desc limit ? offset ?`
+
 	offset := (pageNum - 1) * countPerPage
 	var response []MessageListDAO
-	if result := postgresql.DB().Raw(queryHead+query+queryEnd, giteeUsername, userName,
-		countPerPage, offset).Scan(&response); result.Error != nil {
+	if result := postgresql.DB().Raw(query, giteeUsername, userName, countPerPage, offset).
+		Scan(&response); result.Error != nil {
 		logrus.Errorf("get message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
+	}
+	var totalCount int64
+	if len(response) != 0 {
+		totalCount = response[0].TotalCount
 	}
 	return response, totalCount, nil
 }
@@ -948,9 +904,8 @@ func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername strin
 	if giteeUsername == "" {
 		return []MessageListDAO{}, 0, nil
 	}
-	queryHead := `select * from`
-	queryCount := `select count(1) from`
-	query := ` (
+	query := `select *, count(*) over () as total_count from
+        (
 		select DISTINCT ON (tm.business_id, tm.recipient_id) cem.*, 
 			tm.is_read, tm.is_done from todo_message tm
 		join cloud_event_message cem on cem.event_id = latest_event_id
@@ -961,20 +916,19 @@ func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername strin
 
 	filterTodoSql(&query, isDone, isRead, startTime)
 
-	queryEnd := ` order by updated_at desc limit ? offset ?`
+	query += ` order by updated_at desc limit ? offset ?`
 
-	var totalCount int64
-	if result := postgresql.DB().Raw(queryCount+query, giteeUsername,
-		userName).Scan(&totalCount); result.Error != nil {
-		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v", result.Error)
-	}
 	offset := (pageNum - 1) * countPerPage
 	var response []MessageListDAO
-	if result := postgresql.DB().Raw(queryHead+query+queryEnd, giteeUsername, userName,
-		countPerPage, offset).Scan(&response); result.Error != nil {
+	if result := postgresql.DB().Raw(query, giteeUsername, userName, countPerPage, offset).
+		Scan(&response); result.Error != nil {
 		logrus.Errorf("get message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
+	}
+	var totalCount int64
+	if len(response) != 0 {
+		totalCount = response[0].TotalCount
 	}
 	return response, totalCount, nil
 }
@@ -984,16 +938,14 @@ func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, is
 	if giteeUsername == "" {
 		return []MessageListDAO{}, 0, nil
 	}
-	queryHead := `select cem.*, rm.is_read`
-	queryCount := `select count(1)`
-	query := `
+	query := `select cem.*, rm.is_read, count(*) over () as total_count
 		from cloud_event_message cem
-		         join message_center.related_message rm on cem.event_id = rm.event_id
-		         join message_center.recipient_config rc on rm.recipient_id = rc.id
-		    where cem.type = 'note'
-		    and cem.source = 'https://gitee.com'
-		    and rm.is_deleted = false and rc.is_deleted = false
-		    and (rc.gitee_user_name = ? or rc.user_id = ?)`
+			join message_center.related_message rm on cem.event_id = rm.event_id
+			join message_center.recipient_config rc on rm.recipient_id = rc.id
+		where cem.type = 'note'
+		and cem.source = 'https://gitee.com'
+		and rm.is_deleted = false and rc.is_deleted = false
+		and (rc.gitee_user_name = ? or rc.user_id = ?)`
 	if isBot != nil {
 		if *isBot {
 			query += ` and cem."user" IN ('openeuler-ci-bot','ci-robot','openeuler-sync-bot') `
@@ -1002,19 +954,19 @@ func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, is
 		}
 	}
 	filterAboutSql(&query, isRead, startTime)
-	queryEnd := ` order by cem.updated_at desc limit ? offset ?`
-	var totalCount int64
-	if result := postgresql.DB().Raw(queryCount+query, giteeUsername,
-		userName).Scan(&totalCount); result.Error != nil {
-		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v", result.Error)
-	}
+	query += ` order by cem.updated_at desc limit ? offset ?`
+
 	offset := (pageNum - 1) * countPerPage
 	var response []MessageListDAO
-	if result := postgresql.DB().Raw(queryHead+query+queryEnd, giteeUsername,
-		userName, countPerPage, offset).Scan(&response); result.Error != nil {
+	if result := postgresql.DB().Raw(query, giteeUsername, userName, countPerPage, offset).
+		Scan(&response); result.Error != nil {
 		logrus.Errorf("get message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
+	}
+	var totalCount int64
+	if len(response) != 0 {
+		totalCount = response[0].TotalCount
 	}
 	return response, totalCount, nil
 }
@@ -1024,7 +976,7 @@ func (s *messageAdapter) GetGiteeMessage(userName, giteeUsername string, pageNum
 	if giteeUsername == "" {
 		return []MessageListDAO{}, 0, nil
 	}
-	queryHead := `with filtered_recipient as (
+	query := `with filtered_recipient as (
     select *
     from recipient_config
     where not is_deleted and (gitee_user_name = ? or user_id = ?)
@@ -1035,35 +987,31 @@ func (s *messageAdapter) GetGiteeMessage(userName, giteeUsername string, pageNum
 	    join cloud_event_message cem on cem.event_id = fm.event_id
 	    join filtered_recipient rc on rc.id = fm.recipient_id
 	    where not fm.is_deleted
-	)`
-	query := ` select *
+	)
+	select *, count(*) over () as total_count
 	from filtered_messages
 	where source = 'https://gitee.com'`
 	filterFollowSql(&query, isRead, startTime)
-	queryCount := ` select count(1)
-	from filtered_messages
-	where source = 'https://gitee.com'`
-	filterFollowSql(&queryCount, isRead, startTime)
-	queryEnd := ` order by updated_at desc limit ? offset ?`
-	var totalCount int64
-	if result := postgresql.DB().Raw(queryHead+queryCount, giteeUsername,
-		userName).Scan(&totalCount); result.Error != nil {
-		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v", result.Error)
-	}
+	query += ` order by updated_at desc limit ? offset ?`
+
 	offset := (pageNum - 1) * countPerPage
 	var response []MessageListDAO
-	if result := postgresql.DB().Raw(queryHead+query+queryEnd, giteeUsername,
-		userName, countPerPage, offset).Scan(&response); result.Error != nil {
+	if result := postgresql.DB().Raw(query, giteeUsername, userName, countPerPage, offset).
+		Scan(&response); result.Error != nil {
 		logrus.Errorf("get message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
+	}
+	var totalCount int64
+	if len(response) != 0 {
+		totalCount = response[0].TotalCount
 	}
 	return response, totalCount, nil
 }
 
 func (s *messageAdapter) GetEurMessage(userName string, pageNum,
 	countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
-	queryHead := `with filtered_recipient as (
+	query := `with filtered_recipient as (
     select *
     from recipient_config
     where not is_deleted and user_id = ?
@@ -1074,27 +1022,23 @@ func (s *messageAdapter) GetEurMessage(userName string, pageNum,
 	    join cloud_event_message cem on cem.event_id = fm.event_id
 	    join filtered_recipient rc on rc.id = fm.recipient_id
 	    where not fm.is_deleted
-	)`
-	query := ` select *
+	)
+	select *, count(*) over () as total_count
 	from filtered_messages
 	where source = 'https://eur.openeuler.openatom.cn'`
 	filterFollowSql(&query, isRead, startTime)
-	queryCount := ` select count(1)
-	from filtered_messages
-	where source = 'https://eur.openeuler.openatom.cn'`
-	filterFollowSql(&queryCount, isRead, startTime)
-	queryEnd := ` order by updated_at desc limit ? offset ?`
-	var totalCount int64
-	if result := postgresql.DB().Raw(queryHead+queryCount, userName).
-		Scan(&totalCount); result.Error != nil {
-		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v", result.Error)
-	}
+	query += ` order by updated_at desc limit ? offset ?`
+
 	offset := (pageNum - 1) * countPerPage
 	var response []MessageListDAO
-	if result := postgresql.DB().Raw(queryHead+query+queryEnd, userName, countPerPage, offset).
+	if result := postgresql.DB().Raw(query, userName, countPerPage, offset).
 		Scan(&response); result.Error != nil {
 		return []MessageListDAO{}, 0, xerrors.Errorf("get message failed, err:%v",
 			result.Error)
+	}
+	var totalCount int64
+	if len(response) != 0 {
+		totalCount = response[0].TotalCount
 	}
 	return response, totalCount, nil
 }
@@ -1157,7 +1101,7 @@ FROM params;
 
 func (s *messageAdapter) GetAllMessage(userName string, pageNum, countPerPage int,
 	isRead *bool) ([]MessageListDAO, int64, error) {
-	queryHead := `with filtered_recipient as (
+	query := `with filtered_recipient as (
             select *
             from recipient_config
             where not is_deleted and user_id = ?
@@ -1180,30 +1124,25 @@ func (s *messageAdapter) GetAllMessage(userName string, pageNum, countPerPage in
 		             join cloud_event_message cem on cem.event_id = rm.event_id
 		             join filtered_recipient rc on rc.id = rm.recipient_id
 		    where rm.is_deleted = false
-		)`
-	query := ` select *
-		from all_messages`
-	queryCount := `select count(1) 
-		from all_messages`
+		)
+	select *, count(*) over () as total_count
+	from all_messages`
 	if isRead != nil {
 		query += fmt.Sprintf(" where is_read = %t", *isRead)
-		queryCount += fmt.Sprintf(" where is_read = %t", *isRead)
 	}
-	queryEnd := ` order by updated_at desc limit ? offset ?`
-	var totalCount int64
-	if result := postgresql.DB().Raw(queryHead+queryCount, userName).
-		Scan(&totalCount); result.Error != nil {
-		logrus.Errorf("get count failed, err:%v", result.Error.Error())
-		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v", result.Error)
-	}
+	query += ` order by updated_at desc limit ? offset ?`
+
 	offset := (pageNum - 1) * countPerPage
 	var response []MessageListDAO
-	if result := postgresql.DB().Raw(queryHead+query+queryEnd, userName,
-		countPerPage, offset).Scan(&response); result.
-		Error != nil {
+	if result := postgresql.DB().Raw(query, userName, countPerPage, offset).
+		Scan(&response); result.Error != nil {
 		logrus.Errorf("get message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
+	}
+	var totalCount int64
+	if len(response) != 0 {
+		totalCount = response[0].TotalCount
 	}
 	return response, totalCount, nil
 }

@@ -26,6 +26,7 @@ type MessageListDAO struct {
 	UpdatedAt       time.Time `gorm:"column:updated_at" json:"updated_at" swaggerignore:"true"`
 	IsRead          bool      `gorm:"column:is_read" json:"is_read"`
 	SourceGroup     string    `gorm:"column:source_group" json:"source_group"`
+	TotalCount      int64     `json:"total_count"`
 }
 
 type MessagePushDAO struct {
