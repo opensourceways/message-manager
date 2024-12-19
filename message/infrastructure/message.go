@@ -608,7 +608,7 @@ func (s *messageAdapter) GetAllToDoMessage(userName string, giteeUsername string
 	filterTodoSql(&query, isDone, isRead, startTime)
 	query += ` order by updated_at desc`
 
-	dbEntity := postgresql.DB().Raw(query, userName, giteeUsername)
+	dbEntity := postgresql.DB().Raw(query, userName, giteeUsername).Debug()
 	paging := paginator.Paging{
 		Page:  pageNum,
 		Limit: countPerPage,
