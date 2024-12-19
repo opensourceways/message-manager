@@ -601,7 +601,7 @@ func (s *messageAdapter) GetAllToDoMessage(userName string, giteeUsername string
     where
         tm.is_deleted = false
         and rc.is_deleted = false
-        and (rc.gitee_user_name = ? OR rc.user_id = ?)
+        and ((rc.gitee_user_name != '' and rc.gitee_user_name = ?) OR rc.user_id = ?)
         and ((cem.type = 'issue' and cem.source = 'https://gitee.com') or cem.
 type = 'pr' or cem.source = 'cve')
 	)
@@ -628,7 +628,7 @@ func (s *messageAdapter) GetAllAboutMessage(userName string, giteeUsername strin
 		where rm.is_deleted = false
 		and rc.is_deleted = false
 		and (
-		     (cem.type = 'note' and (rc.gitee_user_name = ? or rc.user_id = ?)`
+		     (cem.type = 'note' and ((rc.gitee_user_name != '' and rc.gitee_user_name = ?) or rc.user_id = ?)`
 	if isBot != nil {
 		if *isBot {
 			query += ` and cem."user" IN ('openeuler-ci-bot','ci-robot','openeuler-sync-bot')`
@@ -756,7 +756,7 @@ func (s *messageAdapter) GetMeetingToDoMessage(username string, filter int,
 		    where rc.is_deleted = false
 		    and tm.is_deleted = false
 		    and cem.type = 'meeting'
-		    and rc.gitee_user_name = ?
+		    and (rc.gitee_user_name != '' and rc.gitee_user_name = ?)
 		    order by tm.business_id, tm.recipient_id, cem.updated_at desc
 		) as a where true`
 
@@ -794,7 +794,7 @@ func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDon
 		join recipient_config rc on rc.id = tm.recipient_id
 		where rc.is_deleted = false and tm.is_deleted = false
 		and cem.source = 'cve'
-		and (rc.gitee_user_name = ? or rc.user_id = ?)
+		and ((rc.gitee_user_name != '' and rc.gitee_user_name = ?) or rc.user_id = ?)
 		order by tm.business_id, tm.recipient_id, cem.updated_at desc) a where true`
 	filterTodoSql(&query, isDone, isRead, startTime)
 	query += ` order by updated_at desc`
@@ -852,7 +852,7 @@ func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isD
 			join recipient_config rc on rc.id = tm.recipient_id
 			where tm.is_deleted = false and rc.is_deleted = false
 			and cem.type = 'issue' and cem.source = 'https://gitee.com'
-			and (rc.gitee_user_name = ? or rc.user_id = ?)
+			and ((rc.gitee_user_name != '' and rc.gitee_user_name = ?) or rc.user_id = ?)
 			order by tm.business_id, tm.recipient_id, cem.updated_at desc) a where true`
 
 	filterTodoSql(&query, isDone, isRead, startTime)
@@ -878,7 +878,7 @@ func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername strin
 		join cloud_event_message cem on cem.event_id = latest_event_id
 		join recipient_config rc on rc.id = tm.recipient_id
 		where tm.is_deleted = false and rc.is_deleted = false
-		and cem.type = 'pr' and (rc.gitee_user_name = ? or rc.user_id = ?)
+		and cem.type = 'pr' and ((rc.gitee_user_name != '' and rc.gitee_user_name = ?) or rc.user_id = ?)
 		order by tm.business_id, tm.recipient_id, cem.updated_at desc) a where true`
 
 	filterTodoSql(&query, isDone, isRead, startTime)
@@ -906,7 +906,7 @@ func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, is
 		    where cem.type = 'note'
 		    and cem.source = 'https://gitee.com'
 		    and rm.is_deleted = false and rc.is_deleted = false
-		    and (rc.gitee_user_name = ? or rc.user_id = ?)`
+		    and ((rc.gitee_user_name != '' and rc.gitee_user_name = ?) or rc.user_id = ?)`
 	if isBot != nil {
 		if *isBot {
 			query += ` and cem."user" IN ('openeuler-ci-bot','ci-robot','openeuler-sync-bot') `
@@ -1016,7 +1016,7 @@ SELECT (SELECT count(*)
         FROM message_center.follow_message fm
                  JOIN recipient_config rc ON fm.recipient_id = rc.id
         WHERE (rc.user_id = params.user_id
-            OR rc.gitee_user_name = params.gitee_user_name)
+            OR (rc.gitee_user_name != '' and rc.gitee_user_name = params.gitee_user_name))
           AND rc.is_deleted IS false
           AND fm.is_deleted IS false
           AND fm.is_read IS false
@@ -1026,7 +1026,7 @@ SELECT (SELECT count(*)
         FROM message_center.related_message rm
                  JOIN recipient_config rc ON rm.recipient_id = rc.id
         WHERE (rc.user_id = params.user_id
-            OR rc.gitee_user_name = params.gitee_user_name)
+            OR (rc.gitee_user_name != '' and rc.gitee_user_name = params.gitee_user_name))
           AND rc.is_deleted IS false
           AND rm.is_deleted IS false
           AND rm.is_read IS false
@@ -1037,7 +1037,7 @@ SELECT (SELECT count(*)
                  JOIN recipient_config rc ON tm.recipient_id = rc.id
                  JOIN cloud_event_message cem ON tm.latest_event_id = cem.event_id
         WHERE (rc.user_id = params.user_id
-            OR rc.gitee_user_name = params.gitee_user_name)
+            OR (rc.gitee_user_name != '' and rc.gitee_user_name = params.gitee_user_name))
           AND rc.is_deleted IS false
           AND tm.is_deleted IS false
           AND tm.is_done IS false
@@ -1048,7 +1048,7 @@ SELECT (SELECT count(*)
         FROM message_center.todo_message tm
                  JOIN recipient_config rc ON tm.recipient_id = rc.id
         WHERE (rc.user_id = params.user_id
-            OR rc.gitee_user_name = params.gitee_user_name)
+            OR (rc.gitee_user_name != '' and rc.gitee_user_name = params.gitee_user_name))
           AND rc.is_deleted IS false
           AND tm.is_deleted IS false
           AND tm.is_done IS false
