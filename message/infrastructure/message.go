@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	paginator "github.com/dmitryburov/gorm-paginator"
 	"github.com/opensourceways/message-manager/common/user"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/xerrors"
@@ -584,8 +585,6 @@ func filterFollowSql(query *string, isRead *bool, startTime string) {
 
 func (s *messageAdapter) GetAllToDoMessage(userName string, giteeUsername string, isDone *bool,
 	pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
-	var response []MessageListDAO
-
 	query := `with latest_messages as (
     select 
         cem.*,
@@ -602,8 +601,6 @@ func (s *messageAdapter) GetAllToDoMessage(userName string, giteeUsername string
         tm.is_deleted = false
         and rc.is_deleted = false
         and (rc.gitee_user_name = ? OR rc.user_id = ?)
-        and ((cem.type = 'issue' and cem.source = 'https://gitee.com') or cem.
-type = 'pr' or cem.source = 'cve')
 	)
 	select *
 	from latest_messages
@@ -611,11 +608,27 @@ type = 'pr' or cem.source = 'cve')
 	filterTodoSql(&query, isDone, isRead, startTime)
 	query += ` order by updated_at desc`
 
-	if result := postgresql.DB().Debug().Raw(query, giteeUsername, userName).Scan(&response); result.Error != nil {
-		return []MessageListDAO{}, 0, xerrors.Errorf("get todo message failed, err:%v",
-			result.Error)
+	dbEntity := postgresql.DB().Raw(query, userName, giteeUsername)
+	paging := paginator.Paging{
+		Page:  pageNum,
+		Limit: countPerPage,
 	}
-	return pagination(response, pageNum, countPerPage), int64(len(response)), nil
+	var bookList struct {
+		Items      []MessageListDAO      `json:"items"`
+		Pagination *paginator.Pagination `json:"pagination"`
+	}
+
+	var err error
+	bookList.Pagination, err = paginator.Pages(&paginator.Param{
+		DB:     dbEntity,
+		Paging: &paging,
+	}, &bookList.Items)
+	if err != nil {
+		return []MessageListDAO{}, 0, xerrors.Errorf("get todo message failed, err:%v",
+			err) // 返回错误
+	}
+
+	return bookList.Items, bookList.Pagination.TotalRecords, nil // 返回消息列表和总记录数
 }
 
 func (s *messageAdapter) GetAllAboutMessage(userName string, giteeUsername string, isBot *bool,
@@ -985,26 +998,59 @@ func (s *messageAdapter) GetEurMessage(userName string, pageNum,
 	return pagination(response, pageNum, countPerPage), int64(len(response)), nil
 }
 
-func (s *messageAdapter) CountAllMessage(userName, giteeUserName string) (CountDataDAO, error) {
-	isRead := false
-	isDone := false
-	_, todoCountNotDone, _ :=
-		s.GetAllToDoMessage(userName, giteeUserName, &isDone, 1, 0, "", nil)
+func (s *messageAdapter) CountAllMessage(userName string, giteeUserName string) (CountDataDAO, error) {
 
-	_, aboutCount, _ :=
-		s.GetAllAboutMessage(userName, giteeUserName, nil, 1, 0, "", &isRead)
+	response := CountDataDAO{}
+	query := `
+WITH params AS (SELECT ? AS user_id, ? AS gitee_user_name)
+SELECT (SELECT count(*)
+        FROM message_center.follow_message fm
+                 JOIN recipient_config rc ON fm.recipient_id = rc.id
+        WHERE (rc.user_id = params.user_id
+            OR rc.gitee_user_name = params.gitee_user_name)
+          AND rc.is_deleted IS false
+          AND fm.is_deleted IS false
+          AND fm.is_read IS false
+          AND fm.source in ('forum', 'https://eur.openeuler.openatom.cn', 'cve', 'https://gitee.com')) AS watch_count,
 
-	_, watchCount, _ :=
-		s.GetAllWatchMessage(userName, giteeUserName, 1, 0, "", &isRead)
+       (SELECT count(*)
+        FROM message_center.related_message rm
+                 JOIN recipient_config rc ON rm.recipient_id = rc.id
+        WHERE (rc.user_id = params.user_id
+            OR rc.gitee_user_name = params.gitee_user_name)
+          AND rc.is_deleted IS false
+          AND rm.is_deleted IS false
+          AND rm.is_read IS false
+          AND rm.source in ('forum', 'https://gitee.com'))                                             AS about_count,
 
-	_, meetingCount, _ :=
-		s.GetMeetingToDoMessage(userName, 1, 1, 0, "", nil)
-	return CountDataDAO{
-		TodoCount:    todoCountNotDone,
-		AboutCount:   aboutCount,
-		WatchCount:   watchCount,
-		MeetingCount: meetingCount,
-	}, nil
+       (SELECT count(*)
+        FROM message_center.todo_message tm
+                 JOIN recipient_config rc ON tm.recipient_id = rc.id
+                 JOIN cloud_event_message cem ON tm.latest_event_id = cem.event_id
+        WHERE (rc.user_id = params.user_id
+            OR rc.gitee_user_name = params.gitee_user_name)
+          AND rc.is_deleted IS false
+          AND tm.is_deleted IS false
+          AND tm.is_done IS false
+          AND tm.source = 'https://www.openEuler.org/meeting'
+          AND cem.time < current_timestamp)                                                            AS meeting_count,
+
+       (SELECT count(*)
+        FROM message_center.todo_message tm
+                 JOIN recipient_config rc ON tm.recipient_id = rc.id
+        WHERE (rc.user_id = params.user_id
+            OR rc.gitee_user_name = params.gitee_user_name)
+          AND rc.is_deleted IS false
+          AND tm.is_deleted IS false
+          AND tm.is_done IS false
+          AND tm.source in ('forum', 'cve', 'https://gitee.com'))                                      AS todo_count
+FROM params;
+`
+	if result := postgresql.DB().Raw(query, userName, giteeUserName).Scan(&response); result.Error != nil {
+		logrus.Errorf("get count failed, err:%v", result.Error.Error())
+		return CountDataDAO{}, xerrors.Errorf("查询失败, err:%v", result.Error)
+	}
+	return response, nil
 }
 
 func (s *messageAdapter) GetAllMessage(userName string, pageNum, countPerPage int,
