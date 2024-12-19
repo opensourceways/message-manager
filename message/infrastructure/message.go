@@ -542,8 +542,7 @@ func pagination(messages []MessageListDAO, pageNum, countPerPage int) []MessageL
 
 func filterTodoSql(query *string, isDone *bool, isRead *bool, startTime string) {
 	if isDone != nil {
-		*query += fmt.Sprintf(` and ((type <> 'meeting' and is_done=%t) or (
-type = 'meeting' and time >= NOW()))`, *isDone)
+		*query += fmt.Sprintf(` and is_done=%t`, *isDone)
 	}
 	if isRead != nil {
 		*query += fmt.Sprintf(` and is_read = %t`, *isRead)
@@ -605,7 +604,7 @@ func (s *messageAdapter) GetAllToDoMessage(userName string, giteeUsername string
 	)
 	select *
 	from latest_messages
-	where rn = 1`
+	where rn = 1 and type <> 'meeting'`
 	filterTodoSql(&query, isDone, isRead, startTime)
 	query += ` order by updated_at desc`
 
