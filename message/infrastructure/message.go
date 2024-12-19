@@ -816,7 +816,7 @@ func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string, pageNum, 
 	query := `with filtered_recipient as (
     select *
     from recipient_config
-    where not is_deleted and (gitee_user_name = ? or user_id = ?)
+    where not is_deleted and ((gitee_user_name != '' and gitee_user_name = ?) or user_id = ?)
 	),
 	filtered_messages as (
 	    select fm.is_read, cem.*, rc.user_id as user_id, rc.gitee_user_name as gitee_user_name
@@ -933,7 +933,7 @@ func (s *messageAdapter) GetGiteeMessage(userName, giteeUsername string, pageNum
 	query := `with filtered_recipient as (
     select *
     from recipient_config
-    where not is_deleted and (gitee_user_name = ? or user_id = ?)
+    where not is_deleted and ((gitee_user_name != '' and gitee_user_name = ?) or user_id = ?)
 	),
 	filtered_messages as (
 	    select fm.is_read, cem.*, rc.user_id as user_id, rc.gitee_user_name as gitee_user_name
