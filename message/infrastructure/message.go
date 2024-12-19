@@ -1036,8 +1036,7 @@ SELECT (SELECT count(*)
         FROM message_center.todo_message tm
                  JOIN recipient_config rc ON tm.recipient_id = rc.id
                  JOIN cloud_event_message cem ON tm.latest_event_id = cem.event_id
-        WHERE (rc.user_id = params.user_id
-            OR (rc.gitee_user_name != '' and rc.gitee_user_name = params.gitee_user_name))
+        WHERE (rc.gitee_user_name != '' and rc.gitee_user_name = params.gitee_user_name)
           AND rc.is_deleted IS false
           AND tm.is_deleted IS false
           AND tm.is_done IS false
