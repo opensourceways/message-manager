@@ -14,6 +14,7 @@ import (
 	"regexp"
 
 	"github.com/gin-gonic/gin"
+	"github.com/opensourceways/message-manager/common/postgresql"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/xerrors"
 )
@@ -93,7 +94,7 @@ func getManagerToken(appId string, appSecret string) (string, error) {
 	return data.ManagerToken, nil
 }
 
-func GetEulerUserName(ctx *gin.Context) (string, error) {
+func GetSystemUserName(ctx *gin.Context) (string, error) {
 	token := ctx.Request.Header.Get("token")
 	Cookie := ctx.Request.Header.Get("Cookie")
 	var YGCookie string
@@ -106,9 +107,9 @@ func GetEulerUserName(ctx *gin.Context) (string, error) {
 	}
 
 	url := fmt.Sprintf("%s/oneid/manager/personal/center/user?community=%s", config.AuthorHost,
-		config.EulerCommunity)
+		config.Community)
 
-	managerToken, err := getManagerToken(config.EulerAppId, config.EulerAppSecret)
+	managerToken, err := getManagerToken(config.AppId, config.AppSecret)
 	if err != nil {
 		logrus.Errorf("get manager token failed, err:%v", err)
 		return "", err
@@ -149,4 +150,13 @@ func GetEulerUserName(ctx *gin.Context) (string, error) {
 	} else {
 		return data.UserName, nil
 	}
+}
+
+func GetThirdUserName(userName string) (string, error) {
+	var thirdUsername string
+	query := `select gitee_user_name from recipient_config where user_id = ?`
+	if result := postgresql.DB().Raw(query, userName).Scan(&thirdUsername); result.Error != nil {
+		return "", result.Error
+	}
+	return thirdUsername, nil
 }

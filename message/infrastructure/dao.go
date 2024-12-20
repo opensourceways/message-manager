@@ -26,6 +26,7 @@ type MessageListDAO struct {
 	UpdatedAt       time.Time `gorm:"column:updated_at" json:"updated_at" swaggerignore:"true"`
 	IsRead          bool      `gorm:"column:is_read" json:"is_read"`
 	SourceGroup     string    `gorm:"column:source_group" json:"source_group"`
+	TotalCount      int64     `json:"total_count"`
 }
 
 type MessagePushDAO struct {
@@ -78,6 +79,13 @@ type CountDAO struct {
 	Count  int    `json:"count"`
 }
 
+type CountDataDAO struct {
+	TodoCount    int64 `json:"todo_count"`
+	MeetingCount int64 `json:"meeting_count"`
+	AboutCount   int64 `json:"about_count"`
+	WatchCount   int64 `json:"watch_count"`
+}
+
 type CmdToGetInnerMessageQuick struct {
 	Source       string `json:"source"`
 	CountPerPage int    `json:"count_per_page"`
@@ -123,7 +131,6 @@ type CmdToGetInnerMessage struct {
 }
 
 type CmdToSetIsRead struct {
-	Source  string `json:"source"`
 	EventId string `json:"event_id"`
 }
 

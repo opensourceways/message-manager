@@ -46,7 +46,7 @@ type messageRecipientController struct {
 // @Router			/message_center/config/recipient [get]
 // @Id		getRecipientConfig
 func (ctl *messageRecipientController) GetRecipientConfig(ctx *gin.Context) {
-	userName, err := user.GetEulerUserName(ctx)
+	userName, err := user.GetSystemUserName(ctx)
 	if err != nil {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
@@ -89,7 +89,7 @@ func (ctl *messageRecipientController) AddRecipientConfig(ctx *gin.Context) {
 		commonctl.SendBadRequestParam(ctx, xerrors.Errorf("failed to convert req to cmd, %w", err))
 		return
 	}
-	userName, err := user.GetEulerUserName(ctx)
+	userName, err := user.GetSystemUserName(ctx)
 	if err != nil {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
@@ -125,7 +125,7 @@ func (ctl *messageRecipientController) UpdateRecipientConfig(ctx *gin.Context) {
 		commonctl.SendBadRequestParam(ctx, xerrors.Errorf("failed to convert req to cmd, %w", err))
 		return
 	}
-	userName, err := user.GetEulerUserName(ctx)
+	userName, err := user.GetSystemUserName(ctx)
 	if err != nil {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
@@ -161,7 +161,7 @@ func (ctl *messageRecipientController) RemoveRecipientConfig(ctx *gin.Context) {
 		commonctl.SendBadRequestParam(ctx, xerrors.Errorf("failed to convert req to cmd, %w", err))
 		return
 	}
-	userName, err := user.GetEulerUserName(ctx)
+	userName, err := user.GetSystemUserName(ctx)
 	if err != nil {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
