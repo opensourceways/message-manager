@@ -773,7 +773,7 @@ func (s *messageAdapter) GetMeetingToDoMessage(username string, filter int,
 		query += ` and NOW() > time`
 	}
 	filterMeetingTodoSql(&query, nil, isRead, startTime)
-	query += ` order by updated_at desc limit ? offset ?`
+	query += ` order by time limit ? offset ?`
 	giteeUsername, err := user.GetThirdUserName(username)
 	if err != nil {
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
