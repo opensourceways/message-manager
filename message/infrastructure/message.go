@@ -658,7 +658,7 @@ func (s *messageAdapter) GetAllWatchMessage(userName string, giteeUsername strin
         where not is_deleted and (user_id = ? or gitee_user_name = ?)
 	),
 	filtered_messages as (
-	    select fm.is_read, cem.*, rc.user_id as user_id, rc.gitee_user_name as gitee_user_name
+	    select fm.is_read, cem.*
 	    from follow_message fm
 	    join cloud_event_message cem on cem.event_id = fm.event_id
 	    join filtered_recipient rc on rc.id = fm.recipient_id
@@ -693,7 +693,7 @@ func (s *messageAdapter) GetForumSystemMessage(userName string, pageNum,
     where not is_deleted and user_id = ?
 	),
 	filtered_messages as (
-	    select fm.is_read, cem.*, rc.user_id as user_id, rc.gitee_user_name as gitee_user_name
+	    select fm.is_read, cem.*
 	    from follow_message fm
 	    join cloud_event_message cem on cem.event_id = fm.event_id
 	    join filtered_recipient rc on rc.id = fm.recipient_id
@@ -838,7 +838,7 @@ func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string, pageNum, 
     where not is_deleted and ((gitee_user_name != '' and gitee_user_name = ?) or user_id = ?)
 	),
 	filtered_messages as (
-	    select fm.is_read, cem.*, rc.user_id as user_id, rc.gitee_user_name as gitee_user_name
+	    select fm.is_read, cem.*
 	    from follow_message fm
 	    join cloud_event_message cem on cem.event_id = fm.event_id
 	    join filtered_recipient rc on rc.id = fm.recipient_id
@@ -979,7 +979,7 @@ func (s *messageAdapter) GetGiteeMessage(userName, giteeUsername string, pageNum
     where not is_deleted and ((gitee_user_name != '' and gitee_user_name = ?) or user_id = ?)
 	),
 	filtered_messages as (
-	    select fm.is_read, cem.*, rc.user_id as user_id, rc.gitee_user_name as gitee_user_name
+	    select fm.is_read, cem.*
 	    from follow_message fm
 	    join cloud_event_message cem on cem.event_id = fm.event_id
 	    join filtered_recipient rc on rc.id = fm.recipient_id
@@ -1014,7 +1014,7 @@ func (s *messageAdapter) GetEurMessage(userName string, pageNum,
     where not is_deleted and user_id = ?
 	),
 	filtered_messages as (
-	    select fm.is_read, cem.*, rc.user_id as user_id, rc.gitee_user_name as gitee_user_name
+	    select fm.is_read, cem.*
 	    from follow_message fm
 	    join cloud_event_message cem on cem.event_id = fm.event_id
 	    join filtered_recipient rc on rc.id = fm.recipient_id
