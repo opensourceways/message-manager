@@ -609,7 +609,7 @@ func (s *messageAdapter) GetAllToDoMessage(userName string, giteeUsername string
 
 func (s *messageAdapter) GetAllAboutMessage(userName string, giteeUsername string, isBot *bool,
 	pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
-	query := `select cem.*, rm.is_read, count(*) from cloud_event_message cem
+	query := `select cem.*, rm.is_read, count(*) over () as total_count from cloud_event_message cem
 		join message_center.related_message rm on cem.event_id = rm.event_id
 		join message_center.recipient_config rc on rm.recipient_id = rc.id
 		where rm.is_deleted = false
@@ -634,7 +634,7 @@ func (s *messageAdapter) GetAllAboutMessage(userName string, giteeUsername strin
 	}
 	query += `))`
 	filterAboutSql(&query, isRead, startTime)
-	query += ` order by cem.updated_at desc limit ? offset ?`
+	query += ` order by .updated_at desc limit ? offset ?`
 	offset := (pageNum - 1) * countPerPage
 	var response []MessageListDAO
 	if result := postgresql.DB().Raw(query, giteeUsername, userName, userName, countPerPage,
