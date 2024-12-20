@@ -634,7 +634,7 @@ func (s *messageAdapter) GetAllAboutMessage(userName string, giteeUsername strin
 	}
 	query += `))`
 	filterAboutSql(&query, isRead, startTime)
-	query += ` order by .updated_at desc limit ? offset ?`
+	query += ` order by updated_at desc limit ? offset ?`
 	offset := (pageNum - 1) * countPerPage
 	var response []MessageListDAO
 	if result := postgresql.DB().Raw(query, giteeUsername, userName, userName, countPerPage,
