@@ -611,7 +611,7 @@ type = 'pr' or cem.source = 'cve')
 	filterTodoSql(&query, isDone, isRead, startTime)
 	query += ` order by updated_at desc`
 
-	if result := postgresql.DB().Debug().Raw(query, giteeUsername, userName).Scan(&response); result.Error != nil {
+	if result := postgresql.DB().Raw(query, giteeUsername, userName).Scan(&response); result.Error != nil {
 		return []MessageListDAO{}, 0, xerrors.Errorf("get todo message failed, err:%v",
 			result.Error)
 	}
@@ -649,7 +649,7 @@ func (s *messageAdapter) GetAllAboutMessage(userName string, giteeUsername strin
 	filterAboutSql(&query, isRead, startTime)
 	query += ` order by cem.updated_at desc`
 
-	if result := postgresql.DB().Debug().Raw(query, giteeUsername, userName,
+	if result := postgresql.DB().Raw(query, giteeUsername, userName,
 		userName).Scan(&response); result.Error != nil {
 		return []MessageListDAO{}, 0, xerrors.Errorf("get about message failed, err:%v", result.Error)
 	}
@@ -736,7 +736,7 @@ func (s *messageAdapter) GetForumAboutMessage(userName string, isBot *bool, page
 	}
 	filterAboutSql(&query, isRead, startTime)
 	query += ` order by time desc`
-	if result := postgresql.DB().Raw(query, userName).Scan(&response); result.Error != nil {
+	if result := postgresql.DB().Debug().Raw(query, userName).Scan(&response); result.Error != nil {
 		logrus.Errorf("get message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
@@ -830,7 +830,8 @@ func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string, pageNum, 
 	where source = 'cve'`
 	filterFollowSql(&query, isRead, startTime)
 	query += ` order by updated_at desc`
-	if result := postgresql.DB().Raw(query, giteeUsername, userName).Scan(&response); result.
+	if result := postgresql.DB().Debug().Raw(query, giteeUsername,
+		userName).Scan(&response); result.
 		Error != nil {
 		logrus.Errorf("get message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
@@ -947,8 +948,8 @@ func (s *messageAdapter) GetGiteeMessage(userName, giteeUsername string, pageNum
 	where source = 'https://gitee.com'`
 	filterFollowSql(&query, isRead, startTime)
 	query += ` order by updated_at desc`
-	if result := postgresql.DB().Raw(query, giteeUsername, userName).Scan(&response); result.
-		Error != nil {
+	if result := postgresql.DB().Debug().Raw(query, giteeUsername, userName).
+		Scan(&response); result.Error != nil {
 		logrus.Errorf("get message failed, err:%v", result.Error.Error())
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
@@ -984,28 +985,6 @@ func (s *messageAdapter) GetEurMessage(userName string, pageNum,
 	}
 	return pagination(response, pageNum, countPerPage), int64(len(response)), nil
 }
-
-//func (s *messageAdapter) CountAllMessage(userName, giteeUserName string) (CountDataDAO, error) {
-//	isRead := false
-//	isDone := false
-//	_, todoCountNotDone, _ :=
-//		s.GetAllToDoMessage(userName, giteeUserName, &isDone, 1, 0, "", nil)
-//
-//	_, aboutCount, _ :=
-//		s.GetAllAboutMessage(userName, giteeUserName, nil, 1, 0, "", &isRead)
-//
-//	_, watchCount, _ :=
-//		s.GetAllWatchMessage(userName, giteeUserName, 1, 0, "", &isRead)
-//
-//	_, meetingCount, _ :=
-//		s.GetMeetingToDoMessage(userName, 1, 1, 0, "", nil)
-//	return CountDataDAO{
-//		TodoCount:    todoCountNotDone,
-//		AboutCount:   aboutCount,
-//		WatchCount:   watchCount,
-//		MeetingCount: meetingCount,
-//	}, nil
-//}
 
 func (s *messageAdapter) CountAllMessage(userName string, giteeUserName string) (CountDataDAO, error) {
 
