@@ -928,9 +928,6 @@ func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, is
 func (s *messageAdapter) GetGiteeMessage(userName, giteeUsername string, pageNum,
 	countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	var response []MessageListDAO
-	if giteeUsername == "" {
-		return []MessageListDAO{}, 0, nil
-	}
 	query := `with filtered_recipient as (
     select *
     from recipient_config
