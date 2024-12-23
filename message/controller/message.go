@@ -214,17 +214,6 @@ func (ctl *messageListController) RemoveMessage(ctx *gin.Context) {
 	ctx.JSON(http.StatusAccepted, gin.H{"message": "消息删除成功"})
 }
 
-// GetForumSystemMessage get form system message
-// @Summary			GetForumSystemMessage
-// @Description		get forum system message 获取论坛系统通知消息
-// @Tags			message_center_openeuler_summit
-// @Param			body body QueryParams true "QueryParams"
-// @Accept			json
-// @Success			202	string accepted 查询成功
-// @Failure         400 string bad_request 无法解析请求正文
-// @Failure			500	string system_error  查询失败
-// @Router			/message_center/inner/forum/system [get]
-// @Id	    getForumSystemMessage
 func (ctl *messageListController) GetForumSystemMessage(ctx *gin.Context) {
 	userName, err := user.GetEulerUserName(ctx)
 	if err != nil {
@@ -244,17 +233,6 @@ func (ctl *messageListController) GetForumSystemMessage(ctx *gin.Context) {
 	}
 }
 
-// GetForumAboutMessage get form about message
-// @Summary			GetForumAboutMessage
-// @Description		get forum about message 获取论坛提到我的消息
-// @Tags			message_center_openeuler_summit
-// @Param			body body QueryParams true "QueryParams"
-// @Accept			json
-// @Success			202	string accepted 查询成功
-// @Failure         400 string bad_request 无法解析请求正文
-// @Failure			500	string system_error  查询失败
-// @Router			/message_center/inner/forum/about [get]
-// @Id	    getForumAboutMessage
 func (ctl *messageListController) GetForumAboutMessage(ctx *gin.Context) {
 	userName, err := user.GetEulerUserName(ctx)
 	if err != nil {
@@ -274,17 +252,6 @@ func (ctl *messageListController) GetForumAboutMessage(ctx *gin.Context) {
 	}
 }
 
-// GetMeetingToDoMessage get meeting to do message
-// @Summary			GetMeetingToDoMessage
-// @Description		get meeting to do message 获取待参加的会议消息
-// @Tags			message_center_openeuler_summit
-// @Param			body body QueryParams true "QueryParams"
-// @Accept			json
-// @Success			202	string accepted 查询成功
-// @Failure         400 string bad_request 无法解析请求正文
-// @Failure			500	string system_error  查询失败
-// @Router			/message_center/inner/meeting/todo [get]
-// @Id	    getMeetingToDoMessage
 func (ctl *messageListController) GetMeetingToDoMessage(ctx *gin.Context) {
 	userName, err := user.GetEulerUserName(ctx)
 	if err != nil {
@@ -304,17 +271,6 @@ func (ctl *messageListController) GetMeetingToDoMessage(ctx *gin.Context) {
 	}
 }
 
-// GetCVEToDoMessage get cve to do message
-// @Summary			GetCVEToDoMessage
-// @Description		get cve to do message 获取待我处理的漏洞消息
-// @Tags			message_center_openeuler_summit
-// @Param			body body QueryParams true "QueryParams"
-// @Accept			json
-// @Success			202	string accepted 查询成功
-// @Failure         400 string bad_request 无法解析请求正文
-// @Failure			500	string system_error  查询失败
-// @Router			/message_center/inner/cve/todo [get]
-// @Id	    getCVEToDoMessage
 func (ctl *messageListController) GetCVEToDoMessage(ctx *gin.Context) {
 	userName, err := user.GetEulerUserName(ctx)
 	if err != nil {
@@ -335,17 +291,6 @@ func (ctl *messageListController) GetCVEToDoMessage(ctx *gin.Context) {
 	}
 }
 
-// GetCVEMessage get cve message
-// @Summary			GetCVEMessage
-// @Description		get cve message 获取漏洞关注消息
-// @Tags			message_center_openeuler_summit
-// @Param			body body QueryParams true "QueryParams"
-// @Accept			json
-// @Success			202	string accepted 查询成功
-// @Failure         400 string bad_request 无法解析请求正文
-// @Failure			500	string system_error  查询失败
-// @Router			/message_center/inner/cve [get]
-// @Id	    getCVEMessage
 func (ctl *messageListController) GetCVEMessage(ctx *gin.Context) {
 	userName, err := user.GetEulerUserName(ctx)
 	if err != nil {
@@ -366,17 +311,6 @@ func (ctl *messageListController) GetCVEMessage(ctx *gin.Context) {
 	}
 }
 
-// GetIssueToDoMessage get issue to do message
-// @Summary			GetIssueToDoMessage
-// @Description		get issue to do message 获取待我处理的issue
-// @Tags			message_center_openeuler_summit
-// @Param			body body QueryParams true "QueryParams"
-// @Accept			json
-// @Success			202	string accepted 查询成功
-// @Failure         400 string bad_request 无法解析请求正文
-// @Failure			500	string system_error  查询失败
-// @Router			/message_center/inner/issue/todo [get]
-// @Id	    getIssueToDoMessage
 func (ctl *messageListController) GetIssueToDoMessage(ctx *gin.Context) {
 	userName, err := user.GetEulerUserName(ctx)
 	if err != nil {
@@ -397,17 +331,6 @@ func (ctl *messageListController) GetIssueToDoMessage(ctx *gin.Context) {
 	}
 }
 
-// GetPullRequestToDoMessage get pull request to do message
-// @Summary			GetPullRequestToDoMessage
-// @Description		get pull request to do message 获取待我处理的pr
-// @Tags			message_center_openeuler_summit
-// @Param			body body QueryParams true "QueryParams"
-// @Accept			json
-// @Success			202	string accepted 查询成功
-// @Failure         400 string bad_request 无法解析请求正文
-// @Failure			500	string system_error  查询失败
-// @Router			/message_center/inner/pull_request/todo [get]
-// @Id	    getPullRequestToDoMessage
 func (ctl *messageListController) GetPullRequestToDoMessage(ctx *gin.Context) {
 	userName, err := user.GetEulerUserName(ctx)
 	if err != nil {
@@ -429,17 +352,6 @@ func (ctl *messageListController) GetPullRequestToDoMessage(ctx *gin.Context) {
 	}
 }
 
-// GetGiteeAboutMessage get gitee about message
-// @Summary			GetGiteeAboutMessage
-// @Description		get gitee about message 获取gitee提到我的
-// @Tags			message_center_openeuler_summit
-// @Param			body body QueryParams true "QueryParams"
-// @Accept			json
-// @Success			202	string accepted 查询成功
-// @Failure         400 string bad_request 无法解析请求正文
-// @Failure			500	string system_error  查询失败
-// @Router			/message_center/inner/gitee/about [get]
-// @Id	    getGiteeAboutMessage
 func (ctl *messageListController) GetGiteeAboutMessage(ctx *gin.Context) {
 	userName, err := user.GetEulerUserName(ctx)
 	if err != nil {
@@ -459,17 +371,6 @@ func (ctl *messageListController) GetGiteeAboutMessage(ctx *gin.Context) {
 	}
 }
 
-// GetGiteeMessage get gitee message
-// @Summary			GetGiteeMessage
-// @Description		get gitee message 获取gitee 动态消息
-// @Tags			message_center_openeuler_summit
-// @Param			body body QueryParams true "QueryParams"
-// @Accept			json
-// @Success			202	string accepted 查询成功
-// @Failure         400 string bad_request 无法解析请求正文
-// @Failure			500	string system_error  查询失败
-// @Router			/message_center/inner/gitee [get]
-// @Id	    getGiteeMessage
 func (ctl *messageListController) GetGiteeMessage(ctx *gin.Context) {
 	userName, err := user.GetEulerUserName(ctx)
 	if err != nil {
@@ -490,17 +391,6 @@ func (ctl *messageListController) GetGiteeMessage(ctx *gin.Context) {
 	}
 }
 
-// GetEurMessage get eur message
-// @Summary			GetEurMessage
-// @Description		get eur message 获取eur关注消息
-// @Tags			message_center_openeuler_summit
-// @Param			body body QueryParams true "QueryParams"
-// @Accept			json
-// @Success			202	string accepted 查询成功
-// @Failure         400 string bad_request 无法解析请求正文
-// @Failure			500	string system_error  查询失败
-// @Router			/message_center/inner/eur [get]
-// @Id	    getEurMessage
 func (ctl *messageListController) GetEurMessage(ctx *gin.Context) {
 	userName, err := user.GetEulerUserName(ctx)
 	if err != nil {
@@ -520,17 +410,6 @@ func (ctl *messageListController) GetEurMessage(ctx *gin.Context) {
 	}
 }
 
-// GetAllTodoMessage get alltodo message
-// @Summary			GetAllTodoMessage
-// @Description		get all todo message 获取所有待办消息
-// @Tags			message_center_openeuler_summit
-// @Param			body body QueryParams true "QueryParams"
-// @Accept			json
-// @Success			202	string accepted 查询成功
-// @Failure         400 string bad_request 无法解析请求正文
-// @Failure			500	string system_error  查询失败
-// @Router			/message_center/inner/todo [get]
-// @Id	    getAllTodoMessage
 func (ctl *messageListController) GetAllTodoMessage(ctx *gin.Context) {
 	var params QueryParams
 	if err := ctx.ShouldBindQuery(&params); err != nil {
@@ -550,17 +429,6 @@ func (ctl *messageListController) GetAllTodoMessage(ctx *gin.Context) {
 	}
 }
 
-// GetAllAboutMessage get all about message
-// @Summary			GetAllAboutMessage
-// @Description		get all about message 获取所有提到我的消息
-// @Tags			message_center_openeuler_summit
-// @Param			body body QueryParams true "QueryParams"
-// @Accept			json
-// @Success			202	string accepted 查询成功
-// @Failure         400 string bad_request 无法解析请求正文
-// @Failure			500	string system_error  查询失败
-// @Router			/message_center/inner/about [get]
-// @Id	    getAllAboutMessage
 func (ctl *messageListController) GetAllAboutMessage(ctx *gin.Context) {
 	var params QueryParams
 	if err := ctx.ShouldBindQuery(&params); err != nil {
@@ -580,17 +448,6 @@ func (ctl *messageListController) GetAllAboutMessage(ctx *gin.Context) {
 	}
 }
 
-// GetAllWatchMessage get all watch message
-// @Summary			GetAllWatchMessage
-// @Description		get all watch message 获取所有关注消息
-// @Tags			message_center_openeuler_summit
-// @Param			body body QueryParams true "QueryParams"
-// @Accept			json
-// @Success			202	string accepted 查询成功
-// @Failure         400 string bad_request 无法解析请求正文
-// @Failure			500	string system_error  查询失败
-// @Router			/message_center/inner/watch [get]
-// @Id	    getAllWatchMessage
 func (ctl *messageListController) GetAllWatchMessage(ctx *gin.Context) {
 	var params QueryParams
 	if err := ctx.ShouldBindQuery(&params); err != nil {
@@ -610,17 +467,6 @@ func (ctl *messageListController) GetAllWatchMessage(ctx *gin.Context) {
 	}
 }
 
-// CountAllMessage count all message
-// @Summary			CountAllMessage
-// @Description		count all message 获取所有消息分类数量
-// @Tags			message_center_openeuler_summit
-// @Param			body body QueryParams true "QueryParams"
-// @Accept			json
-// @Success			202	string accepted 查询成功
-// @Failure         400 string bad_request 无法解析请求正文
-// @Failure			500	string system_error  查询失败
-// @Router			/message_center/inner/count [get]
-// @Id	    countAllMessage
 func (ctl *messageListController) CountAllMessage(ctx *gin.Context) {
 	var params QueryParams
 	if err := ctx.ShouldBindQuery(&params); err != nil {
