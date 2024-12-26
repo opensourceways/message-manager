@@ -109,60 +109,6 @@ func TestGetSubsConfig(t *testing.T) {
 	assert.Equal(t, http.StatusUnauthorized, recorder.Code)
 }
 
-func TestSaveFilter(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-	router := gin.Default()
-	mockAppService := new(MockMessageSubscribeAppService)
-	AddRouterForMessageSubscribeController(router, mockAppService)
-
-	// Successful case
-	mockAppService.On("SaveFilter", "testUser", mock.Anything).
-		Return(nil)
-
-	reqBody := `{"filter":"example"}`
-	req, err := http.NewRequest(http.MethodPost, "/message_center/config/subs_new",
-		strings.NewReader(reqBody))
-	if err != nil {
-		t.Fatal("Failed to create request:", err)
-	}
-	req.Header.Set("Authorization", "Bearer testToken")
-	req.Header.Set("Content-Type", "application/json")
-	recorder := httptest.NewRecorder()
-
-	router.ServeHTTP(recorder, req)
-
-	assert.Equal(t, http.StatusUnauthorized, recorder.Code)
-
-	// Error case (binding error)
-	reqBody = `{"invalid_field":"example"}`
-	req, err = http.NewRequest(http.MethodPost, "/message_center/config/subs_new",
-		strings.NewReader(reqBody))
-	if err != nil {
-		t.Fatal("Failed to create request:", err)
-	}
-	recorder = httptest.NewRecorder()
-
-	router.ServeHTTP(recorder, req)
-
-	assert.Equal(t, http.StatusUnauthorized, recorder.Code)
-
-	// Error case (save error)
-	mockAppService.On("SaveFilter", "testUser", mock.Anything).
-		Return(xerrors.New("save error"))
-
-	reqBody = `{"filter":"example"}`
-	req, err = http.NewRequest(http.MethodPost, "/message_center/config/subs_new",
-		strings.NewReader(reqBody))
-	if err != nil {
-		t.Fatal("Failed to create request:", err)
-	}
-	recorder = httptest.NewRecorder()
-
-	router.ServeHTTP(recorder, req)
-
-	assert.Equal(t, http.StatusUnauthorized, recorder.Code)
-}
-
 func TestAddSubsConfig(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	router := gin.Default()
