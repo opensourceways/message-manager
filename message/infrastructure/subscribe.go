@@ -22,7 +22,6 @@ func MessageSubscribeAdapter() *messageSubscribeAdapter {
 type messageSubscribeAdapter struct{}
 
 func (ctl *messageSubscribeAdapter) GetAllSubsConfig(userName string) ([]MessageSubscribeDAO, error) {
-
 	var response []MessageSubscribeDAO
 	query := postgresql.DB().Table("message_center.subscribe_config").
 		Where("user_name = ? OR user_name IS NULL", userName).
@@ -31,31 +30,26 @@ func (ctl *messageSubscribeAdapter) GetAllSubsConfig(userName string) ([]Message
 	if result := query.Order("subscribe_config.id").Find(&response); result.Error != nil {
 		return []MessageSubscribeDAO{}, xerrors.Errorf("查询失败")
 	}
-
 	return response, nil
 }
 
 func (ctl *messageSubscribeAdapter) GetSubsConfig(userName string) ([]MessageSubscribeDAOWithPushConfig, int64, error) {
 	var response []MessageSubscribeDAOWithPushConfig
-
 	query := postgresql.DB().Table("message_center.subscribe_config").
 		Select("subscribe_config.*, (SELECT push_config.need_mail FROM message_center."+
 			"push_config WHERE push_config.subscribe_id = subscribe_config.id LIMIT 1) AS need_mail").
 		Where("subscribe_config.is_deleted = ? AND subscribe_config.user_name = ?",
 			false, userName)
-
 	var Count int64
 	query.Count(&Count)
 	if result := query.Order("subscribe_config.id").Find(&response); result.Error != nil {
 		return []MessageSubscribeDAOWithPushConfig{}, 0, xerrors.Errorf("查询失败")
 	}
-
 	return response, Count, nil
 }
 
 func (ctl *messageSubscribeAdapter) AddSubsConfig(cmd CmdToAddSubscribe, userName string) ([]uint, error) {
 	var existData MessageSubscribeDAO
-
 	if result := postgresql.DB().Table("message_center.subscribe_config").
 		Where(gorm.Expr("is_deleted = ?", false)).
 		Where("source = ? AND mode_name = ?", cmd.Source, cmd.ModeName).
@@ -63,7 +57,6 @@ func (ctl *messageSubscribeAdapter) AddSubsConfig(cmd CmdToAddSubscribe, userNam
 		Scan(&existData); result.RowsAffected != 0 {
 		return []uint{}, xerrors.Errorf("新增配置失败")
 	}
-
 	var subscribeIds []uint
 	lType := strings.Split(cmd.EventType, ",")
 	for _, et := range lType {
@@ -80,7 +73,6 @@ func (ctl *messageSubscribeAdapter) AddSubsConfig(cmd CmdToAddSubscribe, userNam
 		if result.Error != nil {
 			return []uint{}, xerrors.Errorf("新增配置失败")
 		}
-
 		var id uint
 		postgresql.DB().Table("message_center.subscribe_config").
 			Debug().

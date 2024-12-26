@@ -36,7 +36,6 @@ func (s *messageAdapter) CountAllUnReadMessage(userName string) ([]CountDAO, err
 	}
 	return CountData, nil
 }
-
 func (s *messageAdapter) SetMessageIsRead(source, eventId string) error {
 	if result := postgresql.DB().Table("message_center.inner_message").
 		Where("inner_message.source = ? AND inner_message.event_id = ?", source,
@@ -46,7 +45,6 @@ func (s *messageAdapter) SetMessageIsRead(source, eventId string) error {
 	}
 	return nil
 }
-
 func (s *messageAdapter) RemoveMessage(source, eventId string) error {
 	if result := postgresql.DB().Table("message_center.inner_message").
 		Where("inner_message.source = ? AND inner_message."+
@@ -109,7 +107,6 @@ func (s *messageAdapter) GetAllAboutMessage(userName string, giteeUsername strin
 	}
 	response = append(response, giteeAbout...)
 	response = append(response, forumAbout...)
-
 	return pagination(response, pageNum, countPerPage), giteeCount + forumCount, nil
 }
 
@@ -151,16 +148,13 @@ func (s *messageAdapter) GetForumSystemMessage(userName string, pageNum,
 		join message_center.recipient_config rc on rc.id = im.recipient_id
 		where im.is_deleted = false and rc.is_deleted = false and cem.source = 'forum'
 		  and rc.user_id = ? and cem.type IN ('12','24','37')`
-
 	if startTime != "" {
 		query += fmt.Sprintf(` and cem.time >= '%s'`, *utils.ParseUnixTimestampNew(startTime))
 	}
 	if isRead != nil && *isRead == false {
 		query += ` and im.is_read = false`
 	}
-
 	query += ` order by time desc`
-
 	if result := postgresql.DB().Raw(query, userName).Scan(&response); result.Error != nil {
 		return []MessageListDAO{}, 0, xerrors.Errorf("查询失败, err:%v",
 			result.Error)
@@ -288,7 +282,6 @@ func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string, pageNum, 
 	if isRead != nil && *isRead == false {
 		query += ` and im.is_read = false`
 	}
-
 	query += ` order by cem.updated_at desc`
 	if result := postgresql.DB().Raw(query, giteeUsername, userName).Scan(&response); result.
 		Error != nil {
@@ -472,11 +465,8 @@ func (s *messageAdapter) GetEurMessage(userName string, pageNum,
 func (s *messageAdapter) CountAllMessage(userName, giteeUserName string) (CountDataDAO, error) {
 	isRead := false
 	_, todoCountNotDone, _ := s.GetAllToDoMessage(userName, giteeUserName, false, 1, 0, "")
-
 	_, aboutCount, _ := s.GetAllAboutMessage(userName, giteeUserName, nil, 1, 0, "", &isRead)
-
 	_, watchCount, _ := s.GetAllWatchMessage(userName, giteeUserName, 1, 0, "", &isRead)
-
 	_, meetingCount, _ := s.GetMeetingToDoMessage(userName, 1, 1, 0)
 	return CountDataDAO{
 		TodoCount:    todoCountNotDone,

@@ -120,12 +120,10 @@ func (ctl *messageListController) SetMessageIsRead(ctx *gin.Context) {
 // @Id	    removeMessage
 func (ctl *messageListController) RemoveMessage(ctx *gin.Context) {
 	var messages []messageStatus
-
 	if err := ctx.BindJSON(&messages); err != nil {
 		commonctl.SendBadRequestParam(ctx, xerrors.Errorf("无法解析请求正文"))
 		return
 	}
-
 	for _, msg := range messages {
 		cmd, err := msg.toCmd()
 		if err != nil {
@@ -141,7 +139,6 @@ func (ctl *messageListController) RemoveMessage(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusAccepted, gin.H{"message": "消息删除成功"})
 }
-
 func (ctl *messageListController) GetForumSystemMessage(ctx *gin.Context) {
 	userName, err := user.GetEulerUserName(ctx)
 	if err != nil {
@@ -160,7 +157,6 @@ func (ctl *messageListController) GetForumSystemMessage(ctx *gin.Context) {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
 	}
 }
-
 func (ctl *messageListController) GetForumAboutMessage(ctx *gin.Context) {
 	userName, err := user.GetEulerUserName(ctx)
 	if err != nil {
@@ -179,7 +175,6 @@ func (ctl *messageListController) GetForumAboutMessage(ctx *gin.Context) {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
 	}
 }
-
 func (ctl *messageListController) GetMeetingToDoMessage(ctx *gin.Context) {
 	userName, err := user.GetEulerUserName(ctx)
 	if err != nil {
@@ -198,7 +193,6 @@ func (ctl *messageListController) GetMeetingToDoMessage(ctx *gin.Context) {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
 	}
 }
-
 func (ctl *messageListController) GetCVEToDoMessage(ctx *gin.Context) {
 	userName, err := user.GetEulerUserName(ctx)
 	if err != nil {
@@ -210,7 +204,6 @@ func (ctl *messageListController) GetCVEToDoMessage(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
 	if data, count, err := ctl.appService.GetCVEToDoMessage(userName, params.GiteeUserName,
 		params.IsDone, params.PageNum, params.CountPerPage, params.StartTime); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
@@ -218,7 +211,6 @@ func (ctl *messageListController) GetCVEToDoMessage(ctx *gin.Context) {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
 	}
 }
-
 func (ctl *messageListController) GetCVEMessage(ctx *gin.Context) {
 	userName, err := user.GetEulerUserName(ctx)
 	if err != nil {
@@ -230,7 +222,6 @@ func (ctl *messageListController) GetCVEMessage(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
 	if data, count, err := ctl.appService.GetCVEMessage(userName, params.GiteeUserName,
 		params.PageNum, params.CountPerPage, params.StartTime, params.IsRead); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
@@ -238,7 +229,6 @@ func (ctl *messageListController) GetCVEMessage(ctx *gin.Context) {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
 	}
 }
-
 func (ctl *messageListController) GetIssueToDoMessage(ctx *gin.Context) {
 	userName, err := user.GetEulerUserName(ctx)
 	if err != nil {
@@ -250,7 +240,6 @@ func (ctl *messageListController) GetIssueToDoMessage(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
 	if data, count, err := ctl.appService.GetIssueToDoMessage(userName, params.GiteeUserName,
 		params.IsDone, params.PageNum, params.CountPerPage, params.StartTime); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
@@ -258,7 +247,6 @@ func (ctl *messageListController) GetIssueToDoMessage(ctx *gin.Context) {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
 	}
 }
-
 func (ctl *messageListController) GetPullRequestToDoMessage(ctx *gin.Context) {
 	userName, err := user.GetEulerUserName(ctx)
 	if err != nil {
@@ -270,7 +258,6 @@ func (ctl *messageListController) GetPullRequestToDoMessage(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
 	if data, count, err := ctl.appService.GetPullRequestToDoMessage(userName,
 		params.GiteeUserName, params.IsDone, params.PageNum, params.CountPerPage,
 		params.StartTime); err != nil {
@@ -279,7 +266,6 @@ func (ctl *messageListController) GetPullRequestToDoMessage(ctx *gin.Context) {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
 	}
 }
-
 func (ctl *messageListController) GetGiteeAboutMessage(ctx *gin.Context) {
 	userName, err := user.GetEulerUserName(ctx)
 	if err != nil {
@@ -298,7 +284,6 @@ func (ctl *messageListController) GetGiteeAboutMessage(ctx *gin.Context) {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
 	}
 }
-
 func (ctl *messageListController) GetGiteeMessage(ctx *gin.Context) {
 	userName, err := user.GetEulerUserName(ctx)
 	if err != nil {
@@ -318,7 +303,6 @@ func (ctl *messageListController) GetGiteeMessage(ctx *gin.Context) {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
 	}
 }
-
 func (ctl *messageListController) GetEurMessage(ctx *gin.Context) {
 	userName, err := user.GetEulerUserName(ctx)
 	if err != nil {
@@ -337,7 +321,6 @@ func (ctl *messageListController) GetEurMessage(ctx *gin.Context) {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
 	}
 }
-
 func (ctl *messageListController) GetAllTodoMessage(ctx *gin.Context) {
 	var params QueryParams
 	if err := ctx.ShouldBindQuery(&params); err != nil {
@@ -356,7 +339,6 @@ func (ctl *messageListController) GetAllTodoMessage(ctx *gin.Context) {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
 	}
 }
-
 func (ctl *messageListController) GetAllAboutMessage(ctx *gin.Context) {
 	var params QueryParams
 	if err := ctx.ShouldBindQuery(&params); err != nil {
@@ -375,7 +357,6 @@ func (ctl *messageListController) GetAllAboutMessage(ctx *gin.Context) {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
 	}
 }
-
 func (ctl *messageListController) GetAllWatchMessage(ctx *gin.Context) {
 	var params QueryParams
 	if err := ctx.ShouldBindQuery(&params); err != nil {
@@ -394,7 +375,6 @@ func (ctl *messageListController) GetAllWatchMessage(ctx *gin.Context) {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
 	}
 }
-
 func (ctl *messageListController) CountAllMessage(ctx *gin.Context) {
 	var params QueryParams
 	if err := ctx.ShouldBindQuery(&params); err != nil {

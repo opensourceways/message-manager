@@ -21,9 +21,7 @@ type MessageListAppService interface {
 		pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDTO, int64, error)
 	GetAllWatchMessage(userName string, giteeUsername string,
 		pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDTO, int64, error)
-
 	CountAllMessage(userName string, giteeUsername string) (CountDataDTO, error)
-
 	GetForumSystemMessage(userName string, pageNum, countPerPage int,
 		startTime string, isRead *bool) ([]MessageListDTO, int64, error)
 	GetForumAboutMessage(userName string, isBot *bool, pageNum,

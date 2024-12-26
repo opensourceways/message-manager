@@ -8,14 +8,12 @@ type MessageListAdapter interface {
 	CountAllUnReadMessage(userName string) ([]CountDO, error)
 	SetMessageIsRead(source, eventId string) error
 	RemoveMessage(source, eventId string) error
-
 	GetAllToDoMessage(userName, giteeUsername string, isDone bool, pageNum,
 		countPerPage int, startTime string) ([]MessageListDO, int64, error)
 	GetAllAboutMessage(userName, giteeUsername string, isBot *bool, pageNum,
 		countPerPage int, startTime string, isRead *bool) ([]MessageListDO, int64, error)
 	GetAllWatchMessage(userName, giteeUsername string, pageNum, countPerPage int,
 		startTime string, isRead *bool) ([]MessageListDO, int64, error)
-
 	GetForumSystemMessage(userName string, pageNum, countPerPage int,
 		startTime string, isRead *bool) ([]MessageListDO, int64, error)
 	GetForumAboutMessage(userName string, isBot *bool, pageNum,

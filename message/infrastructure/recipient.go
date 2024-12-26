@@ -129,11 +129,9 @@ func (ctl *messageRecipientAdapter) SyncUserInfo(cmd CmdToSyncUserInfo) (uint, e
 		}
 		getTable().Create(&newInfo)
 	}
-
 	var id uint
 	getTable().Where(gorm.Expr("is_deleted = ?", false)).
 		Where("user_id = ?", cmd.UserName).Select("id").Scan(&id)
-
 	subscribeDefault(id, cmd.UserName, cmd.GiteeUserName)
 
 	return id, nil
@@ -165,7 +163,6 @@ func addPushConfig(subsId int, recipientId int64) error {
 	*needPhone = false
 	*needMail = false
 	*needInnerMessage = true
-
 	var existData MessagePushDAO
 	if result := postgresql.DB().Table("message_center.push_config").
 		Where(gorm.Expr("is_deleted = ?", false)).
@@ -174,7 +171,6 @@ func addPushConfig(subsId int, recipientId int64) error {
 		logrus.Errorf("the exist data is %v", existData)
 		return nil
 	}
-
 	if result := postgresql.DB().Table("message_center.push_config").
 		Create(MessagePushDAO{
 			SubscribeId:      subsId,
@@ -202,7 +198,6 @@ func subscribeDefault(recipientId uint, userName string, giteeUserName string) {
 		logrus.Errorf("get default filter failed, err:%v", err)
 		return
 	}
-
 	for _, subs := range defaultFilter {
 		var existData MessageSubscribeDAO
 		if result := postgresql.DB().Table("message_center.subscribe_config").
@@ -212,7 +207,6 @@ func subscribeDefault(recipientId uint, userName string, giteeUserName string) {
 			Scan(&existData); result.RowsAffected != 0 {
 			continue
 		}
-
 		isDefault := true
 		newSubsConfig := MessageSubscribeDAO{
 			Source:      subs.Source,
@@ -231,7 +225,6 @@ func subscribeDefault(recipientId uint, userName string, giteeUserName string) {
 			logrus.Errorf("create subs failed, err:%v", result.Error)
 			break
 		}
-
 		err = addPushConfig(int(newSubsConfig.Id), int64(recipientId))
 		if err != nil {
 			logrus.Errorf("add push config failed, err:%v", err)
