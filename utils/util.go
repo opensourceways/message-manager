@@ -144,18 +144,15 @@ func GetUserSigInfo(userName string) ([]string, error) {
 	if err != nil {
 		return []string{}, err
 	}
-
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return []string{}, err
 	}
 	defer resp.Body.Close()
-
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return []string{}, err
 	}
-
 	var repoSig SigInfo
 	err = json.Unmarshal(body, &repoSig)
 	if err != nil {
@@ -170,22 +167,18 @@ func GetUserAdminRepos(userName string) ([]string, error) {
 	var repos []GiteeRepo
 	page := 1
 	perPage := 100
-
 	for {
 		members, err := fetchUserRepos(userName, page, perPage)
 		if err != nil {
 			return nil, err // 直接返回 nil 而不是空切片
 		}
-
 		repos = append(repos, members...)
-
 		// 如果返回的成员少于每页数量，则表示没有更多数据
 		if len(members) < perPage {
 			break
 		}
 		page++
 	}
-
 	return filterAdminRepos(repos), nil
 }
 
@@ -195,24 +188,20 @@ func fetchUserRepos(userName string, page, perPage int) ([]GiteeRepo, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close() // 确保在函数结束时关闭响应体
-
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
-
 	var members []GiteeRepo
 	err = json.Unmarshal(body, &members)
 	if err != nil {
 		return nil, err
 	}
-
 	return members, nil
 }
 

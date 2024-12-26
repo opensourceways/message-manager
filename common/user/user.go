@@ -81,7 +81,6 @@ func getManagerToken(appId string, appSecret string) (string, error) {
 			return
 		}
 	}(resp.Body)
-
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
@@ -99,19 +98,16 @@ func GetEulerUserName(ctx *gin.Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	managerToken, err := getManagerToken(config.EulerAppId, config.EulerAppSecret)
 	if err != nil {
 		logrus.Errorf("get manager token failed, err:%v", err)
 		return "", err
 	}
-
 	userName, err := fetchUserName(managerToken, token, YGCookie)
 	if err != nil {
 		logrus.Errorf("get user name failed, err:%v", err)
 		return "", err
 	}
-
 	return userName, nil
 }
 
@@ -136,24 +132,20 @@ func fetchUserName(managerToken, userToken, YGCookie string) (string, error) {
 	req.Header.Add("token", managerToken)
 	req.Header.Add("user-token", userToken)
 	req.Header.Add("Cookie", OneIdUserCookie+"="+YGCookie)
-
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
 	}
 	defer resp.Body.Close()
-
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
 	}
-
 	var data GetUserInfoResponse
 	if err = json.Unmarshal(body, &data); err != nil {
 		return "", err
 	}
-
 	if data.UserName == "" {
 		return "", xerrors.Errorf("the user name is null")
 	}
