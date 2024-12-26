@@ -95,18 +95,10 @@ func getManagerToken(appId string, appSecret string) (string, error) {
 
 func GetEulerUserName(ctx *gin.Context) (string, error) {
 	token := ctx.Request.Header.Get("token")
-	Cookie := ctx.Request.Header.Get("Cookie")
-	var YGCookie string
-	re := regexp.MustCompile(`_Y_G_=(.*?)(?:;|$)`)
-	if re.MatchString(Cookie) {
-		match := re.FindStringSubmatch(Cookie)
-		if len(match) > 1 {
-			YGCookie = match[1]
-		}
+	YGCookie, err := extractYGCookie(ctx.Request.Header.Get("Cookie"))
+	if err != nil {
+		return "", err
 	}
-
-	url := fmt.Sprintf("%s/oneid/manager/personal/center/user?community=%s", config.AuthorHost,
-		config.EulerCommunity)
 
 	managerToken, err := getManagerToken(config.EulerAppId, config.EulerAppSecret)
 	if err != nil {
@@ -114,31 +106,49 @@ func GetEulerUserName(ctx *gin.Context) (string, error) {
 		return "", err
 	}
 
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		logrus.Errorf("create requeset failed, err:%v", err)
-		return "", err
-	}
-	req.Header.Add("token", managerToken)
-	req.Header.Add("user-token", token)
-	req.Header.Add("Cookie", OneIdUserCookie+"="+YGCookie)
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	userName, err := fetchUserName(managerToken, token, YGCookie)
 	if err != nil {
 		logrus.Errorf("get user name failed, err:%v", err)
 		return "", err
 	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			return
+
+	return userName, nil
+}
+
+func extractYGCookie(cookieHeader string) (string, error) {
+	re := regexp.MustCompile(`_Y_G_=(.*?)(?:;|$)`)
+	if re.MatchString(cookieHeader) {
+		match := re.FindStringSubmatch(cookieHeader)
+		if len(match) > 1 {
+			return match[1], nil
 		}
-	}(resp.Body)
+	}
+	return "", xerrors.Errorf("YG cookie not found")
+}
+
+func fetchUserName(managerToken, userToken, YGCookie string) (string, error) {
+	url := fmt.Sprintf("%s/oneid/manager/personal/center/user?community=%s", config.AuthorHost, config.EulerCommunity)
+
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Add("token", managerToken)
+	req.Header.Add("user-token", userToken)
+	req.Header.Add("Cookie", OneIdUserCookie+"="+YGCookie)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
 	}
+
 	var data GetUserInfoResponse
 	if err = json.Unmarshal(body, &data); err != nil {
 		return "", err
@@ -146,7 +156,6 @@ func GetEulerUserName(ctx *gin.Context) (string, error) {
 
 	if data.UserName == "" {
 		return "", xerrors.Errorf("the user name is null")
-	} else {
-		return data.UserName, nil
 	}
+	return data.UserName, nil
 }

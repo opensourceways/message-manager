@@ -26,11 +26,6 @@ func (m *MockMessageSubscribeAdapter) GetSubsConfig(userName string) (
 	return args.Get(0).([]MessageSubscribeDTOWithPushConfig), args.Get(1).(int64), args.Error(2)
 }
 
-func (m *MockMessageSubscribeAdapter) SaveFilter(cmd CmdToGetSubscribe, userName string) error {
-	args := m.Called(cmd, userName)
-	return args.Error(0)
-}
-
 func (m *MockMessageSubscribeAdapter) AddSubsConfig(cmd CmdToAddSubscribe, userName string) ([]uint, error) {
 	args := m.Called(cmd, userName)
 	return args.Get(0).([]uint), args.Error(1)
@@ -102,28 +97,6 @@ func TestGetSubsConfig(t *testing.T) {
 	assert.ErrorContains(t, err1, "查询失败")
 	assert.Equal(t, []MessageSubscribeDTO{}, data1)
 	assert.Equal(t, int64(0), count1)
-	mockAdapter.AssertExpectations(t)
-}
-
-func TestSaveFilter(t *testing.T) {
-	mockAdapter := new(MockMessageSubscribeAdapter)
-	service := NewMessageSubscribeAppService(mockAdapter)
-
-	userName := "testUser"
-	cmd := CmdToGetSubscribe{Source: "source1", EventType: "event_type", IsRead: "false"}
-	mockAdapter.On("SaveFilter", cmd, userName).Return(nil)
-
-	err := service.SaveFilter(userName, &cmd)
-
-	assert.NoError(t, err)
-	mockAdapter.AssertExpectations(t)
-
-	cmd1 := CmdToGetSubscribe{}
-	mockAdapter.On("SaveFilter", cmd1, "").Return(xerrors.Errorf("用户名为空"))
-
-	err1 := service.SaveFilter("", &cmd1)
-
-	assert.ErrorContains(t, err1, "用户名为空")
 	mockAdapter.AssertExpectations(t)
 }
 

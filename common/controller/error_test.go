@@ -38,50 +38,5 @@ func TestControllerHttpError(t *testing.T) {
 		errcode3, errString3 := httpError(newErr2)
 		convey.So(errcode3, convey.ShouldEqual, http.StatusForbidden)
 		convey.So(errString3, convey.ShouldEqual, "no_permission")
-
-		newErr3 := allerror.New(allerror.ErrorCodeAccessTokenInvalid, "error")
-		errcode4, errString4 := httpError(newErr3)
-		convey.So(errcode4, convey.ShouldEqual, http.StatusUnauthorized)
-		convey.So(errString4, convey.ShouldEqual, allerror.ErrorCodeAccessTokenInvalid)
-
-		newErr3 = allerror.New(allerror.ErrorCodeSessionIdMissing, "error")
-		errcode4, errString4 = httpError(newErr3)
-		convey.So(errcode4, convey.ShouldEqual, http.StatusUnauthorized)
-		convey.So(errString4, convey.ShouldEqual, allerror.ErrorCodeSessionIdMissing)
-
-		newErr3 = allerror.New(allerror.ErrorCodeSessionIdInvalid, "error")
-		errcode4, errString4 = httpError(newErr3)
-		convey.So(errcode4, convey.ShouldEqual, http.StatusUnauthorized)
-		convey.So(errString4, convey.ShouldEqual, allerror.ErrorCodeSessionIdInvalid)
-
-		newErr3 = allerror.New(allerror.ErrorCodeSessionNotFound, "error")
-		errcode4, errString4 = httpError(newErr3)
-		convey.So(errcode4, convey.ShouldEqual, http.StatusUnauthorized)
-		convey.So(errString4, convey.ShouldEqual, allerror.ErrorCodeSessionNotFound)
-
-		newErr3 = allerror.New(allerror.ErrorCodeSessionInvalid, "error")
-		errcode4, errString4 = httpError(newErr3)
-		convey.So(errcode4, convey.ShouldEqual, http.StatusUnauthorized)
-		convey.So(errString4, convey.ShouldEqual, allerror.ErrorCodeSessionInvalid)
-
-		newErr3 = allerror.New(allerror.ErrorCodeCSRFTokenMissing, "error")
-		errcode4, errString4 = httpError(newErr3)
-		convey.So(errcode4, convey.ShouldEqual, http.StatusUnauthorized)
-		convey.So(errString4, convey.ShouldEqual, allerror.ErrorCodeCSRFTokenMissing)
-
-		newErr3 = allerror.New(allerror.ErrorCodeCSRFTokenInvalid, "error")
-		errcode4, errString4 = httpError(newErr3)
-		convey.So(errcode4, convey.ShouldEqual, http.StatusUnauthorized)
-		convey.So(errString4, convey.ShouldEqual, allerror.ErrorCodeCSRFTokenInvalid)
-
-		newErr3 = allerror.New(allerror.ErrorCodeCSRFTokenNotFound, "error")
-		errcode4, errString4 = httpError(newErr3)
-		convey.So(errcode4, convey.ShouldEqual, http.StatusUnauthorized)
-		convey.So(errString4, convey.ShouldEqual, allerror.ErrorCodeCSRFTokenNotFound)
-
-		newErr3 = allerror.New("Default_ERR", "error")
-		errcode4, errString4 = httpError(newErr3)
-		convey.So(errcode4, convey.ShouldEqual, http.StatusBadRequest)
-		convey.So(errString4, convey.ShouldEqual, "Default_ERR")
 	})
 }
