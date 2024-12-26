@@ -5,13 +5,9 @@ Copyright (c) Huawei Technologies Co., Ltd. 2024. All rights reserved
 package infrastructure
 
 import (
-	"fmt"
 	"time"
 
-	"github.com/opensourceways/message-manager/utils"
-	"github.com/sirupsen/logrus"
 	"golang.org/x/xerrors"
-	"gorm.io/datatypes"
 	"gorm.io/gorm"
 
 	"github.com/opensourceways/message-manager/common/postgresql"
@@ -132,103 +128,6 @@ func (ctl *messageRecipientAdapter) SyncUserInfo(cmd CmdToSyncUserInfo) (uint, e
 	var id uint
 	getTable().Where(gorm.Expr("is_deleted = ?", false)).
 		Where("user_id = ?", cmd.UserName).Select("id").Scan(&id)
-	subscribeDefault(id, cmd.UserName, cmd.GiteeUserName)
 
 	return id, nil
-}
-
-func getDefaultFilter(giteeUserName string) ([]MessageSubscribeDAO, error) {
-	defaultFilter := []MessageSubscribeDAO{
-		{Source: utils.GiteeSource, EventType: "issue", SpecVersion: "1.0", ModeName: "指派给我的issue",
-			ModeFilter: datatypes.JSON(
-				fmt.Sprintf(`{"IssueEvent.Assignee.Login": "eq=%s"}`, giteeUserName)),
-			WebFilter: datatypes.JSON(fmt.Sprintf(
-				`{"issue_assignee": "%s", "event_type": "issue"}`, giteeUserName))},
-		{Source: utils.GiteeSource, EventType: "pr", SpecVersion: "1.0", ModeName: "待我处理的pr",
-			ModeFilter: datatypes.JSON(fmt.Sprintf(
-				`{"Assignees: "contains=%s"}`, giteeUserName)),
-			WebFilter: datatypes.JSON(fmt.Sprintf(
-				`{"pr_assignee": "%s", "event_type": "pr"}`, giteeUserName))},
-		{Source: utils.GiteeSource, EventType: "note", SpecVersion: "1.0", ModeName: "我提的issue的评论",
-			ModeFilter: datatypes.JSON(
-				fmt.Sprintf(`{"NoteEvent.Issue.User.Login": "eq=%s"}`, giteeUserName)),
-			WebFilter: datatypes.JSON(fmt.Sprintf(`{"note_type": "Issue", "event_type": "note"}`))},
-	}
-	return defaultFilter, nil
-}
-
-func addPushConfig(subsId int, recipientId int64) error {
-	needMessage, needPhone, needMail, needInnerMessage := new(bool), new(bool), new(bool), new(bool)
-	*needMessage = false
-	*needPhone = false
-	*needMail = false
-	*needInnerMessage = true
-	var existData MessagePushDAO
-	if result := postgresql.DB().Table("message_center.push_config").
-		Where(gorm.Expr("is_deleted = ?", false)).
-		Where("subscribe_id = ? AND recipient_id = ?", subsId, recipientId).
-		Scan(&existData); result.RowsAffected != 0 {
-		logrus.Errorf("the exist data is %v", existData)
-		return nil
-	}
-	if result := postgresql.DB().Table("message_center.push_config").
-		Create(MessagePushDAO{
-			SubscribeId:      subsId,
-			RecipientId:      recipientId,
-			NeedMessage:      needMessage,
-			NeedPhone:        needPhone,
-			NeedMail:         needMail,
-			NeedInnerMessage: needInnerMessage,
-			IsDeleted:        false,
-			CreatedAt:        time.Now(),
-			UpdatedAt:        time.Now(),
-		}); result.Error != nil {
-		return xerrors.Errorf("add push config failed, err:%v", result.Error)
-	}
-	return nil
-}
-
-func subscribeDefault(recipientId uint, userName string, giteeUserName string) {
-	if userName == "" || giteeUserName == "" {
-		logrus.Errorf("username is empty or gitee username is empty")
-		return
-	}
-	defaultFilter, err := getDefaultFilter(giteeUserName)
-	if err != nil {
-		logrus.Errorf("get default filter failed, err:%v", err)
-		return
-	}
-	for _, subs := range defaultFilter {
-		var existData MessageSubscribeDAO
-		if result := postgresql.DB().Table("message_center.subscribe_config").
-			Where(gorm.Expr("is_deleted = ?", false)).
-			Where("source = ? AND mode_name = ?", subs.Source, subs.ModeName).
-			Where("user_name = ?", userName).
-			Scan(&existData); result.RowsAffected != 0 {
-			continue
-		}
-		isDefault := true
-		newSubsConfig := MessageSubscribeDAO{
-			Source:      subs.Source,
-			EventType:   subs.EventType,
-			SpecVersion: subs.SpecVersion,
-			ModeFilter:  subs.ModeFilter,
-			WebFilter:   subs.WebFilter,
-			ModeName:    subs.ModeName,
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
-			UserName:    userName,
-			IsDefault:   &isDefault,
-		}
-		if result := postgresql.DB().Table("message_center.subscribe_config").
-			Create(&newSubsConfig); result.Error != nil {
-			logrus.Errorf("create subs failed, err:%v", result.Error)
-			break
-		}
-		err = addPushConfig(int(newSubsConfig.Id), int64(recipientId))
-		if err != nil {
-			logrus.Errorf("add push config failed, err:%v", err)
-			return
-		}
-	}
 }
