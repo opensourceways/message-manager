@@ -25,23 +25,6 @@ const (
 	giteeUserReposUrl = "https://gitee.com/api/v5/users/%s/repos?type=all&sort=full_name&page=%d&per_page=%d"
 )
 
-func ParseUnixTimestamp(timestampStr string) *time.Time {
-	if timestampStr == "" {
-		return nil
-	}
-	// 解析字符串为整数
-	timestamp, err := strconv.ParseInt(timestampStr, 10, 64)
-	if err != nil {
-		return nil
-	}
-	// 将毫秒转换为秒和纳秒
-	seconds := timestamp / 1000
-	nanoseconds := (timestamp % 1000) * 1000000
-	t := time.Unix(seconds, nanoseconds)
-	utcPlus8 := t.Add(8 * time.Hour)
-	return &utcPlus8
-}
-
 func ParseUnixTimestampNew(timestampStr string) *string {
 	if timestampStr == "" {
 		return nil
