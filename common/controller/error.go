@@ -19,12 +19,6 @@ type errorCode interface {
 	ErrorCode() string
 }
 
-type errorNoPermission interface {
-	errorCode
-
-	NoPermission()
-}
-
 func httpError(err error) (int, string) {
 	if err == nil {
 		return http.StatusOK, ""
@@ -35,11 +29,7 @@ func httpError(err error) (int, string) {
 
 	if v, ok := err.(errorCode); ok {
 		code = v.ErrorCode()
-
-		if _, ok := err.(errorNoPermission); ok {
-			sc = http.StatusForbidden
-		}
 	}
-
 	return sc, code
+
 }

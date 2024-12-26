@@ -17,7 +17,7 @@ func TestParseUnixTimestamp(t *testing.T) {
 		expected *time.Time
 	}{
 		{"", nil}, // 测试空字符串
-		{"1633072800", func() *time.Time {
+		{"1633072800000", func() *time.Time {
 			t := time.Unix(1633072800, 0)
 			return &t
 		}()},
