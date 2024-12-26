@@ -29,11 +29,6 @@ func TestControllerHttpError(t *testing.T) {
 		convey.So(errcode1, convey.ShouldEqual, http.StatusInternalServerError)
 		convey.So(errString1, convey.ShouldEqual, "system_error")
 
-		newErr1 := allerror.NewNotFound(allerror.ErrorCodeModelNotFound, "model not found")
-		errcode2, errString2 := httpError(newErr1)
-		convey.So(errcode2, convey.ShouldEqual, http.StatusNotFound)
-		convey.So(errString2, convey.ShouldEqual, allerror.ErrorCodeModelNotFound)
-
 		newErr2 := allerror.NewNoPermission("no permission")
 		errcode3, errString3 := httpError(newErr2)
 		convey.So(errcode3, convey.ShouldEqual, http.StatusForbidden)

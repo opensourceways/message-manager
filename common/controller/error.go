@@ -19,12 +19,6 @@ type errorCode interface {
 	ErrorCode() string
 }
 
-type errorNotFound interface {
-	errorCode
-
-	NotFound()
-}
-
 type errorNoPermission interface {
 	errorCode
 
@@ -41,10 +35,6 @@ func httpError(err error) (int, string) {
 
 	if v, ok := err.(errorCode); ok {
 		code = v.ErrorCode()
-
-		if _, ok := err.(errorNotFound); ok {
-			sc = http.StatusNotFound
-		}
 
 		if _, ok := err.(errorNoPermission); ok {
 			sc = http.StatusForbidden
