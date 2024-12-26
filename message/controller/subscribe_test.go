@@ -78,6 +78,37 @@ func TestGetAllSubsConfig(t *testing.T) {
 	assert.Equal(t, http.StatusUnauthorized, recorder.Code)
 }
 
+func TestGetSubsConfig(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.Default()
+	mockAppService := new(MockMessageSubscribeAppService)
+	AddRouterForMessageSubscribeController(router, mockAppService)
+
+	// Successful case
+	mockAppService.On("GetSubsConfig", "testUser").
+		Return([]app.MessageSubscribeDTO{{}}, int64(1), nil)
+
+	req, err := http.NewRequest(http.MethodGet, "/message_center/config/subs", nil)
+	if err != nil {
+		t.Fatal("Failed to create request:", err)
+	}
+	req.Header.Set("Authorization", "Bearer testToken")
+	recorder := httptest.NewRecorder()
+
+	router.ServeHTTP(recorder, req)
+
+	assert.Equal(t, http.StatusUnauthorized, recorder.Code)
+
+	// Error case
+	mockAppService.On("GetSubsConfig", "testUser").
+		Return(nil, int64(0), xerrors.New("db error"))
+
+	recorder = httptest.NewRecorder()
+	router.ServeHTTP(recorder, req)
+
+	assert.Equal(t, http.StatusUnauthorized, recorder.Code)
+}
+
 func TestAddSubsConfig(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	router := gin.Default()
