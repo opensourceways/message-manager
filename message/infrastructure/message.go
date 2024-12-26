@@ -221,6 +221,7 @@ func (s *messageAdapter) GetMeetingToDoMessage(userName string, filter int,
 	} else if filter == 2 {
 		query += ` where NOW() > to_timestamp(a.data_json ->> 'MeetingEndTime', 
 'YYYY-MM-DDHH24:MI')`
+	} else {
 	}
 	query += ` order by updated_at`
 	if result := postgresql.DB().Debug().Raw(query, userName).Scan(&response); result.Error != nil {
