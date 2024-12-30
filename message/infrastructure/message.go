@@ -5,13 +5,17 @@ Copyright (c) Huawei Technologies Co., Ltd. 2024. All rights reserved
 package infrastructure
 
 import (
+	"encoding/json"
 	"fmt"
+	"regexp"
+	"strings"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"golang.org/x/xerrors"
+	"gorm.io/gorm"
 
 	"github.com/opensourceways/message-manager/common/postgresql"
-	"github.com/opensourceways/message-manager/common/user"
 	"github.com/opensourceways/message-manager/utils"
 )
 

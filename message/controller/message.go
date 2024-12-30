@@ -65,7 +65,7 @@ type messageListController struct {
 // @Router			/message_center/inner/count [get]
 // @Id		countAllUnReadMessage
 func (ctl *messageListController) CountAllUnReadMessage(ctx *gin.Context) {
-	userName, err := user.GetSystemUserName(ctx)
+	userName, err := user.GetEulerUserName(ctx)
 	if err != nil {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
@@ -82,7 +82,7 @@ func (ctl *messageListController) CountAllUnReadMessage(ctx *gin.Context) {
 // @Summary			SetMessageIsRead
 // @Description		set message read
 // @Tags			message_center
-// @Param			eventId body []string true "eventId"
+// @Param			body body messageStatus true "messageStatus"
 // @Accept			json
 // @Success			202	string accepted 设置已读成功
 // @Failure         400 string bad_request 无法解析请求正文
@@ -90,18 +90,18 @@ func (ctl *messageListController) CountAllUnReadMessage(ctx *gin.Context) {
 // @Router			/message_center/inner [put]
 // @Id		setMessageIsRead
 func (ctl *messageListController) SetMessageIsRead(ctx *gin.Context) {
-	var messages []string
+	var messages []messageStatus
 	if err := ctx.BindJSON(&messages); err != nil {
 		ctx.JSON(http.StatusBadRequest, "无法解析请求正文")
 		return
 	}
-	userName, err := user.GetSystemUserName(ctx)
-	if err != nil {
-		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
-		return
-	}
-	for _, eventId := range messages {
-		if err := ctl.appService.SetMessageIsRead(userName, eventId); err != nil {
+	for _, msg := range messages {
+		cmd, err := msg.toCmd()
+		if err != nil {
+			commonctl.SendBadRequestParam(ctx, xerrors.Errorf("failed to convert req to cmd, %w", err))
+			return
+		}
+		if err := ctl.appService.SetMessageIsRead(&cmd); err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf(
 				"设置已读失败，err:%v", err)})
 			return
