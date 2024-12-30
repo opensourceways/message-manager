@@ -6,33 +6,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 )
-
-func TestParseUnixTimestamp(t *testing.T) {
-	tests := []struct {
-		input    string
-		expected *time.Time
-	}{
-		{"", nil}, // 测试空字符串
-		{"1633072800", func() *time.Time {
-			t := time.Unix(1633072800, 0)
-			return &t
-		}()},
-		{"invalid", nil}, // 测试无效的时间戳
-	}
-
-	for _, test := range tests {
-		result := ParseUnixTimestamp(test.input)
-		if (result == nil && test.expected != nil) || (result != nil && test.expected == nil) {
-			t.Errorf("expected %v, got %v", test.expected, result)
-		} else if result != nil && !result.Equal(*test.expected) {
-			t.Errorf("expected %v, got %v", *test.expected, *result)
-		}
-	}
-}
 
 func TestIsEurMessage(t *testing.T) {
 	if !IsEurMessage(EurSource) {

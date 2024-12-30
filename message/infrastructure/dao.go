@@ -78,6 +78,13 @@ type CountDAO struct {
 	Count  int    `json:"count"`
 }
 
+type CountDataDAO struct {
+	TodoCount    int64 `json:"todo_count"`
+	MeetingCount int64 `json:"meeting_count"`
+	AboutCount   int64 `json:"about_count"`
+	WatchCount   int64 `json:"watch_count"`
+}
+
 type CmdToGetInnerMessageQuick struct {
 	Source       string `json:"source"`
 	CountPerPage int    `json:"count_per_page"`

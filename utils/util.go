@@ -13,8 +13,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"golang.org/x/xerrors"
 )
 
 const (
@@ -27,23 +25,26 @@ const (
 	giteeUserReposUrl = "https://gitee.com/api/v5/users/%s/repos?type=all&sort=full_name&page=%d&per_page=%d"
 )
 
-func ParseUnixTimestamp(timestampStr string) *time.Time {
+func ParseUnixTimestampNew(timestampStr string) *string {
 	if timestampStr == "" {
 		return nil
 	}
+
 	// 解析字符串为整数
 	timestamp, err := strconv.ParseInt(timestampStr, 10, 64)
 	if err != nil {
 		return nil
 	}
+
 	// 将毫秒转换为秒和纳秒
 	seconds := timestamp / 1000
 	nanoseconds := (timestamp % 1000) * 1000000
-	t := time.Unix(seconds, nanoseconds)
-	utcPlus8 := t.Add(8 * time.Hour)
-	return &utcPlus8
-}
+	t := time.Unix(seconds, nanoseconds).UTC() // 转换为 UTC 时区
 
+	// 格式化时间为 PostgreSQL 可接受的格式
+	formattedTime := t.Format("2006-01-02 15:04:05.999999999 -0700")
+	return &formattedTime
+}
 func IsEurMessage(source string) bool {
 	return source == EurSource
 }
@@ -126,18 +127,15 @@ func GetUserSigInfo(userName string) ([]string, error) {
 	if err != nil {
 		return []string{}, err
 	}
-
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return []string{}, err
 	}
 	defer resp.Body.Close()
-
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return []string{}, err
 	}
-
 	var repoSig SigInfo
 	err = json.Unmarshal(body, &repoSig)
 	if err != nil {
@@ -148,64 +146,54 @@ func GetUserSigInfo(userName string) ([]string, error) {
 	}
 	return repoSig.Sig, nil
 }
-
 func GetUserAdminRepos(userName string) ([]string, error) {
 	var repos []GiteeRepo
 	page := 1
 	perPage := 100
-
-	var totalCount int
-
 	for {
-		url := fmt.Sprintf(giteeUserReposUrl, userName, page, perPage)
-		req, err := http.NewRequest("GET", url, nil)
+		members, err := fetchUserRepos(userName, page, perPage)
 		if err != nil {
-			return []string{}, err
+			return nil, err // 直接返回 nil 而不是空切片
 		}
-
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			return []string{}, err
-		}
-
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return []string{}, err
-		}
-
-		var members []GiteeRepo
-		err = json.Unmarshal(body, &members)
-		if err != nil {
-			return []string{}, err
-		}
-
 		repos = append(repos, members...)
-
-		if totalCount == 0 {
-			totalCount, err = strconv.Atoi(resp.Header.Get("total_count"))
-			if err != nil {
-				return []string{}, xerrors.Errorf("trans to int failed, err:%v", err)
-			}
-		}
-
+		// 如果返回的成员少于每页数量，则表示没有更多数据
 		if len(members) < perPage {
 			break
 		}
 		page++
-		err = resp.Body.Close()
-		if err != nil {
-			return []string{}, xerrors.Errorf("close body failed, err :%v", err)
-		}
 	}
+	return filterAdminRepos(repos), nil
+}
 
+func fetchUserRepos(userName string, page, perPage int) ([]GiteeRepo, error) {
+	url := fmt.Sprintf(giteeUserReposUrl, userName, page, perPage)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close() // 确保在函数结束时关闭响应体
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	var members []GiteeRepo
+	err = json.Unmarshal(body, &members)
+	if err != nil {
+		return nil, err
+	}
+	return members, nil
+}
+
+func filterAdminRepos(repos []GiteeRepo) []string {
 	var adminRepos []string
 	for _, repo := range repos {
 		if repo.Admin {
 			adminRepos = append(adminRepos, repo.FullName)
 		}
 	}
-	if len(adminRepos) == 0 {
-		return []string{}, nil // 确保返回空切片而不是 nil
-	}
-	return adminRepos, nil
+	return adminRepos
 }
