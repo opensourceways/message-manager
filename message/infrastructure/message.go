@@ -1075,7 +1075,7 @@ SELECT (SELECT count(*)
           AND tm.is_deleted IS false
           AND tm.is_done IS false
           AND tm.source = 'https://www.openEuler.org/meeting'
-          AND cem.time < current_timestamp) AS meeting_count,
+          AND cem.time >= current_timestamp) AS meeting_count,
 
        (SELECT count(*)
         FROM message_center.todo_message tm
