@@ -13,42 +13,12 @@ import (
 const (
 	// errorCodeNoPermission mean no permission
 	errorCodeNoPermission = "no_permission"
-
-	ErrorCodeAccessDenied = "unauthorized"
-
 	// ErrorCodeRepoNotFound means repo is not found
 	ErrorCodeRepoNotFound = "repo_not_found"
-
-	// ErrorCodeAccessTokenInvalid This error code is for restful api
-	ErrorCodeAccessTokenInvalid = "access_token_invalid"
-
-	// ErrorCodeSessionInvalid is const
-	ErrorCodeSessionInvalid = "session_invalid"
-
-	// ErrorCodeSessionIdInvalid is const
-	ErrorCodeSessionIdInvalid = "session_id_invalid"
-
-	// ErrorCodeSessionIdMissing is const
-	ErrorCodeSessionIdMissing = "session_id_missing"
-
-	// ErrorCodeSessionNotFound is const
-	ErrorCodeSessionNotFound = "session_not_found"
-
-	// ErrorCodeCSRFTokenMissing is const
-	ErrorCodeCSRFTokenMissing = "csrf_token_missing" // #nosec G101
-
-	// ErrorCodeCSRFTokenInvalid is const
-	ErrorCodeCSRFTokenInvalid = "csrf_token_invalid" // #nosec G101
-
-	// ErrorCodeCSRFTokenNotFound is const
-	ErrorCodeCSRFTokenNotFound = "csrf_token_not_found" // #nosec G101
-
 	// ErrorCodeEmptyRepo means the repo is empty
 	ErrorCodeEmptyRepo = "empty_repo"
-
 	// ErrorCodeModelNotFound means model is not found
 	ErrorCodeModelNotFound = "model_not_found"
-
 	// Invalid param
 	errorCodeInvalidParam = "invalid_param"
 )
@@ -89,9 +59,6 @@ type notfoudError struct {
 	errorImpl
 }
 
-// NotFound return empty
-func (e notfoudError) NotFound() {}
-
 // NewNotFound new the not found error
 func NewNotFound(code string, msg string) notfoudError {
 	return notfoudError{errorImpl: New(code, msg)}
@@ -113,9 +80,6 @@ func IsNotFound(err error) bool {
 type noPermissionError struct {
 	errorImpl
 }
-
-// NoPermission return empty
-func (e noPermissionError) NoPermission() {}
 
 // NewNoPermission new the no permission error
 func NewNoPermission(msg string) noPermissionError {
@@ -143,9 +107,6 @@ func NewInvalidParam(msg string) errorImpl {
 type limitRateError struct {
 	errorImpl
 }
-
-// OverLimit is a marker method for over limit rate error.
-func (l limitRateError) OverLimit() {}
 
 // NewOverLimit creates a new over limit error with the specified code and message.
 func NewOverLimit(code string, msg string) limitRateError {

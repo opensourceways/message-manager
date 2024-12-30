@@ -11,9 +11,6 @@ import (
 )
 
 type MessageListAppService interface {
-	GetInnerMessageQuick(userName string, cmd *CmdToGetInnerMessageQuick) ([]MessageListDTO,
-		int64, error)
-	GetInnerMessage(userName string, cmd *CmdToGetInnerMessage) ([]MessageListDTO, int64, error)
 	CountAllUnReadMessage(userName string) ([]CountDTO, error)
 	SetMessageIsRead(userName string, eventId string) error
 	RemoveMessage(userName string, eventId string) error
@@ -62,24 +59,6 @@ func NewMessageListAppService(
 
 type messageListAppService struct {
 	messageListAdapter domain.MessageListAdapter
-}
-
-func (s *messageListAppService) GetInnerMessageQuick(userName string,
-	cmd *CmdToGetInnerMessageQuick) ([]MessageListDTO, int64, error) {
-	response, count, err := s.messageListAdapter.GetInnerMessageQuick(*cmd, userName)
-	if err != nil {
-		return []MessageListDTO{}, 0, err
-	}
-	return response, count, nil
-}
-
-func (s *messageListAppService) GetInnerMessage(userName string,
-	cmd *CmdToGetInnerMessage) ([]MessageListDTO, int64, error) {
-	response, count, err := s.messageListAdapter.GetInnerMessage(*cmd, userName)
-	if err != nil {
-		return []MessageListDTO{}, 0, err
-	}
-	return response, count, nil
 }
 
 func (s *messageListAppService) CountAllUnReadMessage(userName string) ([]CountDTO, error) {

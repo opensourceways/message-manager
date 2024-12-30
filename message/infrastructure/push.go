@@ -30,13 +30,11 @@ func (s *messagePushAdapter) GetPushConfig(subsIds []string, countPerPage, pageN
 			"recipient_id").
 		Where(gorm.Expr("recipient_config.is_deleted = ?", false)).
 		Where("recipient_config.user_id = ?", userName)
-
 	var response []MessagePushDAO
 	if result := query.Limit(countPerPage).Offset(offsetNum).
 		Find(&response, "subscribe_id IN ?", subsIds); result.Error != nil {
 		return []MessagePushDAO{}, xerrors.Errorf("查询失败")
 	}
-
 	return response, nil
 }
 
@@ -49,7 +47,6 @@ func (s *messagePushAdapter) AddPushConfig(cmd CmdToAddPushConfig) error {
 		Scan(&existData); result.RowsAffected != 0 {
 		return xerrors.Errorf("新增配置失败，配置已存在")
 	}
-
 	if result := postgresql.DB().Table("message_center.push_config").
 		Create(MessagePushDAO{
 			SubscribeId:      cmd.SubscribeId,

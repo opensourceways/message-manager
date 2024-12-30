@@ -26,7 +26,6 @@ func AddRouterForMessageSubscribeController(
 	v1.GET("/subs", ctl.GetSubsConfig)
 	v1.GET("/subs/all", ctl.GetAllSubsConfig)
 	v1.POST("/subs", ctl.AddSubsConfig)
-	v1.POST("/subs_new", ctl.SaveFilter)
 	v1.PUT("/subs", ctl.UpdateSubsConfig)
 	v1.DELETE("/subs", ctl.RemoveSubsConfig)
 }
@@ -81,44 +80,6 @@ func (ctl *messageSubscribeController) GetSubsConfig(ctx *gin.Context) {
 			gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
 	} else {
 		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
-	}
-}
-
-// SaveFilter
-// @Summary			SaveFilter
-// @Description		save custom filter
-// @Tags			message_subscribe
-// @Accept			json
-// @Param			body body subscribeDTO true "subscribeDTO"
-// @Success			202	string accept  保存成功
-// @Failure         400 string bad_request  无法解析请求正文
-// @Failure			401	string unauthorized  用户未授权
-// @Failure			500	string system_error  保存失败
-// @Router			/message_center/config/subs_new [post]
-// @Id		saveFilter
-func (ctl *messageSubscribeController) SaveFilter(ctx *gin.Context) {
-	var req subscribeDTO
-	if err := ctx.BindJSON(&req); err != nil {
-		commonctl.SendBadRequestParam(ctx, xerrors.Errorf("failed to bind params, %w", err))
-		return
-	}
-
-	cmd, err := req.toCmd()
-	if err != nil {
-		commonctl.SendBadRequestParam(ctx,
-			xerrors.Errorf("failed to convert req to cmd, %w", err))
-		return
-	}
-	userName, err := user.GetSystemUserName(ctx)
-	if err != nil {
-		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
-		return
-	}
-	if err := ctl.appService.SaveFilter(userName, &cmd); err != nil {
-		ctx.JSON(http.StatusInternalServerError,
-			gin.H{"error": xerrors.Errorf("保存失败，err:%v", err)})
-	} else {
-		ctx.JSON(http.StatusAccepted, gin.H{"message": "保存成功"})
 	}
 }
 

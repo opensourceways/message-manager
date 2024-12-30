@@ -26,11 +26,6 @@ func (m *MockMessageSubscribeAdapter) GetSubsConfig(userName string) (
 	return args.Get(0).([]MessageSubscribeDTOWithPushConfig), args.Get(1).(int64), args.Error(2)
 }
 
-func (m *MockMessageSubscribeAdapter) SaveFilter(cmd CmdToGetSubscribe, userName string) error {
-	args := m.Called(cmd, userName)
-	return args.Error(0)
-}
-
 func (m *MockMessageSubscribeAdapter) AddSubsConfig(cmd CmdToAddSubscribe, userName string) ([]uint, error) {
 	args := m.Called(cmd, userName)
 	return args.Get(0).([]uint), args.Error(1)
@@ -72,58 +67,6 @@ func TestGetAllSubsConfig(t *testing.T) {
 
 	assert.ErrorContains(t, err1, "查询失败")
 	assert.Equal(t, []MessageSubscribeDTO{}, data1)
-	mockAdapter.AssertExpectations(t)
-}
-
-func TestGetSubsConfig(t *testing.T) {
-	mockAdapter := new(MockMessageSubscribeAdapter)
-	service := NewMessageSubscribeAppService(mockAdapter)
-
-	userName := "testUser"
-	mockData := []MessageSubscribeDTO{
-		{ModeName: "mode1"},
-	}
-	mockCount := int64(len(mockData))
-
-	mockAdapter.On("GetSubsConfig", userName).Return(mockData, mockCount, nil)
-
-	data, count, err := service.GetSubsConfig(userName)
-
-	assert.NoError(t, err)
-	assert.Equal(t, mockData, data)
-	assert.Equal(t, mockCount, count)
-	mockAdapter.AssertExpectations(t)
-
-	mockAdapter.On("GetSubsConfig", "").Return([]MessageSubscribeDTO{},
-		int64(0), xerrors.Errorf("查询失败"))
-
-	data1, count1, err1 := service.GetSubsConfig("")
-
-	assert.ErrorContains(t, err1, "查询失败")
-	assert.Equal(t, []MessageSubscribeDTO{}, data1)
-	assert.Equal(t, int64(0), count1)
-	mockAdapter.AssertExpectations(t)
-}
-
-func TestSaveFilter(t *testing.T) {
-	mockAdapter := new(MockMessageSubscribeAdapter)
-	service := NewMessageSubscribeAppService(mockAdapter)
-
-	userName := "testUser"
-	cmd := CmdToGetSubscribe{Source: "source1", EventType: "event_type", IsRead: "false"}
-	mockAdapter.On("SaveFilter", cmd, userName).Return(nil)
-
-	err := service.SaveFilter(userName, &cmd)
-
-	assert.NoError(t, err)
-	mockAdapter.AssertExpectations(t)
-
-	cmd1 := CmdToGetSubscribe{}
-	mockAdapter.On("SaveFilter", cmd1, "").Return(xerrors.Errorf("用户名为空"))
-
-	err1 := service.SaveFilter("", &cmd1)
-
-	assert.ErrorContains(t, err1, "用户名为空")
 	mockAdapter.AssertExpectations(t)
 }
 

@@ -25,8 +25,6 @@ func AddRouterForMessageListController(
 
 	v1 := r.Group("/message_center")
 	// basic
-	v1.POST("/inner", ctl.GetInnerMessage)
-	v1.GET("/inner_quick", ctl.GetInnerMessageQuick)
 	v1.GET("/inner/count", ctl.CountAllUnReadMessage)
 	v1.PUT("/inner", ctl.SetMessageIsRead)
 	v1.DELETE("/inner", ctl.RemoveMessage)
@@ -54,76 +52,6 @@ func AddRouterForMessageListController(
 
 type messageListController struct {
 	appService app.MessageListAppService
-}
-
-// GetInnerMessageQuick
-// @Summary			GetInnerMessageQuick
-// @Description		get inner message by filter
-// @Tags			message_center
-// @Accept			json
-// @Success			202	 {object}  app.MessageListDTO
-// @Failure			500	string system_error  查询失败
-// @Failure         400 string bad_request  请求参数错误
-// @Router			/message_center/inner_quick [get]
-// @Id		getInnerMessageQuick
-func (ctl *messageListController) GetInnerMessageQuick(ctx *gin.Context) {
-	var params queryInnerParamsQuick
-	if err := ctx.ShouldBindQuery(&params); err != nil {
-		commonctl.SendBadRequestParam(ctx, xerrors.Errorf("failed to bind params, %v", err))
-		return
-	}
-
-	cmd, err := params.toCmd()
-	if err != nil {
-		commonctl.SendBadRequestParam(ctx, xerrors.Errorf("failed to convert req to cmd, %v", err))
-
-		return
-	}
-	userName, err := user.GetSystemUserName(ctx)
-	if err != nil {
-		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
-		return
-	}
-	if data, count, err := ctl.appService.GetInnerMessageQuick(userName, &cmd); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
-	} else {
-		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
-	}
-}
-
-// GetInnerMessage
-// @Summary			GetInnerMessage
-// @Description		get inner message
-// @Tags			message_center
-// @Param           Params query queryInnerParams true "Query InnerParams"
-// @Accept			json
-// @Success			202	 {object}  app.MessageListDTO
-// @Failure			500	string system_error  查询失败
-// @Failure         400 string bad_request  无法解析请求正文
-// @Router			/message_center/inner [post]
-// @Id		getInnerMessage
-func (ctl *messageListController) GetInnerMessage(ctx *gin.Context) {
-	var params queryInnerParams
-	if err := ctx.ShouldBindJSON(&params); err != nil {
-		commonctl.SendBadRequestParam(ctx, xerrors.Errorf("failed to bind params, %v", err))
-		return
-	}
-
-	cmd, err := params.toCmd()
-	if err != nil {
-		commonctl.SendBadRequestParam(ctx, xerrors.Errorf("failed to convert req to cmd, %v", err))
-		return
-	}
-	userName, err := user.GetSystemUserName(ctx)
-	if err != nil {
-		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
-		return
-	}
-	if data, count, err := ctl.appService.GetInnerMessage(userName, &cmd); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf("查询失败，err:%v", err)})
-	} else {
-		ctx.JSON(http.StatusAccepted, gin.H{"query_info": data, "count": count})
-	}
 }
 
 // CountAllUnReadMessage
