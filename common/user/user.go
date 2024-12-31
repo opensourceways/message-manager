@@ -14,6 +14,7 @@ import (
 	"regexp"
 
 	"github.com/gin-gonic/gin"
+	"github.com/opensourceways/message-manager/common/postgresql"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/xerrors"
 )
@@ -92,7 +93,7 @@ func getManagerToken(appId string, appSecret string) (string, error) {
 	return data.ManagerToken, nil
 }
 
-func GetEulerUserName(ctx *gin.Context) (string, error) {
+func GetSystemUserName(ctx *gin.Context) (string, error) {
 	token := ctx.Request.Header.Get("token")
 	YGCookie, err := extractYGCookie(ctx.Request.Header.Get("Cookie"))
 	if err != nil {
@@ -150,4 +151,13 @@ func fetchUserName(managerToken, userToken, YGCookie string) (string, error) {
 		return "", xerrors.Errorf("the user name is null")
 	}
 	return data.UserName, nil
+}
+
+func GetThirdUserName(userName string) (string, error) {
+	var thirdUsername string
+	query := `select gitee_user_name from recipient_config where user_id = ?`
+	if result := postgresql.DB().Raw(query, userName).Scan(&thirdUsername); result.Error != nil {
+		return "", result.Error
+	}
+	return thirdUsername, nil
 }

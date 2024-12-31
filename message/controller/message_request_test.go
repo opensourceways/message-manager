@@ -69,12 +69,9 @@ func TestQueryInnerParamsQuickToCmd(t *testing.T) {
 
 func TestMessageStatusToCmd(t *testing.T) {
 	req := &messageStatus{
-		Source:  "status_source",
 		EventId: "event_123",
 	}
-
 	cmd, err := req.toCmd()
 	assert.NoError(t, err)
-	assert.Equal(t, "status_source", cmd.Source)
 	assert.Equal(t, "event_123", cmd.EventId)
 }
