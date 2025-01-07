@@ -45,7 +45,7 @@ type messageSubscribeController struct {
 // @Router			/message_center/config/subs/all [get]
 // @Id		getAllSubsConfig
 func (ctl *messageSubscribeController) GetAllSubsConfig(ctx *gin.Context) {
-	userName, err := user.GetEulerUserName(ctx)
+	userName, err := user.GetSystemUserName(ctx)
 	if err != nil {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
@@ -70,7 +70,7 @@ func (ctl *messageSubscribeController) GetAllSubsConfig(ctx *gin.Context) {
 // @Router			/message_center/config/subs [get]
 // @Id		getSubsConfig
 func (ctl *messageSubscribeController) GetSubsConfig(ctx *gin.Context) {
-	userName, err := user.GetEulerUserName(ctx)
+	userName, err := user.GetSystemUserName(ctx)
 	if err != nil {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
@@ -108,7 +108,7 @@ func (ctl *messageSubscribeController) AddSubsConfig(ctx *gin.Context) {
 			xerrors.Errorf("failed to convert req to cmd, %w", err))
 		return
 	}
-	userName, err := user.GetEulerUserName(ctx)
+	userName, err := user.GetSystemUserName(ctx)
 	if err != nil {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
@@ -146,7 +146,7 @@ func (ctl *messageSubscribeController) UpdateSubsConfig(ctx *gin.Context) {
 			xerrors.Errorf("failed to convert req to cmd, %w", err))
 		return
 	}
-	userName, err := user.GetEulerUserName(ctx)
+	userName, err := user.GetSystemUserName(ctx)
 	if err != nil {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return
@@ -183,7 +183,7 @@ func (ctl *messageSubscribeController) RemoveSubsConfig(ctx *gin.Context) {
 			xerrors.Errorf("failed to convert req to cmd, %w", err))
 		return
 	}
-	userName, err := user.GetEulerUserName(ctx)
+	userName, err := user.GetSystemUserName(ctx)
 	if err != nil {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return

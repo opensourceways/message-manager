@@ -104,7 +104,12 @@ func (ctl *messageRecipientAdapter) RemoveRecipientConfig(cmd CmdToDeleteRecipie
 
 func (ctl *messageRecipientAdapter) SyncUserInfo(cmd CmdToSyncUserInfo) (uint, error) {
 	var oldInfo RecipientController
-
+	if cmd.GiteeUserName != "" {
+		getTable().Where("gitee_user_name = ?", cmd.GiteeUserName).
+			Updates(map[string]interface{}{
+				"gitee_user_name": "",
+			})
+	}
 	if result := getTable().
 		Where("user_id = ?", cmd.UserName).
 		Scan(&oldInfo); result.RowsAffected != 0 {

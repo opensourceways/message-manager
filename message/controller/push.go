@@ -48,7 +48,7 @@ type messagePushController struct {
 func (ctl *messagePushController) GetPushConfig(ctx *gin.Context) {
 	subsIdsStr := ctx.DefaultQuery("subscribe_id", "")
 	subsIds := strings.Split(subsIdsStr, ",")
-	userName, err := user.GetEulerUserName(ctx)
+	userName, err := user.GetSystemUserName(ctx)
 	if err != nil {
 		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
 		return

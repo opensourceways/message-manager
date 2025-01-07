@@ -20,7 +20,7 @@ func Init(cfg *Config) error {
 	cluster.Port = cfg.Port
 	cluster.Authenticator = gocql.PasswordAuthenticator{
 		Username: cfg.User,
-		Password: cfg.Pwd,
+		Password: cfg.Password,
 	}
 	sessionInstance, err := cluster.CreateSession()
 	if err != nil {

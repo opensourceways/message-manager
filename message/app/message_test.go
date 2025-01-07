@@ -14,59 +14,78 @@ type MockMessageListAdapter struct {
 	mock.Mock
 }
 
-func (m *MockMessageListAdapter) GetAllToDoMessage(userName, giteeUsername string, isDone bool, pageNum, countPerPage int, startTime string) ([]domain.MessageListDO, int64, error) {
+func (m *MockMessageListAdapter) GetAllToDoMessage(userName, giteeUsername string, isDone *bool, pageNum, countPerPage int, startTime string, isRead *bool) ([]domain.MessageListDO, int64, error) {
+	//TODO implement me
 	panic("implement me")
 }
 
 func (m *MockMessageListAdapter) GetAllAboutMessage(userName, giteeUsername string, isBot *bool, pageNum, countPerPage int, startTime string, isRead *bool) ([]domain.MessageListDO, int64, error) {
+	//TODO implement me
 	panic("implement me")
 }
 
 func (m *MockMessageListAdapter) GetAllWatchMessage(userName, giteeUsername string, pageNum, countPerPage int, startTime string, isRead *bool) ([]domain.MessageListDO, int64, error) {
+	//TODO implement me
 	panic("implement me")
 }
 
 func (m *MockMessageListAdapter) GetForumSystemMessage(userName string, pageNum, countPerPage int, startTime string, isRead *bool) ([]domain.MessageListDO, int64, error) {
+	//TODO implement me
 	panic("implement me")
 }
 
 func (m *MockMessageListAdapter) GetForumAboutMessage(userName string, isBot *bool, pageNum, countPerPage int, startTime string, isRead *bool) ([]domain.MessageListDO, int64, error) {
+	//TODO implement me
 	panic("implement me")
 }
 
-func (m *MockMessageListAdapter) GetMeetingToDoMessage(userName string, filter int, pageNum, countPerPage int) ([]domain.MessageListDO, int64, error) {
+func (m *MockMessageListAdapter) GetMeetingToDoMessage(userName string, filter int, pageNum, countPerPage int, startTime string, isRead *bool) ([]domain.MessageListDO, int64, error) {
+	//TODO implement me
 	panic("implement me")
 }
 
-func (m *MockMessageListAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDone bool, pageNum, countPerPage int, startTime string) ([]domain.MessageListDO, int64, error) {
+func (m *MockMessageListAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDone *bool, pageNum, countPerPage int, startTime string, isRead *bool) ([]domain.MessageListDO, int64, error) {
+	//TODO implement me
 	panic("implement me")
 }
 
 func (m *MockMessageListAdapter) GetCVEMessage(userName, giteeUsername string, pageNum, countPerPage int, startTime string, isRead *bool) ([]domain.MessageListDO, int64, error) {
+	//TODO implement me
 	panic("implement me")
 }
 
-func (m *MockMessageListAdapter) GetIssueToDoMessage(userName, giteeUsername string, isDone bool, pageNum, countPerPage int, startTime string) ([]domain.MessageListDO, int64, error) {
+func (m *MockMessageListAdapter) GetIssueToDoMessage(userName, giteeUsername string, isDone *bool, pageNum, countPerPage int, startTime string, isRead *bool) ([]domain.MessageListDO, int64, error) {
+	//TODO implement me
 	panic("implement me")
 }
 
-func (m *MockMessageListAdapter) GetPullRequestToDoMessage(userName, giteeUsername string, isDone bool, pageNum, countPerPage int, startTime string) ([]domain.MessageListDO, int64, error) {
+func (m *MockMessageListAdapter) GetPullRequestToDoMessage(userName, giteeUsername string, isDone *bool, pageNum, countPerPage int, startTime string, isRead *bool) ([]domain.MessageListDO, int64, error) {
+	//TODO implement me
 	panic("implement me")
 }
 
 func (m *MockMessageListAdapter) GetGiteeAboutMessage(userName, giteeUsername string, isBot *bool, pageNum, countPerPage int, startTime string, isRead *bool) ([]domain.MessageListDO, int64, error) {
+	//TODO implement me
 	panic("implement me")
 }
 
 func (m *MockMessageListAdapter) GetGiteeMessage(userName, giteeUsername string, pageNum, countPerPage int, startTime string, isRead *bool) ([]domain.MessageListDO, int64, error) {
+	//TODO implement me
 	panic("implement me")
 }
 
 func (m *MockMessageListAdapter) GetEurMessage(userName string, pageNum, countPerPage int, startTime string, isRead *bool) ([]domain.MessageListDO, int64, error) {
+	//TODO implement me
 	panic("implement me")
 }
 
 func (m *MockMessageListAdapter) CountAllMessage(username, giteeUsername string) (domain.CountDataDO, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (m *MockMessageListAdapter) GetAllMessage(username string, pageNum, countPerPage int, isRead *bool) ([]domain.MessageListDO, int64, error) {
+	//TODO implement me
 	panic("implement me")
 }
 
@@ -116,11 +135,11 @@ func TestCountAllUnReadMessage(t *testing.T) {
 func TestSetMessageIsRead(t *testing.T) {
 	mockAdapter := new(MockMessageListAdapter)
 	service := NewMessageListAppService(mockAdapter)
+	userName := "testUser"
+	eventId := "event1"
+	mockAdapter.On("SetMessageIsRead", userName, eventId).Return(nil)
 
-	cmd := CmdToSetIsRead{Source: "test_source", EventId: "event1"}
-	mockAdapter.On("SetMessageIsRead", cmd.Source, cmd.EventId).Return(nil)
-
-	err := service.SetMessageIsRead(&cmd)
+	err := service.SetMessageIsRead(userName, eventId)
 
 	assert.NoError(t, err)
 	mockAdapter.AssertExpectations(t)
@@ -130,10 +149,11 @@ func TestSetMessageIsRead_Error(t *testing.T) {
 	mockAdapter := new(MockMessageListAdapter)
 	service := NewMessageListAppService(mockAdapter)
 
-	cmd := CmdToSetIsRead{Source: "test_source", EventId: "event1"}
-	mockAdapter.On("SetMessageIsRead", cmd.Source, cmd.EventId).Return(xerrors.New("error"))
+	userName := "testUser"
+	eventId := "event1"
+	mockAdapter.On("SetMessageIsRead", userName, eventId).Return(xerrors.New("error"))
 
-	err := service.SetMessageIsRead(&cmd)
+	err := service.SetMessageIsRead(userName, eventId)
 
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "set message is_read failed")
@@ -143,10 +163,11 @@ func TestRemoveMessage(t *testing.T) {
 	mockAdapter := new(MockMessageListAdapter)
 	service := NewMessageListAppService(mockAdapter)
 
-	cmd := CmdToSetIsRead{Source: "test_source", EventId: "event1"}
-	mockAdapter.On("RemoveMessage", cmd.Source, cmd.EventId).Return(nil)
+	userName := "testUser"
+	eventId := "event1"
+	mockAdapter.On("RemoveMessage", userName, eventId).Return(nil)
 
-	err := service.RemoveMessage(&cmd)
+	err := service.RemoveMessage(userName, eventId)
 
 	assert.NoError(t, err)
 	mockAdapter.AssertExpectations(t)
@@ -156,10 +177,11 @@ func TestRemoveMessage_Error(t *testing.T) {
 	mockAdapter := new(MockMessageListAdapter)
 	service := NewMessageListAppService(mockAdapter)
 
-	cmd := CmdToSetIsRead{Source: "test_source", EventId: "event1"}
-	mockAdapter.On("RemoveMessage", cmd.Source, cmd.EventId).Return(xerrors.New("error"))
+	userName := "testUser"
+	eventId := "event1"
+	mockAdapter.On("RemoveMessage", userName, eventId).Return(xerrors.New("error"))
 
-	err := service.RemoveMessage(&cmd)
+	err := service.RemoveMessage(userName, eventId)
 
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "set message is_read failed")
