@@ -7,6 +7,8 @@ package domain
 type MessageListAdapter interface {
 	CountAllUnReadMessage(userName string) ([]CountDO, error)
 	SetMessageIsRead(userName string, eventId string) error
+	SetAllMessageIsRead(userName, messageType, giteeUsername,
+		startTime string, isRead, isDone, isBot *bool, filter int) error
 	RemoveMessage(userName string, eventId string) error
 
 	GetAllToDoMessage(userName, giteeUsername string, isDone *bool, pageNum,

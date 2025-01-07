@@ -111,4 +111,5 @@ type QueryParams struct {
 	CountPerPage  int    `form:"count_per_page"`
 	StartTime     string `form:"start_time"`
 	IsRead        *bool  `form:"is_read"`
+	Type          string `form:"type"`
 }

@@ -27,6 +27,7 @@ func AddRouterForMessageListController(
 	// basic
 	v1.GET("/inner/count", ctl.CountAllUnReadMessage)
 	v1.PUT("/inner", ctl.SetMessageIsRead)
+	v1.PUT("/inner/all", ctl.SetAllMessageIsRead)
 	v1.DELETE("/inner", ctl.RemoveMessage)
 
 	//release-openeuler-summit
@@ -106,6 +107,37 @@ func (ctl *messageListController) SetMessageIsRead(ctx *gin.Context) {
 				"设置已读失败，err:%v", err)})
 			return
 		}
+	}
+	ctx.JSON(http.StatusAccepted, gin.H{"message": "设置已读成功"})
+}
+
+// SetAllMessageIsRead
+// @Summary			SetAllMessageIsRead
+// @Description		set all message read
+// @Tags			message_center
+// @Param			body body QueryParams true "QueryParams"
+// @Accept			json
+// @Success			202	string accepted 设置已读成功
+// @Failure         400 string bad_request 无法解析请求正文
+// @Failure			500	string system_error  设置已读失败
+// @Router			/message_center/inner/all [put]
+// @Id		setAllMessageIsRead
+func (ctl *messageListController) SetAllMessageIsRead(ctx *gin.Context) {
+	userName, err := user.GetSystemUserName(ctx)
+	if err != nil {
+		commonctl.SendUnauthorized(ctx, xerrors.Errorf("get username failed, err:%v", err))
+		return
+	}
+	var params QueryParams
+	if err := ctx.ShouldBindQuery(&params); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if err := ctl.appService.SetAllMessageIsRead(userName, params.Type, params.GiteeUserName,
+		params.StartTime, params.IsRead, params.IsDone, params.IsBot, params.Filter); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": xerrors.Errorf(
+			"设置已读失败，err:%v", err)})
+		return
 	}
 	ctx.JSON(http.StatusAccepted, gin.H{"message": "设置已读成功"})
 }

@@ -92,6 +92,44 @@ func (s *messageAdapter) SetMessageIsRead(userName string, eventId string) error
 	return nil
 }
 
+func (s *messageAdapter) SetAllMessageIsRead(userName, messageType, giteeUsername,
+	startTime string, isRead, isDone, isBot *bool, filter int) error {
+	var err error
+	switch messageType {
+	case "all-todo":
+		err = s.makeAllTodoMessageIsRead(userName, giteeUsername, isDone, startTime, isRead)
+	case "all-about":
+		err = s.makeAllAboutMessageIsRead(userName, giteeUsername, isBot, startTime, isRead)
+	case "all-watch":
+		err = s.makeAllWatchMessageIsRead(userName, giteeUsername, startTime, isRead)
+	case "all-meeting":
+		err = s.makeMeetingMessageIsRead(giteeUsername, filter, startTime, isRead)
+	case "forum-system":
+		err = s.makeForumSystemMessageIsRead(userName, startTime, isRead)
+	case "forum-about":
+		err = s.makeForumAboutMessageIsRead(userName, isBot, startTime, isRead)
+	case "cve-todo":
+		err = s.makeCVETodoMessageIsRead(userName, giteeUsername, isDone, startTime, isRead)
+	case "cve-watch":
+		err = s.makeCVEMessageIsRead(userName, giteeUsername, startTime, isRead)
+	case "issue-todo":
+		err = s.makeIssueTodoMessageIsRead(userName, giteeUsername, isDone, startTime, isRead)
+	case "pr-todo":
+		err = s.makePullRequestTodoMessageIsRead(userName, giteeUsername, isDone, startTime, isRead)
+	case "gitee-about":
+		err = s.makeGiteeAboutMessageIsRead(userName, giteeUsername, isBot, startTime, isRead)
+	case "gitee-watch":
+		err = s.makeGiteeMessageIsRead(userName, giteeUsername, startTime, isRead)
+	case "eur":
+		err = s.makeEurMessageIsRead(userName, startTime, isRead)
+	}
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *messageAdapter) RemoveMessage(userName string, eventId string) error {
 	query := `
     UPDATE message_center.follow_message
@@ -169,8 +207,7 @@ func (s *messageAdapter) GetAllToDoMessage(userName string, giteeUsername string
     select 
         cem.*,
         tm.is_read,
-        tm.is_done,
-        ROW_NUMBER() OVER (PARTITION BY tm.business_id, tm.recipient_id, cem.type ORDER BY cem.updated_at DESC) AS rn
+        tm.is_done
     from
         todo_message tm
     join
@@ -185,7 +222,7 @@ func (s *messageAdapter) GetAllToDoMessage(userName string, giteeUsername string
 	)
 	select *, count(*) over () as total_count
 	from latest_messages
-	where rn = 1`
+	where true`
 	filterTodoSql(&query, isDone, isRead, startTime)
 	query += ` order by updated_at desc limit ? offset ?`
 
@@ -203,20 +240,60 @@ func (s *messageAdapter) GetAllToDoMessage(userName string, giteeUsername string
 	return response, totalCount, nil
 }
 
+func (s *messageAdapter) makeAllTodoMessageIsRead(userName string, giteeUsername string,
+	isDone *bool, startTime string, isRead *bool) error {
+	query := `with latest_messages as (
+    select 
+        cem.*,
+        tm.is_read,
+        tm.is_done,
+		tm.recipient_id
+    from
+        todo_message tm
+    join
+        cloud_event_message cem ON cem.event_id = tm.latest_event_id
+    join
+        recipient_config rc ON rc.id = tm.recipient_id
+    where
+        tm.is_deleted = false
+        and rc.is_deleted = false
+        and ((rc.gitee_user_name != '' and rc.gitee_user_name = ?) OR rc.user_id = ?)
+        and cem.type <> 'meeting'
+	)
+	select *, count(*) over () as total_count
+	from latest_messages
+	where true`
+	filterTodoSql(&query, isDone, isRead, startTime)
+
+	queryIsRead := fmt.Sprintf(`with tobe_isread as (%s)
+        update todo_message set is_read = true where (latest_event_id, 
+		recipient_id) in (select event_id, recipient_id from tobe_isread)`, query)
+	if result := postgresql.DB().Debug().Raw(queryIsRead, giteeUsername,
+		userName); result.Error != nil {
+		return xerrors.Errorf("set is message failed, err:%v", result.Error)
+	}
+	return nil
+}
+
 func (s *messageAdapter) GetAllAboutMessage(userName string, giteeUsername string, isBot *bool,
 	pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
-	query := `select cem.*, rm.is_read, count(*) over () as total_count from cloud_event_message cem
-		join message_center.related_message rm on cem.event_id = rm.event_id
-		join message_center.recipient_config rc on rm.recipient_id = rc.id
-		where rm.is_deleted = false
-		and rc.is_deleted = false
-		and (
-		     (cem.type = 'note' and ((rc.gitee_user_name != '' and rc.gitee_user_name = ?) or rc.user_id = ?)`
+	query := `
+    select
+    	cem.*,
+    	rm.is_read,
+    	count(*) over () as total_count
+	from cloud_event_message cem
+	    join message_center.related_message rm on cem.event_id = rm.event_id
+	    join message_center.recipient_config rc on rm.recipient_id = rc.id
+	where rm.is_deleted = false
+	  	and rc.is_deleted = false
+	  	and (    
+	  	    (cem.type = 'note' and ((rc.gitee_user_name != '' and rc.gitee_user_name = ?) or rc.user_id = ?)`
 	if isBot != nil {
 		if *isBot {
-			query += ` and cem."user" IN ('openeuler-ci-bot','ci-robot','openeuler-sync-bot')`
+			query += ` and cem.user IN ('openeuler-ci-bot','ci-robot','openeuler-sync-bot')`
 		} else {
-			query += ` and cem."user" NOT IN ('openeuler-ci-bot','ci-robot','openeuler-sync-bot')`
+			query += ` and cem.user NOT IN ('openeuler-ci-bot','ci-robot','openeuler-sync-bot')`
 		}
 	}
 	query += `)`
@@ -243,6 +320,51 @@ func (s *messageAdapter) GetAllAboutMessage(userName string, giteeUsername strin
 		totalCount = response[0].TotalCount
 	}
 	return response, totalCount, nil
+}
+
+func (s *messageAdapter) makeAllAboutMessageIsRead(userName string, giteeUsername string, isBot *bool,
+	startTime string, isRead *bool) error {
+	query := `
+    select
+    	cem.*,
+    	rm.is_read,
+    	rm.recipient_id
+	from cloud_event_message cem
+	    join message_center.related_message rm on cem.event_id = rm.event_id
+	    join message_center.recipient_config rc on rm.recipient_id = rc.id
+	where rm.is_deleted = false
+	  	and rc.is_deleted = false
+	  	and (    
+	  	    (cem.type = 'note' and ((rc.gitee_user_name != '' and rc.gitee_user_name = ?) or rc.user_id = ?)`
+	if isBot != nil {
+		if *isBot {
+			query += ` and cem.user IN ('openeuler-ci-bot','ci-robot','openeuler-sync-bot')`
+		} else {
+			query += ` and cem.user NOT IN ('openeuler-ci-bot','ci-robot','openeuler-sync-bot')`
+		}
+	}
+	query += `)`
+	query += `or (cem.source = 'forum' and rc.user_id = ?`
+	if isBot != nil {
+		if *isBot {
+			query += ` and cem.data_json #>> '{Data, OriginalUsername}' = 'system'`
+		} else {
+			query += ` and cem.data_json #>> '{Data, OriginalUsername}' <> 'system'`
+		}
+	}
+	query += `))`
+	filterAboutSql(&query, isRead, startTime)
+
+	queryIsRead := fmt.Sprintf(`
+		with tobe_isread as (%s)
+		update related_messsage set is_read = true
+		where (event_id, recipient_id) in (select event_id, recipient_id from tobe_isread)`, query)
+
+	if result := postgresql.DB().Debug().Raw(queryIsRead, giteeUsername, userName,
+		userName); result.Error != nil {
+		return xerrors.Errorf("set is message failed, err:%v", result.Error)
+	}
+	return nil
 }
 
 func (s *messageAdapter) GetAllWatchMessage(userName string, giteeUsername string, pageNum,
@@ -280,6 +402,37 @@ func (s *messageAdapter) GetAllWatchMessage(userName string, giteeUsername strin
 	return response, totalCount, nil
 }
 
+func (s *messageAdapter) makeAllWatchMessageIsRead(userName string, giteeUsername string,
+	startTime string, isRead *bool) error {
+	query := `
+	with filtered_recipient as (
+        select *
+        from recipient_config
+        where not is_deleted and (user_id = ? or gitee_user_name = ?)
+	),
+	filtered_messages as (
+	    select fm.is_read, cem.*, fm.recipient_id
+	    from follow_message fm
+	    join cloud_event_message cem on cem.event_id = fm.event_id
+	    join filtered_recipient rc on rc.id = fm.recipient_id
+	    where not fm.is_deleted
+	)
+	select *
+	from filtered_messages 
+	where true`
+	filterFollowSql(&query, isRead, startTime)
+
+	queryIsRead := fmt.Sprintf(`
+		with tobe_isread as (%s)
+		update follow_message set is_read = true
+		where (event_id, recipient_id) in (select event_id, recipient_id from tobe_isread)`, query)
+
+	if result := postgresql.DB().Debug().Raw(queryIsRead, userName, giteeUsername); result.Error != nil {
+		return xerrors.Errorf("set is message failed, err:%v", result.Error)
+	}
+	return nil
+}
+
 func (s *messageAdapter) GetForumSystemMessage(userName string, pageNum,
 	countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 
@@ -315,6 +468,34 @@ func (s *messageAdapter) GetForumSystemMessage(userName string, pageNum,
 	return response, totalCount, nil
 }
 
+func (s *messageAdapter) makeForumSystemMessageIsRead(userName string, startTime string,
+	isRead *bool) error {
+	query := `with filtered_recipient as (
+    select *
+    from recipient_config
+    where not is_deleted and user_id = ?
+	),
+	filtered_messages as (
+	    select fm.is_read, cem.*, fm.recipient_id
+	    from follow_message fm
+	    join cloud_event_message cem on cem.event_id = fm.event_id
+	    join filtered_recipient rc on rc.id = fm.recipient_id
+	    where not fm.is_deleted
+	)
+	select *
+	from filtered_messages
+	where source = 'forum'`
+	filterFollowSql(&query, isRead, startTime)
+
+	queryIsRead := fmt.Sprintf(`with tobe_isread as (%s)
+		update follow_message set is_read = true where (event_id, 
+		recipient_id) in (select event_id, recipient_id from tobe_isread)`, query)
+	if result := postgresql.DB().Debug().Raw(queryIsRead, userName); result.Error != nil {
+		return xerrors.Errorf("set is message failed, err:%v", result.Error)
+	}
+	return nil
+}
+
 func (s *messageAdapter) GetForumAboutMessage(userName string, isBot *bool, pageNum,
 	countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	query := `select cem.*, rm.is_read, count(*) over () as total_count
@@ -346,6 +527,32 @@ func (s *messageAdapter) GetForumAboutMessage(userName string, isBot *bool, page
 		totalCount = response[0].TotalCount
 	}
 	return response, totalCount, nil
+}
+
+func (s *messageAdapter) makeForumAboutMessageIsRead(userName string, isBot *bool, startTime string,
+	isRead *bool) error {
+	query := `select cem.*, rm.is_read, rm.recipient_id
+		from related_message rm
+		join cloud_event_message cem on cem.event_id = rm.event_id
+		join recipient_config rc on rc.id = rm.recipient_id
+		where rm.is_deleted = false and rc.is_deleted = false
+		and cem.source = 'forum' and rc.user_id = ?`
+	if isBot != nil {
+		if *isBot {
+			query += ` and cem.data_json #>> '{Data, OriginalUsername}' = 'system'`
+		} else {
+			query += ` and cem.data_json #>> '{Data, OriginalUsername}' <> 'system'`
+		}
+	}
+	filterAboutSql(&query, isRead, startTime)
+
+	queryIsRead := fmt.Sprintf(`with tobe_isread as (%s)
+		update related_message set is_read = true where (event_id, 
+		recipient_id) in (select event_id, recipient_id from tobe_isread`, query)
+	if result := postgresql.DB().Debug().Raw(queryIsRead, userName); result.Error != nil {
+		return xerrors.Errorf("set is message failed, err:%v", result.Error)
+	}
+	return nil
 }
 
 func (s *messageAdapter) GetMeetingToDoMessage(username string, filter int,
@@ -391,6 +598,37 @@ func (s *messageAdapter) GetMeetingToDoMessage(username string, filter int,
 	return response, totalCount, nil
 }
 
+func (s *messageAdapter) makeMeetingMessageIsRead(giteeUsername string, filter int,
+	startTime string, isRead *bool) error {
+	query := `select a.*
+		from (
+		    select distinct on (tm.business_id, tm.recipient_id) tm.is_read, cem.*, tm.recipient_id
+		    from todo_message tm
+		    join cloud_event_message cem ON cem.event_id = tm.latest_event_id
+		    join recipient_config rc ON rc.id = tm.recipient_id
+		    where rc.is_deleted = false
+		    and tm.is_deleted = false
+		    and cem.type = 'meeting'
+		    and (rc.gitee_user_name != '' and rc.gitee_user_name = ?)
+		    order by tm.business_id, tm.recipient_id, cem.updated_at desc
+		) as a where true`
+
+	if filter == 1 {
+		query += ` and NOW() <= time`
+	} else if filter == 2 {
+		query += ` and NOW() > time`
+	}
+	filterMeetingTodoSql(&query, nil, isRead, startTime)
+
+	queryIsRead := fmt.Sprintf(`with tobe_isread as (%s)
+		update todo_message set is_read = true where (latest_event_id, 
+		recipient_id) in (select event_id, recipient_id from tobe_isread)`, query)
+	if result := postgresql.DB().Debug().Raw(queryIsRead, giteeUsername); result.Error != nil {
+		return xerrors.Errorf("set is message failed, err:%v", result.Error)
+	}
+	return nil
+}
+
 func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDone *bool, pageNum,
 	countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	if giteeUsername == "" {
@@ -421,6 +659,28 @@ func (s *messageAdapter) GetCVEToDoMessage(userName, giteeUsername string, isDon
 		totalCount = response[0].TotalCount
 	}
 	return response, totalCount, nil
+}
+
+func (s *messageAdapter) makeCVETodoMessageIsRead(userName, giteeUsername string, isDone *bool,
+	startTime string, isRead *bool) error {
+	query := `select * from (
+    	select distinct on (tm.business_id, tm.recipient_id) cem.*, 
+        	tm.is_read, tm.is_done, tm.recipient_id from todo_message tm
+		join cloud_event_message cem on cem.event_id = tm.latest_event_id
+		join recipient_config rc on rc.id = tm.recipient_id
+		where rc.is_deleted = false and tm.is_deleted = false
+		and cem.source = 'cve'
+		and ((rc.gitee_user_name != '' and rc.gitee_user_name = ?) or rc.user_id = ?)
+		order by tm.business_id, tm.recipient_id, cem.updated_at desc) a where true`
+	filterTodoSql(&query, isDone, isRead, startTime)
+
+	queryIsRead := fmt.Sprintf(`with tobe_isread as (%s)
+		update todo_message set is_read = true where (latest_event_id, 
+		recipient_id) in (select event_id, recipient_id from tobe_isread)`, query)
+	if result := postgresql.DB().Debug().Raw(queryIsRead, giteeUsername, userName); result.Error != nil {
+		return xerrors.Errorf("set is message failed, err:%v", result.Error)
+	}
+	return nil
 }
 
 func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string, pageNum, countPerPage int,
@@ -461,6 +721,34 @@ func (s *messageAdapter) GetCVEMessage(userName, giteeUsername string, pageNum, 
 	return response, totalCount, nil
 }
 
+func (s *messageAdapter) makeCVEMessageIsRead(userName, giteeUsername string, startTime string,
+	isRead *bool) error {
+	query := `with filtered_recipient as (
+    select *
+    from recipient_config
+    where not is_deleted and ((gitee_user_name != '' and gitee_user_name = ?) or user_id = ?)
+	),
+	filtered_messages as (
+	    select fm.is_read, cem.*, fm.recipient_id
+	    from follow_message fm
+	    join cloud_event_message cem on cem.event_id = fm.event_id
+	    join filtered_recipient rc on rc.id = fm.recipient_id
+	    where not fm.is_deleted
+	)
+	select *
+	from filtered_messages
+	where source = 'cve'`
+	filterFollowSql(&query, isRead, startTime)
+
+	queryIsRead := fmt.Sprintf(`with tobe_isread as (%s)
+		update follow_message set is_read = true where (event_id, 
+		recipient_id) in (select event_id, recipient_id from tobe_isread)`, query)
+	if result := postgresql.DB().Debug().Raw(queryIsRead, giteeUsername, userName); result.Error != nil {
+		return xerrors.Errorf("set is message failed, err:%v", result.Error)
+	}
+	return nil
+}
+
 func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isDone *bool,
 	pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	if giteeUsername == "" {
@@ -495,6 +783,29 @@ func (s *messageAdapter) GetIssueToDoMessage(userName, giteeUsername string, isD
 	return response, totalCount, nil
 }
 
+func (s *messageAdapter) makeIssueTodoMessageIsRead(userName, giteeUsername string, isDone *bool,
+	startTime string, isRead *bool) error {
+	query := `select * from
+        (
+		select DISTINCT ON (tm.business_id, tm.recipient_id) cem.*, 
+			tm.is_read, tm.is_done, tm.recipient_id from todo_message tm
+		join cloud_event_message cem on cem.event_id = latest_event_id
+		join recipient_config rc on rc.id = tm.recipient_id
+		where tm.is_deleted = false and rc.is_deleted = false
+		and cem.type = 'issue' and cem.source = 'https://gitee.com'
+		and ((rc.gitee_user_name != '' and rc.gitee_user_name = ?) or rc.user_id = ?)
+		order by tm.business_id, tm.recipient_id, cem.updated_at desc) a where true`
+	filterTodoSql(&query, isDone, isRead, startTime)
+
+	queryIsRead := fmt.Sprintf(`with tobe_isread as (%s)
+		update todo_message set is_read = true where (latest_event_id, 
+		recipient_id) in (select event_id, recipient_id from tobe_isread)`, query)
+	if result := postgresql.DB().Debug().Raw(queryIsRead, giteeUsername, userName); result.Error != nil {
+		return xerrors.Errorf("set is message failed, err:%v", result.Error)
+	}
+	return nil
+}
+
 func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername string, isDone *bool,
 	pageNum, countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	if giteeUsername == "" {
@@ -527,6 +838,28 @@ func (s *messageAdapter) GetPullRequestToDoMessage(userName, giteeUsername strin
 		totalCount = response[0].TotalCount
 	}
 	return response, totalCount, nil
+}
+
+func (s *messageAdapter) makePullRequestTodoMessageIsRead(userName, giteeUsername string, isDone *bool,
+	startTime string, isRead *bool) error {
+	query := `select * from
+        (
+		select DISTINCT ON (tm.business_id, tm.recipient_id) cem.*, 
+			tm.is_read, tm.is_done, tm.recipient_id from todo_message tm
+		join cloud_event_message cem on cem.event_id = latest_event_id
+		join recipient_config rc on rc.id = tm.recipient_id
+		where tm.is_deleted = false and rc.is_deleted = false
+		and cem.type = 'pr' and ((rc.gitee_user_name != '' and rc.gitee_user_name = ?) or rc.user_id = ?)
+		order by tm.business_id, tm.recipient_id, cem.updated_at desc) a where true`
+	filterTodoSql(&query, isDone, isRead, startTime)
+
+	queryIsRead := fmt.Sprintf(`with tobe_isread as (%s)
+		update todo_message set is_read = true where (latest_event_id, 
+		recipient_id) in (select event_id, recipient_id from tobe_isread)`, query)
+	if result := postgresql.DB().Debug().Raw(queryIsRead, giteeUsername, userName); result.Error != nil {
+		return xerrors.Errorf("set is message failed, err:%v", result.Error)
+	}
+	return nil
 }
 
 func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, isBot *bool,
@@ -567,6 +900,33 @@ func (s *messageAdapter) GetGiteeAboutMessage(userName, giteeUsername string, is
 	return response, totalCount, nil
 }
 
+func (s *messageAdapter) makeGiteeAboutMessageIsRead(userName, giteeUsername string, isBot *bool,
+	startTime string, isRead *bool) error {
+	query := `select cem.*, rm.is_read, rm.recipient_id
+		from cloud_event_message cem
+			join message_center.related_message rm on cem.event_id = rm.event_id
+			join message_center.recipient_config rc on rm.recipient_id = rc.id
+		where cem.type = 'note'
+		and cem.source = 'https://gitee.com'
+		and rm.is_deleted = false and rc.is_deleted = false
+		and ((rc.gitee_user_name != '' and rc.gitee_user_name = ?) or rc.user_id = ?)`
+	if isBot != nil {
+		if *isBot {
+			query += ` and cem."user" IN ('openeuler-ci-bot','ci-robot','openeuler-sync-bot') `
+		} else {
+			query += ` and cem."user" NOT IN ('openeuler-ci-bot','ci-robot','openeuler-sync-bot') `
+		}
+	}
+	filterAboutSql(&query, isRead, startTime)
+	queryIsRead := fmt.Sprintf(`with tobe_isread as (%s)
+		update related_message set is_read = true where (event_id, 
+		recipient_id) in (select event_id, recipient_id from tobe_isread)`, query)
+	if result := postgresql.DB().Debug().Raw(queryIsRead, giteeUsername, userName); result.Error != nil {
+		return xerrors.Errorf("set is message failed, err:%v", result.Error)
+	}
+	return nil
+}
+
 func (s *messageAdapter) GetGiteeMessage(userName, giteeUsername string, pageNum,
 	countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	query := `with filtered_recipient as (
@@ -602,6 +962,33 @@ func (s *messageAdapter) GetGiteeMessage(userName, giteeUsername string, pageNum
 	return response, totalCount, nil
 }
 
+func (s *messageAdapter) makeGiteeMessageIsRead(userName, giteeUsername string, startTime string,
+	isRead *bool) error {
+	query := `with filtered_recipient as (
+    select *
+    from recipient_config
+    where not is_deleted and ((gitee_user_name != '' and gitee_user_name = ?) or user_id = ?)
+	),
+	filtered_messages as (
+	    select fm.is_read, cem.*, fm.recipient_id
+	    from follow_message fm
+	    join cloud_event_message cem on cem.event_id = fm.event_id
+	    join filtered_recipient rc on rc.id = fm.recipient_id
+	    where not fm.is_deleted
+	)
+	select *
+	from filtered_messages
+	where source = 'https://gitee.com'`
+	filterFollowSql(&query, isRead, startTime)
+	queryIsRead := fmt.Sprintf(`with tobe_isread as (%s)
+		update follow_message set is_read = true where (event_id, 
+		recipient_id) in (select event_id, recipient_id from tobe_isread)`, query)
+	if result := postgresql.DB().Debug().Raw(queryIsRead, giteeUsername, userName); result.Error != nil {
+		return xerrors.Errorf("set is message failed, err:%v", result.Error)
+	}
+	return nil
+}
+
 func (s *messageAdapter) GetEurMessage(userName string, pageNum,
 	countPerPage int, startTime string, isRead *bool) ([]MessageListDAO, int64, error) {
 	query := `with filtered_recipient as (
@@ -634,6 +1021,33 @@ func (s *messageAdapter) GetEurMessage(userName string, pageNum,
 		totalCount = response[0].TotalCount
 	}
 	return response, totalCount, nil
+}
+
+func (s *messageAdapter) makeEurMessageIsRead(userName string, startTime string,
+	isRead *bool) error {
+	query := `with filtered_recipient as (
+    select *
+    from recipient_config
+    where not is_deleted and user_id = ?
+	),
+	filtered_messages as (
+	    select fm.is_read, cem.*
+	    from follow_message fm
+	    join cloud_event_message cem on cem.event_id = fm.event_id
+	    join filtered_recipient rc on rc.id = fm.recipient_id
+	    where not fm.is_deleted
+	)
+	select *
+	from filtered_messages
+	where source = 'https://eur.openeuler.openatom.cn'`
+	filterFollowSql(&query, isRead, startTime)
+	queryIsRead := fmt.Sprintf(`with tobe_isread as (%s)
+		update follow_message set is_read = true where (event_id, 
+		recipient_id) in (select event_id, recipient_id from tobe_isread)`, query)
+	if result := postgresql.DB().Debug().Raw(queryIsRead, userName); result.Error != nil {
+		return xerrors.Errorf("set is message failed, err:%v", result.Error)
+	}
+	return nil
 }
 
 func (s *messageAdapter) CountAllMessage(userName string, giteeUserName string) (CountDataDAO, error) {

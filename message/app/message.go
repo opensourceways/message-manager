@@ -13,6 +13,8 @@ import (
 type MessageListAppService interface {
 	CountAllUnReadMessage(userName string) ([]CountDTO, error)
 	SetMessageIsRead(userName string, eventId string) error
+	SetAllMessageIsRead(userName, messageType, giteeUsername, startTime string, isRead,
+		isDone, isBot *bool, filter int) error
 	RemoveMessage(userName string, eventId string) error
 
 	GetAllToDoMessage(userName string, giteeUsername string, isDone *bool,
@@ -71,6 +73,15 @@ func (s *messageListAppService) CountAllUnReadMessage(userName string) ([]CountD
 
 func (s *messageListAppService) SetMessageIsRead(userName string, eventId string) error {
 	if err := s.messageListAdapter.SetMessageIsRead(userName, eventId); err != nil {
+		return xerrors.Errorf("set message is_read failed, err:%v", err.Error())
+	}
+	return nil
+}
+
+func (s *messageListAppService) SetAllMessageIsRead(userName, messageType, giteeUsername,
+	startTime string, isRead, isDone, isBot *bool, filter int) error {
+	if err := s.messageListAdapter.SetAllMessageIsRead(userName, messageType, giteeUsername,
+		startTime, isRead, isDone, isBot, filter); err != nil {
 		return xerrors.Errorf("set message is_read failed, err:%v", err.Error())
 	}
 	return nil
