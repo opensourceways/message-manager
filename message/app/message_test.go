@@ -14,6 +14,11 @@ type MockMessageListAdapter struct {
 	mock.Mock
 }
 
+func (m *MockMessageListAdapter) SetAllMessageIsRead(userName, messageType, giteeUsername, startTime string, isRead, isDone, isBot *bool, filter int) error {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (m *MockMessageListAdapter) GetAllToDoMessage(userName, giteeUsername string, isDone *bool, pageNum, countPerPage int, startTime string, isRead *bool) ([]domain.MessageListDO, int64, error) {
 	//TODO implement me
 	panic("implement me")
