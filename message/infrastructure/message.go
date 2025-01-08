@@ -94,40 +94,54 @@ func (s *messageAdapter) SetMessageIsRead(userName string, eventId string) error
 
 func (s *messageAdapter) SetAllMessageIsRead(userName, messageType, giteeUsername,
 	startTime string, isRead, isDone, isBot *bool, filter int) error {
-	var err error
-	switch messageType {
-	case "all-todo":
-		err = s.makeAllTodoMessageIsRead(userName, giteeUsername, isDone, startTime, isRead)
-	case "all-about":
-		err = s.makeAllAboutMessageIsRead(userName, giteeUsername, isBot, startTime, isRead)
-	case "all-watch":
-		err = s.makeAllWatchMessageIsRead(userName, giteeUsername, startTime, isRead)
-	case "all-meeting":
-		err = s.makeMeetingMessageIsRead(giteeUsername, filter, startTime, isRead)
-	case "forum-system":
-		err = s.makeForumSystemMessageIsRead(userName, startTime, isRead)
-	case "forum-about":
-		err = s.makeForumAboutMessageIsRead(userName, isBot, startTime, isRead)
-	case "cve-todo":
-		err = s.makeCVETodoMessageIsRead(userName, giteeUsername, isDone, startTime, isRead)
-	case "cve-watch":
-		err = s.makeCVEMessageIsRead(userName, giteeUsername, startTime, isRead)
-	case "issue-todo":
-		err = s.makeIssueTodoMessageIsRead(userName, giteeUsername, isDone, startTime, isRead)
-	case "pr-todo":
-		err = s.makePullRequestTodoMessageIsRead(userName, giteeUsername, isDone, startTime, isRead)
-	case "gitee-about":
-		err = s.makeGiteeAboutMessageIsRead(userName, giteeUsername, isBot, startTime, isRead)
-	case "gitee-watch":
-		err = s.makeGiteeMessageIsRead(userName, giteeUsername, startTime, isRead)
-	case "eur":
-		err = s.makeEurMessageIsRead(userName, startTime, isRead)
+
+	handlers := map[string]func() error{
+		"all-todo": func() error {
+			return s.makeAllTodoMessageIsRead(userName, giteeUsername, isDone, startTime, isRead)
+		},
+		"all-about": func() error {
+			return s.makeAllAboutMessageIsRead(userName, giteeUsername, isBot, startTime, isRead)
+		},
+		"all-watch": func() error {
+			return s.makeAllWatchMessageIsRead(userName, giteeUsername, startTime, isRead)
+		},
+		"all-meeting": func() error {
+			return s.makeMeetingMessageIsRead(giteeUsername, filter, startTime, isRead)
+		},
+		"forum-system": func() error {
+			return s.makeForumSystemMessageIsRead(userName, startTime, isRead)
+		},
+		"forum-about": func() error {
+			return s.makeForumAboutMessageIsRead(userName, isBot, startTime, isRead)
+		},
+		"cve-todo": func() error {
+			return s.makeCVETodoMessageIsRead(userName, giteeUsername, isDone, startTime, isRead)
+		},
+		"cve-watch": func() error {
+			return s.makeCVEMessageIsRead(userName, giteeUsername, startTime, isRead)
+		},
+		"issue-todo": func() error {
+			return s.makeIssueTodoMessageIsRead(userName, giteeUsername, isDone, startTime, isRead)
+		},
+		"pr-todo": func() error {
+			return s.makePullRequestTodoMessageIsRead(userName, giteeUsername, isDone, startTime, isRead)
+		},
+		"gitee-about": func() error {
+			return s.makeGiteeAboutMessageIsRead(userName, giteeUsername, isBot, startTime, isRead)
+		},
+		"gitee-watch": func() error {
+			return s.makeGiteeMessageIsRead(userName, giteeUsername, startTime, isRead)
+		},
+		"eur": func() error {
+			return s.makeEurMessageIsRead(userName, startTime, isRead)
+		},
 	}
 
-	if err != nil {
-		return err
+	handler, exists := handlers[messageType]
+	if !exists {
+		return fmt.Errorf("unsupported messageType: %s", messageType)
 	}
-	return nil
+	return handler()
 }
 
 func (s *messageAdapter) RemoveMessage(userName string, eventId string) error {
